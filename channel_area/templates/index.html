@@ -354,8 +354,19 @@
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, 0, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        var shape = document.getElementById('shape').value;
+        var dispPts = getShapePoints(shape);
+        var idx = dispPts.length - 1;
+        var best = Infinity;
+        for (var i = 0; i < dispPts.length; i++) {
+          var a = dispPts[i];
+          var b = dispPts[(i + 1) % dispPts.length];
+          var d = pointSegmentDistance({x: x, y: y}, a, b);
+          if (d < best) { best = d; idx = i; }
+        }
+        var base = toBaseCoords({x: x, y: y}, shape);
         saveState();
-        points.push({x: x, y: y});
+        points.splice(idx + 1, 0, base);
         numPoints = points.length;
         draw();
       }
@@ -493,6 +504,18 @@
         return Math.max(min, Math.min(max, v));
       }
 
+      function pointSegmentDistance(p, a, b) {
+        var dx = b.x - a.x;
+        var dy = b.y - a.y;
+        var len2 = dx * dx + dy * dy;
+        if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+        var t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+        t = clamp(t, 0, 1);
+        var projX = a.x + t * dx;
+        var projY = a.y + t * dy;
+        return Math.hypot(p.x - projX, p.y - projY);
+      }
+
       function saveState() {
         undoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
         if (undoStack.length > 50) undoStack.shift();
@@ -540,12 +563,7 @@
 
       function applyOrientation(pts, shape) {
         if (orientation == 0) return pts;
-        var ang = 0;
-        if (shape == 'rectangle') {
-          ang = Math.PI / 4;
-        } else if (shape == 'polygon') {
-          ang = Math.PI / pts.length;
-        }
+        var ang = orientationAngle(shape, pts.length);
         if (ang === 0) return pts;
         var cx = canvas.width / 2;
         var cy = canvas.height;
@@ -559,6 +577,26 @@
           });
         }
         return rot;
+      }
+
+      function orientationAngle(shape, n) {
+        if (orientation == 0) return 0;
+        if (shape == 'rectangle') return Math.PI / 4;
+        if (shape == 'polygon') return Math.PI / (n || points.length);
+        return 0;
+      }
+
+      function toBaseCoords(pt, shape) {
+        var ang = orientationAngle(shape);
+        if (ang === 0) return pt;
+        var cx = canvas.width / 2;
+        var cy = canvas.height;
+        var dx = pt.x - cx;
+        var dy = pt.y - cy;
+        return {
+          x: cx + dx * Math.cos(-ang) - dy * Math.sin(-ang),
+          y: cy + dx * Math.sin(-ang) + dy * Math.cos(-ang)
+        };
       }
 
       function undoEdit() {

@@ -57,9 +57,10 @@ files are saved as SVG under `channel_area/shapes` and managed from the
 the **New Channel** dialog to choose a shape type, units and dimensions when
 starting a drawing.
 
-An **Add Points** checkbox lets you insert new vector points anywhere on the
-canvas with a double-click. When the option is disabled, double-clicking selects
-a point for editing instead.
+An **Add Points** checkbox lets you insert new vector points with a double
+click. The point is placed on the edge closest to where you clicked so the
+polygon updates naturally. When the option is disabled, a double click selects a
+point for editing instead.
 
 A simple menu at the top of the page provides quick access to the **New
 Channel** and **Manage Shapes** dialogs, and the application now uses a basic
