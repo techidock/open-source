@@ -13,14 +13,10 @@ def index():
         if shape == 'circular':
             radius = float(request.form.get('radius', 0))
             area = math.pi * radius ** 2
-        elif shape == 'river':
+        elif shape == 'rectangle':
             width = float(request.form.get('width', 0))
             depth = float(request.form.get('depth', 0))
             area = width * depth
-        elif shape == 'vduct':
-            base = float(request.form.get('base', 0))
-            depth = float(request.form.get('depth', 0))
-            area = 0.5 * base * depth
     else:
         units = 'm'
     return render_template('index.html', area=area, shape=shape, units=units)

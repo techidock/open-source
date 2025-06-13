@@ -10,8 +10,7 @@
       <label for="shape">Shape:</label>
       <select name="shape" id="shape" onchange="showFields(); draw()">
         <option value="circular">Circular Channel</option>
-        <option value="river">River</option>
-        <option value="vduct">V Duct</option>
+        <option value="rectangle">Rectangle Channel</option>
         <option value="poly">Polygon</option>
       </select>
       <label for="units">Units:</label>
@@ -26,17 +25,11 @@
         <label for="circle-points">Circle Points:</label>
         <input type="number" id="circle-points" min="3" value="25" oninput="draw()">
       </div>
-      <div id="river-fields" class="fields" style="display:none">
+      <div id="rectangle-fields" class="fields" style="display:none">
         <label for="width">Width:</label>
         <input type="number" step="any" name="width" id="width" oninput="draw()">
         <label for="depth">Depth:</label>
         <input type="number" step="any" name="depth" id="depth" oninput="draw()">
-      </div>
-      <div id="vduct-fields" class="fields" style="display:none">
-        <label for="base">Base:</label>
-        <input type="number" step="any" name="base" id="base" oninput="draw()">
-        <label for="depth-v">Depth:</label>
-        <input type="number" step="any" name="depth" id="depth-v" oninput="draw()">
       </div>
       <div id="poly-fields" class="fields" style="display:none">
         <label for="num-points">Points:</label>
@@ -56,8 +49,7 @@
       function showFields() {
         var shape = document.getElementById('shape').value;
         document.getElementById('circular-fields').style.display = shape == 'circular' ? 'block' : 'none';
-        document.getElementById('river-fields').style.display = shape == 'river' ? 'block' : 'none';
-        document.getElementById('vduct-fields').style.display = shape == 'vduct' ? 'block' : 'none';
+        document.getElementById('rectangle-fields').style.display = shape == 'rectangle' ? 'block' : 'none';
         document.getElementById('poly-fields').style.display = shape == 'poly' ? 'block' : 'none';
         polyMode = shape == 'poly';
         setDefaults(shape);
@@ -67,15 +59,12 @@
         if (shape == 'circular') {
           document.getElementById('radius').value = 50;
           document.getElementById('circle-points').value = 25;
-        } else if (shape == 'river') {
+        } else if (shape == 'rectangle') {
           document.getElementById('width').value = 200;
           document.getElementById('depth').value = 50;
-        } else if (shape == 'vduct') {
-          document.getElementById('base').value = 200;
-          document.getElementById('depth-v').value = 50;
         } else if (shape == 'poly') {
           document.getElementById('num-points').value = 3;
-          clearPolygon();
+          resetPolygon();
         }
         draw();
       }
@@ -137,12 +126,9 @@
         if (shape == 'circular') {
           var r = canvas.height - y;
           document.getElementById('radius').value = r.toFixed(1);
-        } else if (shape == 'river') {
+        } else if (shape == 'rectangle') {
           document.getElementById('width').value = x.toFixed(1);
           document.getElementById('depth').value = (canvas.height - y).toFixed(1);
-        } else if (shape == 'vduct') {
-          document.getElementById('base').value = x.toFixed(1);
-          document.getElementById('depth-v').value = (canvas.height - y).toFixed(1);
         }
         draw();
       }
@@ -236,7 +222,20 @@
 
       function resetPolygon() {
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
-        clearPolygon();
+        points = defaultPolygon(numPoints);
+        draw();
+      }
+
+      function defaultPolygon(n) {
+        var r = 60;
+        var cx = canvas.width / 2;
+        var cy = canvas.height - r;
+        var pts = [];
+        for (var i = 0; i < n; i++) {
+          var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
+          pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
+        }
+        return pts;
       }
 
       function updateCoords(pts) {
@@ -259,7 +258,7 @@
             pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
           }
           return pts;
-        } else if (shape == 'river') {
+        } else if (shape == 'rectangle') {
           var w = parseFloat(document.getElementById('width').value) || 0;
           var d = parseFloat(document.getElementById('depth').value) || 0;
           var cx = canvas.width / 2;
@@ -268,14 +267,6 @@
             {x: cx + w/2, y: canvas.height},
             {x: cx + w/2, y: canvas.height - d},
             {x: cx - w/2, y: canvas.height - d}
-          ];
-        } else if (shape == 'vduct') {
-          var b = parseFloat(document.getElementById('base').value) || 0;
-          var d = parseFloat(document.getElementById('depth-v').value) || 0;
-          return [
-            {x: 0, y: canvas.height},
-            {x: b, y: canvas.height},
-            {x: b/2, y: canvas.height - d}
           ];
         } else {
           return points.slice();
