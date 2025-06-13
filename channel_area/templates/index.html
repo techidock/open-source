@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Channel Area Calculator</title>
+  </head>
+  <body>
+    <h1>Water Channel Area Calculator</h1>
+    <form method="post" onsubmit="return false;">
+      <label for="shape">Shape:</label>
+      <select name="shape" id="shape" onchange="showFields(); draw()">
+        <option value="pipe">Pipe</option>
+        <option value="river">River</option>
+        <option value="vduct">V Duct</option>
+      </select>
+      <div id="pipe-fields" class="fields">
+        <label for="radius">Radius:</label>
+        <input type="number" step="any" name="radius" id="radius" oninput="draw()">
+      </div>
+      <div id="river-fields" class="fields" style="display:none">
+        <label for="width">Width:</label>
+        <input type="number" step="any" name="width" id="width" oninput="draw()">
+        <label for="depth">Depth:</label>
+        <input type="number" step="any" name="depth" id="depth" oninput="draw()">
+      </div>
+      <div id="vduct-fields" class="fields" style="display:none">
+        <label for="base">Base:</label>
+        <input type="number" step="any" name="base" id="base" oninput="draw()">
+        <label for="depth-v">Depth:</label>
+        <input type="number" step="any" name="depth" id="depth-v" oninput="draw()">
+      </div>
+      <button onclick="calculateArea()">Calculate</button>
+    </form>
+    <canvas id="canvas" width="400" height="300" style="border:1px solid #000;margin-top:10px;"></canvas>
+    <p id="area-display"></p>
+    {% if area is not none %}
+      <h2>Area of {{ shape }}: {{ area }}</h2>
+    {% endif %}
+
+  <script>
+      function showFields() {
+        var shape = document.getElementById('shape').value;
+        document.getElementById('pipe-fields').style.display = shape == 'pipe' ? 'block' : 'none';
+        document.getElementById('river-fields').style.display = shape == 'river' ? 'block' : 'none';
+        document.getElementById('vduct-fields').style.display = shape == 'vduct' ? 'block' : 'none';
+      }
+
+      var canvas, ctx;
+      var dragging = false;
+
+      function init() {
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', drag);
+        canvas.addEventListener('mouseup', endDrag);
+        showFields();
+        draw();
+      }
+
+      function startDrag(e) { dragging = true; updateFromMouse(e); }
+      function drag(e) { if (dragging) updateFromMouse(e); }
+      function endDrag(e) { dragging = false; }
+
+      function updateFromMouse(e) {
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = e.clientY - rect.top;
+        var shape = document.getElementById('shape').value;
+        if (shape == 'pipe') {
+          var cx = canvas.width / 2;
+          var cy = canvas.height / 2;
+          var r = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+          document.getElementById('radius').value = r.toFixed(1);
+        } else if (shape == 'river') {
+          document.getElementById('width').value = x.toFixed(1);
+          document.getElementById('depth').value = y.toFixed(1);
+        } else {
+          document.getElementById('base').value = x.toFixed(1);
+          document.getElementById('depth-v').value = (canvas.height - y).toFixed(1);
+        }
+        draw();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var shape = document.getElementById('shape').value;
+        ctx.fillStyle = '#99ccff';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        if (shape == 'pipe') {
+          var r = parseFloat(document.getElementById('radius').value) || 0;
+          ctx.beginPath();
+          ctx.arc(canvas.width/2, canvas.height/2, r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else if (shape == 'river') {
+          var w = parseFloat(document.getElementById('width').value) || 0;
+          var d = parseFloat(document.getElementById('depth').value) || 0;
+          ctx.fillRect(0, 0, w, d);
+          ctx.strokeRect(0, 0, w, d);
+        } else {
+          var b = parseFloat(document.getElementById('base').value) || 0;
+          var d = parseFloat(document.getElementById('depth-v').value) || 0;
+          ctx.beginPath();
+          ctx.moveTo(0, canvas.height);
+          ctx.lineTo(b, canvas.height);
+          ctx.lineTo(b/2, canvas.height - d);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        }
+        calculateArea();
+      }
+
+      function calculateArea() {
+        var shape = document.getElementById('shape').value;
+        var area = 0;
+        if (shape == 'pipe') {
+          var r = parseFloat(document.getElementById('radius').value) || 0;
+          area = Math.PI * r * r;
+        } else if (shape == 'river') {
+          var w = parseFloat(document.getElementById('width').value) || 0;
+          var d = parseFloat(document.getElementById('depth').value) || 0;
+          area = w * d;
+        } else {
+          var b = parseFloat(document.getElementById('base').value) || 0;
+          var d = parseFloat(document.getElementById('depth-v').value) || 0;
+          area = 0.5 * b * d;
+        }
+        document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2);
+      }
+
+      window.onload = init;
+  </script>
+  </body>
+</html>
