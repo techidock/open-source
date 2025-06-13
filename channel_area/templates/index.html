@@ -7,6 +7,7 @@
   <body>
     <h1>Water Channel Area Calculator</h1>
     <button type="button" onclick="openNewChannelDialog()">New Channel</button>
+    <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
     <dialog id="new-channel-dialog">
       <form method="dialog" onsubmit="return false;">
         <label for="shape">Shape:</label>
@@ -54,9 +55,6 @@
       <button type="button" onclick="undoEdit()">Undo</button>
       <button type="button" onclick="redoEdit()">Redo</button>
     </div>
-      <div style="margin-top:5px;">
-        <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
-      </div>
       <dialog id="shape-dialog">
         <form method="dialog" onsubmit="return false;">
           <label>Name: <input type="text" id="shape-name"></label>
@@ -619,8 +617,6 @@
 
       function closeNewChannelDialog() {
         document.getElementById('new-channel-dialog').close();
-        showFields();
-        draw();
       }
 
       function drawGrid() {
