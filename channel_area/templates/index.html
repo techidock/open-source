@@ -44,6 +44,7 @@
       <button type="button" onclick="setOrientation(1)">One Point Down</button>
     </div>
     <p id="area-display"></p>
+    <p id="cursor-pos">Cursor:</p>
     <pre id="coord-display"></pre>
     {% if area is not none %}
       <h2>Area of {{ shape }}: {{ area }} {{ units }}²</h2>
@@ -88,6 +89,8 @@
         ctx = canvas.getContext('2d');
         canvas.addEventListener('mousedown', startDrag);
         canvas.addEventListener('mousemove', drag);
+        canvas.addEventListener('mousemove', showCursorPos);
+        canvas.addEventListener('mouseleave', clearCursorPos);
         canvas.addEventListener('mouseup', endDrag);
         canvas.addEventListener('dblclick', selectPoint);
         showFields();
@@ -220,6 +223,7 @@
       }
 
       function movePoint(e) {
+        if (!(e.buttons & 1)) return;
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
@@ -265,9 +269,20 @@
       function updateCoords(pts) {
         var out = '';
         for (var i = 0; i < pts.length; i++) {
-          out += i + ': (' + pts[i].x.toFixed(1) + ', ' + pts[i].y.toFixed(1) + ')\n';
+          out += i + ': (' + pts[i].x.toFixed(1) + ', ' + (canvas.height - pts[i].y).toFixed(1) + ')\n';
         }
         document.getElementById('coord-display').textContent = out;
+      }
+
+      function showCursorPos(e) {
+        var rect = canvas.getBoundingClientRect();
+        var x = e.clientX - rect.left;
+        var y = canvas.height - (e.clientY - rect.top);
+        document.getElementById('cursor-pos').textContent = 'Cursor: (' + x.toFixed(1) + ', ' + y.toFixed(1) + ')';
+      }
+
+      function clearCursorPos() {
+        document.getElementById('cursor-pos').textContent = 'Cursor:';
       }
 
       function setOrientation(o) {
@@ -337,9 +352,10 @@
           ctx.stroke();
         }
         for (var y = 0; y <= canvas.height; y += 20) {
+          var gy = canvas.height - y;
           ctx.beginPath();
-          ctx.moveTo(0, y);
-          ctx.lineTo(canvas.width, y);
+          ctx.moveTo(0, gy);
+          ctx.lineTo(canvas.width, gy);
           ctx.stroke();
         }
         ctx.strokeStyle = '#000';
