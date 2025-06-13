@@ -6,41 +6,47 @@
   </head>
   <body>
     <h1>Water Channel Area Calculator</h1>
-    <form method="post" onsubmit="return false;">
-      <label for="shape">Shape:</label>
-      <select name="shape" id="shape" onchange="showFields(); draw()">
-        <option value="circular">Circular Channel</option>
-        <option value="rectangle">Rectangle Channel</option>
-        <option value="polygon">Polygon Channel</option>
-      </select>
-      <label for="units">Units:</label>
-      <select name="units" id="units" onchange="draw()">
-        <option value="m">m</option>
-        <option value="cm">cm</option>
-        <option value="mm">mm</option>
-      </select>
-      <div id="circular-fields" class="fields">
-        <label for="radius">Radius:</label>
-        <input type="number" step="any" name="radius" id="radius" oninput="resetCircle()">
-        <label for="circle-points">Circle Points:</label>
-        <input type="number" id="circle-points" min="3" value="25" oninput="resetCircle()">
-      </div>
-      <div id="rectangle-fields" class="fields" style="display:none">
-        <label for="width">Width:</label>
-        <input type="number" step="any" name="width" id="width" oninput="resetRectangle()">
-        <label for="depth">Depth:</label>
-        <input type="number" step="any" name="depth" id="depth" oninput="resetRectangle()">
-      </div>
-      <div id="polygon-fields" class="fields" style="display:none">
-        <label for="num-points">Points:</label>
-        <input type="number" id="num-points" min="3" value="3" onchange="resetPolygon()">
-        <button type="button" onclick="clearPolygon()">Clear Polygon Channel</button>
-      </div>
+    <button type="button" onclick="openNewChannelDialog()">New Channel</button>
+    <dialog id="new-channel-dialog">
+      <form method="dialog" onsubmit="return false;">
+        <label for="shape">Shape:</label>
+        <select name="shape" id="shape" onchange="showFields(); draw()">
+          <option value="circular">Circular Channel</option>
+          <option value="rectangle">Rectangle Channel</option>
+          <option value="polygon">Polygon Channel</option>
+        </select>
+        <label for="units">Units:</label>
+        <select name="units" id="units" onchange="draw()">
+          <option value="m">m</option>
+          <option value="cm">cm</option>
+          <option value="mm">mm</option>
+        </select>
+        <div id="circular-fields" class="fields">
+          <label for="radius">Radius:</label>
+          <input type="number" step="any" name="radius" id="radius" oninput="resetCircle()">
+          <label for="circle-points">Circle Points:</label>
+          <input type="number" id="circle-points" min="3" value="25" oninput="resetCircle()">
+        </div>
+        <div id="rectangle-fields" class="fields" style="display:none">
+          <label for="width">Width:</label>
+          <input type="number" step="any" name="width" id="width" oninput="resetRectangle()">
+          <label for="depth">Depth:</label>
+          <input type="number" step="any" name="depth" id="depth" oninput="resetRectangle()">
+        </div>
+        <div id="polygon-fields" class="fields" style="display:none">
+          <label for="num-points">Points:</label>
+          <input type="number" id="num-points" min="3" value="3" onchange="resetPolygon()">
+          <button type="button" onclick="clearPolygon()">Clear Polygon Channel</button>
+        </div>
+        <button type="button" onclick="closeNewChannelDialog()">Close</button>
+      </form>
+    </dialog>
+    <canvas id="canvas" width="400" height="300" style="border:1px solid #000;margin-top:10px;"></canvas>
+    <div id="water-controls" style="margin-top:5px;">
       <label for="water-height">Water Height:</label>
       <input type="number" step="any" id="water-height" min="0" oninput="draw()">
       <button onclick="calculateArea()">Calculate</button>
-    </form>
-    <canvas id="canvas" width="400" height="300" style="border:1px solid #000;margin-top:10px;"></canvas>
+    </div>
     <div>
       <button type="button" onclick="setOrientation(0)">Two Points Down</button>
       <button type="button" onclick="setOrientation(1)">One Point Down</button>
@@ -605,6 +611,16 @@
 
       function closeShapeDialog() {
         document.getElementById('shape-dialog').close();
+      }
+
+      function openNewChannelDialog() {
+        document.getElementById('new-channel-dialog').showModal();
+      }
+
+      function closeNewChannelDialog() {
+        document.getElementById('new-channel-dialog').close();
+        showFields();
+        draw();
       }
 
       function drawGrid() {

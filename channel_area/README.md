@@ -10,9 +10,11 @@ Each dimension field lets you choose units in metres, centimetres or millimetres
 Areas are reported in the selected units squared. The circular channel also
 allows editing the number of points used to draw the circle (default is 25).
 Rectangular channels are centred at the bottom of the canvas and always use four
-points. An additional **Water Height** box lets you specify how full the channel
-is, from 0 up to the maximum height of the selected shape. The shape is coloured
-grey above the water line and blue below it. Both the overall shape area and the
+points. The **New Channel** button opens a dialog containing all the options for
+creating a shape and adjusting its dimensions. An additional **Water Height**
+box sits beneath the canvas where you can specify how full the channel is, from
+0 up to the maximum height of the selected shape. The shape is coloured grey
+above the water line and blue below it. Both the overall shape area and the
 water-filled area are displayed beneath the canvas.
 
 ## Requirements
@@ -51,11 +53,13 @@ the minimum and maximum points of the current shape.
 A **Allow Scaling** checkbox controls whether shapes can be edited with the
 mouse or table. Use **Undo** and **Redo** to step through previous edits. Shape
 files are saved as SVG under `channel_area/shapes` and managed from the
-**Manage Shapes** dialog which lets you name, save and reload saved shapes.
+**Manage Shapes** dialog which lets you name, save and reload saved shapes. Use
+the **New Channel** dialog to choose a shape type, units and dimensions when
+starting a drawing.
 
 Two buttons under the canvas let you rotate the shape while keeping it anchored at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline.
 
-Adjust the **Water Height** field to draw a blue line at that level and see the water area. The line spans only the width of the current shape.
+Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
 
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 
