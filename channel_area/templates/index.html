@@ -116,6 +116,7 @@
       }
 
       var canvas, ctx;
+      var blueCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJibHVlIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiPjxsaW5lIHgxPSI4IiB5MT0iMCIgeDI9IjgiIHkyPSIxNiIvPjxsaW5lIHgxPSIwIiB5MT0iOCIgeDI9IjE2IiB5Mj0iOCIvPjwvc3ZnPg==") 8 8, auto';
       var dragging = false;
       var polygonMode = false;
       var orientation = 0;
@@ -179,6 +180,7 @@
         }
         anchorBottomCenter();
         draw();
+        showCursorPos(e);
       }
 
       function updateFromMouse(e) {
@@ -574,11 +576,16 @@
         for (var i = 0; i < pts.length; i++) {
           if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = true; break; }
         }
-        canvas.style.cursor = over ? 'crosshair' : 'default';
+        if (over || editIndex >= 0) {
+          canvas.style.cursor = blueCursor;
+        } else {
+          canvas.style.cursor = 'default';
+        }
       }
 
       function clearCursorPos() {
         document.getElementById('cursor-pos').textContent = 'Cursor:';
+        canvas.style.cursor = 'default';
       }
 
       function setOrientation(o) {
