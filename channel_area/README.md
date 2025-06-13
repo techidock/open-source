@@ -45,6 +45,11 @@ beneath the canvas lists each vertex. Editing the table keeps the coordinates
 inside the canvas and immediately redraws the shape. Small red markers indicate
 the minimum and maximum points of the current shape.
 
+A **Allow Scaling** checkbox controls whether shapes can be edited with the
+mouse or table. Use **Undo** and **Redo** to step through previous edits. You
+can also save a shape by name and reload it later. Saved shapes are stored as
+SVG files under `channel_area/shapes`.
+
 Two buttons under the canvas let you rotate the shape while keeping it anchored at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline.
 
 The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released.

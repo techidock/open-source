@@ -42,6 +42,15 @@
     <div>
       <button type="button" onclick="setOrientation(0)">Two Points Down</button>
       <button type="button" onclick="setOrientation(1)">One Point Down</button>
+      <label><input type="checkbox" id="scale-toggle" checked> Allow Scaling</label>
+      <button type="button" onclick="undoEdit()">Undo</button>
+      <button type="button" onclick="redoEdit()">Redo</button>
+    </div>
+    <div style="margin-top:5px;">
+      <input type="text" id="shape-name" placeholder="shape name">
+      <button type="button" onclick="saveShape()">Save Shape</button>
+      <select id="load-list"></select>
+      <button type="button" onclick="loadShape()">Load</button>
     </div>
     <p id="area-display"></p>
     <p id="cursor-pos">Cursor:</p>
@@ -89,6 +98,9 @@
       var editIndex = -1;
       var editShape = '';
       var shapePts = [];
+      var scaleEnabled = true;
+      var undoStack = [];
+      var redoStack = [];
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -99,11 +111,16 @@
         canvas.addEventListener('mouseleave', clearCursorPos);
         canvas.addEventListener('mouseup', endDrag);
         canvas.addEventListener('dblclick', selectPoint);
+        document.getElementById('scale-toggle').onchange = function(){
+          scaleEnabled = this.checked;
+        };
+        updateShapeList();
         showFields();
         draw();
       }
 
       function startDrag(e) {
+        if (!scaleEnabled) return;
         var shape = document.getElementById('shape').value;
         if (editIndex >= 0) {
           dragging = true;
@@ -136,10 +153,12 @@
       }
 
       function updateFromMouse(e) {
+        if (!scaleEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
         var shape = document.getElementById('shape').value;
+        saveState();
         if (shape == 'circular') {
           var r = canvas.height - y;
           document.getElementById('radius').value = r.toFixed(1);
@@ -217,14 +236,17 @@
       }
 
       function addPoint(e) {
+        if (!scaleEnabled) return;
         var rect = canvas.getBoundingClientRect();
         if (points.length < numPoints) {
+          saveState();
           points.push({x: e.clientX - rect.left, y: e.clientY - rect.top});
           draw();
         }
       }
 
       function selectPoint(e) {
+        if (!scaleEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
@@ -244,20 +266,23 @@
       }
 
       function movePoint(e) {
-        if (!(e.buttons & 1)) return;
+        if (!(e.buttons & 1) || !scaleEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, 0, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        saveState();
         points[editIndex] = {x: x, y: y};
         draw();
       }
 
       function clearPolygon() {
+        saveState();
         points = [];
         draw();
       }
 
       function resetPolygon() {
+        saveState();
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
         draw();
@@ -276,6 +301,7 @@
       }
 
       function resetCircle() {
+        saveState();
         var r = parseFloat(document.getElementById('radius').value) || 0;
         var n = parseInt(document.getElementById('circle-points').value) || 25;
         var cx = canvas.width / 2;
@@ -289,6 +315,7 @@
       }
 
       function resetRectangle() {
+        saveState();
         var w = parseFloat(document.getElementById('width').value) || 0;
         var d = parseFloat(document.getElementById('depth').value) || 0;
         var cx = canvas.width / 2;
@@ -337,7 +364,17 @@
         return Math.max(min, Math.min(max, v));
       }
 
+      function saveState() {
+        undoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack = [];
+      }
+
       function tableChanged(e) {
+        if (!scaleEnabled) {
+          draw();
+          return;
+        }
         var idx = parseInt(e.target.dataset.index);
         var row = e.target.parentElement.parentElement;
         var x = parseFloat(row.children[1].firstChild.value);
@@ -346,6 +383,7 @@
         y = clamp(y, 0, canvas.height);
         row.children[1].firstChild.value = x;
         row.children[2].firstChild.value = y;
+        saveState();
         points[idx] = {x: x, y: canvas.height - y};
         draw();
       }
@@ -362,6 +400,7 @@
       }
 
       function setOrientation(o) {
+        saveState();
         orientation = o;
         draw();
       }
@@ -391,6 +430,60 @@
           });
         }
         return rot;
+      }
+
+      function undoEdit() {
+        if (undoStack.length === 0) return;
+        redoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
+        var state = undoStack.pop();
+        points = JSON.parse(JSON.stringify(state.points));
+        orientation = state.orientation;
+        draw();
+      }
+
+      function redoEdit() {
+        if (redoStack.length === 0) return;
+        undoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
+        var state = redoStack.pop();
+        points = JSON.parse(JSON.stringify(state.points));
+        orientation = state.orientation;
+        draw();
+      }
+
+      function saveShape() {
+        var name = document.getElementById('shape-name').value.trim();
+        if (!name) return;
+        fetch('/save_shape', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name: name, points: points})
+        }).then(updateShapeList);
+      }
+
+      function updateShapeList() {
+        fetch('/list_shapes').then(r => r.json()).then(data => {
+          var sel = document.getElementById('load-list');
+          sel.innerHTML = '';
+          data.shapes.forEach(function(n){
+            var opt = document.createElement('option');
+            opt.value = n;
+            opt.textContent = n;
+            sel.appendChild(opt);
+          });
+        });
+      }
+
+      function loadShape() {
+        var name = document.getElementById('load-list').value;
+        if (!name) return;
+        fetch('/load_shape/' + name).then(r => r.json()).then(data => {
+          if (data.points) {
+            saveState();
+            points = data.points;
+            document.getElementById('shape').value = 'polygon';
+            draw();
+          }
+        });
       }
 
       function drawGrid() {
