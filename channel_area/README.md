@@ -2,10 +2,16 @@
 
 This is a simple Flask-based web application for calculating the cross-sectional area of different water channel shapes:
 
-- **Pipe**: circular cross-section, area = π * radius²
+- **Circular Channel**: circular cross-section, area = π * radius²
 - **River**: rectangular cross-section, area = width * depth
 - **V Duct**: triangular cross-section, area = 0.5 * base * depth
 - **Polygon**: free-form shape drawn by clicking points on the canvas
+
+Each dimension field lets you choose units in metres, centimetres or millimetres.
+Areas are reported in the selected units squared. The circular channel also
+allows editing the number of points used to draw the circle (default is 25).
+Rectangular channels are centred at the bottom of the canvas and always use four
+points.
 
 ## Requirements
 
@@ -32,4 +38,5 @@ set a number of points (minimum three) and click to place each vertex; the
 coordinates are listed below the canvas. You can clear the shape using the
 *Clear Polygon* button. The area updates automatically as you change the shape.
 Each point is shown as a blue marker. Double‑click a marker to drag it to a
-new location; it turns black while being edited.
+new location; it turns black while being edited. Choose the units (m, cm, or
+mm) from the drop‑down to have results displayed in the same units squared.

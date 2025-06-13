@@ -9,7 +9,8 @@ def index():
     shape = None
     if request.method == 'POST':
         shape = request.form.get('shape')
-        if shape == 'pipe':
+        units = request.form.get('units', 'm')
+        if shape == 'circular':
             radius = float(request.form.get('radius', 0))
             area = math.pi * radius ** 2
         elif shape == 'river':
@@ -20,7 +21,9 @@ def index():
             base = float(request.form.get('base', 0))
             depth = float(request.form.get('depth', 0))
             area = 0.5 * base * depth
-    return render_template('index.html', area=area, shape=shape)
+    else:
+        units = 'm'
+    return render_template('index.html', area=area, shape=shape, units=units)
 
 if __name__ == '__main__':
     app.run(debug=True)
