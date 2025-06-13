@@ -57,4 +57,6 @@ Two buttons under the canvas let you rotate the shape while keeping it anchored 
 
 Adjust the **Water Height** field to draw a blue line at that level and see the water area. The line spans only the width of the current shape.
 
+A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
+
 The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released.

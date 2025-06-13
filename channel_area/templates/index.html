@@ -62,6 +62,8 @@
       </dialog>
     <p id="area-display"></p>
     <p id="water-area-display"></p>
+    <p id="width-label"></p>
+    <p id="height-label"></p>
     <p id="cursor-pos">Cursor:</p>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
@@ -196,6 +198,25 @@
         ctx.lineWidth = 2;
 
         var pts = getShapePoints(shape);
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < pts.length; i++) {
+          minX = Math.min(minX, pts[i].x);
+          maxX = Math.max(maxX, pts[i].x);
+          minY = Math.min(minY, pts[i].y);
+          maxY = Math.max(maxY, pts[i].y);
+        }
+        var width = maxX - minX;
+        var height = maxY - minY;
+        ctx.save();
+        ctx.setLineDash([4,2]);
+        ctx.strokeStyle = '#ff9900';
+        ctx.strokeRect(minX, minY, width, height);
+        ctx.restore();
+
+        var units = document.getElementById('units').value;
+        document.getElementById('width-label').textContent = 'Width: ' + width.toFixed(1) + ' ' + units;
+        document.getElementById('height-label').textContent = 'Height: ' + height.toFixed(1) + ' ' + units;
+
         var maxHeight = shapeHeight(pts);
         shapePts = pts;
         var whInput = document.getElementById('water-height');
@@ -232,13 +253,6 @@
           ctx.beginPath();
           ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
           ctx.fill();
-        }
-        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-        for (var i = 0; i < pts.length; i++) {
-          minX = Math.min(minX, pts[i].x);
-          maxX = Math.max(maxX, pts[i].x);
-          minY = Math.min(minY, pts[i].y);
-          maxY = Math.max(maxY, pts[i].y);
         }
         ctx.fillStyle = 'red';
         ctx.beginPath();
