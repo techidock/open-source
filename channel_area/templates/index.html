@@ -21,15 +21,15 @@
       </select>
       <div id="circular-fields" class="fields">
         <label for="radius">Radius:</label>
-        <input type="number" step="any" name="radius" id="radius" oninput="draw()">
+        <input type="number" step="any" name="radius" id="radius" oninput="resetCircle()">
         <label for="circle-points">Circle Points:</label>
-        <input type="number" id="circle-points" min="3" value="25" oninput="draw()">
+        <input type="number" id="circle-points" min="3" value="25" oninput="resetCircle()">
       </div>
       <div id="rectangle-fields" class="fields" style="display:none">
         <label for="width">Width:</label>
-        <input type="number" step="any" name="width" id="width" oninput="draw()">
+        <input type="number" step="any" name="width" id="width" oninput="resetRectangle()">
         <label for="depth">Depth:</label>
-        <input type="number" step="any" name="depth" id="depth" oninput="draw()">
+        <input type="number" step="any" name="depth" id="depth" oninput="resetRectangle()">
       </div>
       <div id="polygon-fields" class="fields" style="display:none">
         <label for="num-points">Points:</label>
@@ -45,7 +45,12 @@
     </div>
     <p id="area-display"></p>
     <p id="cursor-pos">Cursor:</p>
-    <pre id="coord-display"></pre>
+    <table id="points-table" border="1" style="border-collapse:collapse">
+      <thead>
+        <tr><th>Index</th><th>x</th><th>y</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
     {% if area is not none %}
       <h2>Area of {{ shape }}: {{ area }} {{ units }}²</h2>
     {% endif %}
@@ -64,14 +69,15 @@
         if (shape == 'circular') {
           document.getElementById('radius').value = 50;
           document.getElementById('circle-points').value = 25;
+          resetCircle();
         } else if (shape == 'rectangle') {
           document.getElementById('width').value = 200;
           document.getElementById('depth').value = 50;
+          resetRectangle();
         } else if (shape == 'polygon') {
           document.getElementById('num-points').value = 3;
           resetPolygon();
         }
-        draw();
       }
 
       var canvas, ctx;
@@ -137,11 +143,12 @@
         if (shape == 'circular') {
           var r = canvas.height - y;
           document.getElementById('radius').value = r.toFixed(1);
+          resetCircle();
         } else if (shape == 'rectangle') {
           document.getElementById('width').value = x.toFixed(1);
           document.getElementById('depth').value = (canvas.height - y).toFixed(1);
+          resetRectangle();
         }
-        draw();
       }
 
       function draw() {
@@ -170,6 +177,20 @@
           ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
           ctx.fill();
         }
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < pts.length; i++) {
+          minX = Math.min(minX, pts[i].x);
+          maxX = Math.max(maxX, pts[i].x);
+          minY = Math.min(minY, pts[i].y);
+          maxY = Math.max(maxY, pts[i].y);
+        }
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(minX, minY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(maxX, maxY, 3, 0, Math.PI * 2);
+        ctx.fill();
         ctx.fillStyle = '#99ccff';
         updateCoords(pts);
         var area = polygonArea(pts);
@@ -225,21 +246,9 @@
       function movePoint(e) {
         if (!(e.buttons & 1)) return;
         var rect = canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
-        if (editShape == 'polygon') {
-          points[editIndex] = {x: x, y: y};
-        } else if (editShape == 'rectangle') {
-          var cx = canvas.width / 2;
-          var w = Math.abs(x - cx) * 2;
-          document.getElementById('width').value = w.toFixed(1);
-          if (editIndex >= 2) {
-            document.getElementById('depth').value = (canvas.height - y).toFixed(1);
-          }
-        } else if (editShape == 'circular') {
-          var r = canvas.height - y;
-          document.getElementById('radius').value = r.toFixed(1);
-        }
+        var x = clamp(e.clientX - rect.left, 0, canvas.width);
+        var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        points[editIndex] = {x: x, y: y};
         draw();
       }
 
@@ -266,12 +275,79 @@
         return pts;
       }
 
-      function updateCoords(pts) {
-        var out = '';
-        for (var i = 0; i < pts.length; i++) {
-          out += i + ': (' + pts[i].x.toFixed(1) + ', ' + (canvas.height - pts[i].y).toFixed(1) + ')\n';
+      function resetCircle() {
+        var r = parseFloat(document.getElementById('radius').value) || 0;
+        var n = parseInt(document.getElementById('circle-points').value) || 25;
+        var cx = canvas.width / 2;
+        var cy = canvas.height - r;
+        points = [];
+        for (var i = 0; i < n; i++) {
+          var ang = (i / n) * Math.PI * 2;
+          points.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
         }
-        document.getElementById('coord-display').textContent = out;
+        draw();
+      }
+
+      function resetRectangle() {
+        var w = parseFloat(document.getElementById('width').value) || 0;
+        var d = parseFloat(document.getElementById('depth').value) || 0;
+        var cx = canvas.width / 2;
+        points = [
+          {x: cx - w/2, y: canvas.height},
+          {x: cx + w/2, y: canvas.height},
+          {x: cx + w/2, y: canvas.height - d},
+          {x: cx - w/2, y: canvas.height - d}
+        ];
+        draw();
+      }
+
+      function updateCoords(pts) {
+        var tbody = document.getElementById('points-table').querySelector('tbody');
+        tbody.innerHTML = '';
+        for (var i = 0; i < pts.length; i++) {
+          var tr = document.createElement('tr');
+          var tdI = document.createElement('td');
+          tdI.textContent = i;
+          var tdX = document.createElement('td');
+          var inputX = document.createElement('input');
+          inputX.type = 'number';
+          inputX.value = pts[i].x.toFixed(1);
+          inputX.min = 0;
+          inputX.max = canvas.width;
+          inputX.dataset.index = i;
+          inputX.onchange = tableChanged;
+          tdX.appendChild(inputX);
+          var tdY = document.createElement('td');
+          var inputY = document.createElement('input');
+          inputY.type = 'number';
+          inputY.value = (canvas.height - pts[i].y).toFixed(1);
+          inputY.min = 0;
+          inputY.max = canvas.height;
+          inputY.dataset.index = i;
+          inputY.onchange = tableChanged;
+          tdY.appendChild(inputY);
+          tr.appendChild(tdI);
+          tr.appendChild(tdX);
+          tr.appendChild(tdY);
+          tbody.appendChild(tr);
+        }
+      }
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function tableChanged(e) {
+        var idx = parseInt(e.target.dataset.index);
+        var row = e.target.parentElement.parentElement;
+        var x = parseFloat(row.children[1].firstChild.value);
+        var y = parseFloat(row.children[2].firstChild.value);
+        x = clamp(x, 0, canvas.width);
+        y = clamp(y, 0, canvas.height);
+        row.children[1].firstChild.value = x;
+        row.children[2].firstChild.value = y;
+        points[idx] = {x: x, y: canvas.height - y};
+        draw();
       }
 
       function showCursorPos(e) {
@@ -291,32 +367,7 @@
       }
 
       function getShapePoints(shape) {
-        if (shape == 'circular') {
-          var r = parseFloat(document.getElementById('radius').value) || 0;
-          var n = parseInt(document.getElementById('circle-points').value) || 25;
-          var cx = canvas.width / 2;
-          var cy = canvas.height - r;
-          var pts = [];
-          for (var i = 0; i < n; i++) {
-            var ang = (i / n) * Math.PI * 2;
-            pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
-          }
-          return applyOrientation(pts, shape);
-        } else if (shape == 'rectangle') {
-          var w = parseFloat(document.getElementById('width').value) || 0;
-          var d = parseFloat(document.getElementById('depth').value) || 0;
-          var cx = canvas.width / 2;
-          var pts = [
-            {x: cx - w/2, y: canvas.height},
-            {x: cx + w/2, y: canvas.height},
-            {x: cx + w/2, y: canvas.height - d},
-            {x: cx - w/2, y: canvas.height - d}
-          ];
-          return applyOrientation(pts, shape);
-        } else {
-          var pts = points.slice();
-          return applyOrientation(pts, shape);
-        }
+        return applyOrientation(points.slice(), shape);
       }
 
       function applyOrientation(pts, shape) {

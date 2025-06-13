@@ -35,13 +35,15 @@ default size when selected and is rendered as a polygon on a grid. The canvas
 shows grid lines with **x** and **y** axes for reference. Select **Polygon Channel** to
 set a number of points (minimum three). When the value changes, a default
 regular polygon is centred at the bottom of the canvas. You can then click to
-edit the points; their coordinates are listed below. You can clear the shape
-using the *Clear Polygon Channel* button. The area updates automatically as you change
-the shape. Each point is shown as a blue marker. Double‑click a marker to drag
-it to a new location; it turns black while being edited. Choose the units (m,
-cm, or mm) from the drop‑down to have results displayed in the same units
-squared.
-The circular and rectangle channels now display blue markers for each vertex, just like the polygon channel. Double-click a marker to turn it black and drag it to adjust the shape's dimensions.
+edit the points. You can clear the shape using the *Clear Polygon Channel* button.
+The area updates automatically as you change the shape. Each point is shown as a
+blue marker. Double‑click a marker to drag it to a new location; it turns black
+while being edited. Choose the units (m, cm, or mm) from the drop‑down to have
+results displayed in the same units squared. All shapes are treated as polygons:
+the circular channel defaults to 25 points and the rectangle uses four. A table
+beneath the canvas lists each vertex. Editing the table keeps the coordinates
+inside the canvas and immediately redraws the shape. Small red markers indicate
+the minimum and maximum points of the current shape.
 
 Two buttons under the canvas let you rotate the shape while keeping it anchored at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline.
 
