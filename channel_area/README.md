@@ -31,3 +31,5 @@ shows grid lines with **x** and **y** axes for reference. Select **Polygon** to
 set a number of points (minimum three) and click to place each vertex; the
 coordinates are listed below the canvas. You can clear the shape using the
 *Clear Polygon* button. The area updates automatically as you change the shape.
+Each point is shown as a blue marker. Double‑click a marker to drag it to a
+new location; it turns black while being edited.
