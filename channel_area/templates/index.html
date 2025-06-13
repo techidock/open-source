@@ -123,6 +123,7 @@
       var points = [];
       var numPoints = 3;
       var editIndex = -1;
+      var hoverIndex = -1;
       var editShape = '';
       var shapePts = [];
       var editEnabled = true;
@@ -181,6 +182,7 @@
         anchorBottomCenter();
         draw();
         showCursorPos(e);
+        updateRowHighlights();
       }
 
       function updateFromMouse(e) {
@@ -279,6 +281,7 @@
         ctx.stroke();
         ctx.strokeStyle = '#000';
         updateCoords(pts);
+        updateRowHighlights();
         var area = polygonArea(pts);
         var waterPts = clipBelow(pts, yLine);
         var waterArea = polygonArea(waterPts);
@@ -401,6 +404,7 @@
           }
         }
         draw();
+        updateRowHighlights();
       }
 
       function movePoint(e) {
@@ -480,6 +484,7 @@
         tbody.innerHTML = '';
         for (var i = 0; i < pts.length; i++) {
           var tr = document.createElement('tr');
+          tr.dataset.index = i;
           var tdI = document.createElement('td');
           tdI.textContent = i;
           var tdX = document.createElement('td');
@@ -505,6 +510,19 @@
           tr.appendChild(tdY);
           tbody.appendChild(tr);
         }
+        updateRowHighlights();
+      }
+
+      function updateRowHighlights() {
+        var rows = document.getElementById('points-table').querySelectorAll('tbody tr');
+        rows.forEach(function(row){
+          var idx = parseInt(row.dataset.index);
+          row.classList.remove('row-hover', 'row-edit');
+          if (idx === hoverIndex) row.classList.add('row-hover');
+          if (idx === editIndex && editShape === document.getElementById('shape').value) {
+            row.classList.add('row-edit');
+          }
+        });
       }
 
       function clamp(v, min, max) {
@@ -572,11 +590,13 @@
         var py = e.clientY - rect.top;
         var shape = document.getElementById('shape').value;
         var pts = getShapePoints(shape);
-        var over = false;
+        var over = -1;
         for (var i = 0; i < pts.length; i++) {
-          if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = true; break; }
+          if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = i; break; }
         }
-        if (over || editIndex >= 0) {
+        hoverIndex = over;
+        updateRowHighlights();
+        if (over >= 0 || editIndex >= 0) {
           canvas.style.cursor = blueCursor;
         } else {
           canvas.style.cursor = 'default';
@@ -586,6 +606,8 @@
       function clearCursorPos() {
         document.getElementById('cursor-pos').textContent = 'Cursor:';
         canvas.style.cursor = 'default';
+        hoverIndex = -1;
+        updateRowHighlights();
       }
 
       function setOrientation(o) {
