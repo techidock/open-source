@@ -3,11 +3,14 @@
   <head>
     <meta charset="utf-8">
     <title>Channel Area Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
   <body>
     <h1>Water Channel Area Calculator</h1>
-    <button type="button" onclick="openNewChannelDialog()">New Channel</button>
-    <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
+    <nav id="menu">
+      <button type="button" onclick="openNewChannelDialog()">New Channel</button>
+      <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
+    </nav>
     <dialog id="new-channel-dialog">
       <form method="dialog" onsubmit="return false;">
         <label for="shape">Shape:</label>
@@ -52,6 +55,7 @@
       <button type="button" onclick="setOrientation(0)">Two Points Down</button>
       <button type="button" onclick="setOrientation(1)">One Point Down</button>
       <label><input type="checkbox" id="scale-toggle" checked> Allow Scaling</label>
+      <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
       <button type="button" onclick="undoEdit()">Undo</button>
       <button type="button" onclick="redoEdit()">Redo</button>
     </div>
@@ -121,6 +125,7 @@
       var editShape = '';
       var shapePts = [];
       var scaleEnabled = true;
+      var addPointEnabled = false;
       var undoStack = [];
       var redoStack = [];
       var waterHeight = 0;
@@ -133,9 +138,12 @@
         canvas.addEventListener('mousemove', showCursorPos);
         canvas.addEventListener('mouseleave', clearCursorPos);
         canvas.addEventListener('mouseup', endDrag);
-        canvas.addEventListener('dblclick', selectPoint);
+        canvas.addEventListener('dblclick', handleDoubleClick);
         document.getElementById('scale-toggle').onchange = function(){
           scaleEnabled = this.checked;
+        };
+        document.getElementById('add-point-toggle').onchange = function(){
+          addPointEnabled = this.checked;
         };
         updateShapeList();
         showFields();
@@ -149,10 +157,6 @@
         if (editIndex >= 0) {
           dragging = true;
           movePoint(e);
-          return;
-        }
-        if (polygonMode) {
-          addPoint(e);
           return;
         }
         dragging = true;
@@ -348,10 +352,19 @@
       function addPoint(e) {
         if (!scaleEnabled) return;
         var rect = canvas.getBoundingClientRect();
-        if (points.length < numPoints) {
-          saveState();
-          points.push({x: e.clientX - rect.left, y: e.clientY - rect.top});
-          draw();
+        var x = clamp(e.clientX - rect.left, 0, canvas.width);
+        var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        saveState();
+        points.push({x: x, y: y});
+        numPoints = points.length;
+        draw();
+      }
+
+      function handleDoubleClick(e) {
+        if (addPointEnabled) {
+          addPoint(e);
+        } else {
+          selectPoint(e);
         }
       }
 
