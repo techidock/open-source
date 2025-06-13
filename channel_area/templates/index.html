@@ -48,12 +48,18 @@
       <button type="button" onclick="undoEdit()">Undo</button>
       <button type="button" onclick="redoEdit()">Redo</button>
     </div>
-    <div style="margin-top:5px;">
-      <input type="text" id="shape-name" placeholder="shape name">
-      <button type="button" onclick="saveShape()">Save Shape</button>
-      <select id="load-list"></select>
-      <button type="button" onclick="loadShape()">Load</button>
-    </div>
+      <div style="margin-top:5px;">
+        <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
+      </div>
+      <dialog id="shape-dialog">
+        <form method="dialog" onsubmit="return false;">
+          <label>Name: <input type="text" id="shape-name"></label>
+          <button type="button" onclick="saveShape()">Save</button>
+          <select id="load-list"></select>
+          <button type="button" onclick="loadShape()">Load</button>
+          <button type="button" onclick="closeShapeDialog()">Close</button>
+        </form>
+      </dialog>
     <p id="area-display"></p>
     <p id="water-area-display"></p>
     <p id="cursor-pos">Cursor:</p>
@@ -186,26 +192,39 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawGrid();
         var shape = document.getElementById('shape').value;
-        ctx.fillStyle = '#99ccff';
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
 
         var pts = getShapePoints(shape);
-        if (pts.length > 0) {
-          ctx.beginPath();
-          ctx.moveTo(pts[0].x, pts[0].y);
-          for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-        }
-
         var maxHeight = shapeHeight(pts);
         shapePts = pts;
         var whInput = document.getElementById('water-height');
         waterHeight = parseFloat(whInput.value) || 0;
         waterHeight = clamp(waterHeight, 0, maxHeight);
         whInput.value = waterHeight.toFixed(1);
+        var yLine = canvas.height - waterHeight;
+        if (pts.length > 0) {
+          var below = clipBelow(pts, yLine);
+          var above = clipAbove(pts, yLine);
+          if (above.length > 0) {
+            ctx.fillStyle = '#cccccc';
+            ctx.beginPath();
+            ctx.moveTo(above[0].x, above[0].y);
+            for (var i = 1; i < above.length; i++) ctx.lineTo(above[i].x, above[i].y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          if (below.length > 0) {
+            ctx.fillStyle = '#99ccff';
+            ctx.beginPath();
+            ctx.moveTo(below[0].x, below[0].y);
+            for (var i = 1; i < below.length; i++) ctx.lineTo(below[i].x, below[i].y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+        }
 
         for (var i = 0; i < pts.length; i++) {
           var color = (i === editIndex && editShape === shape) ? '#000' : '#0000ff';
@@ -228,12 +247,10 @@
         ctx.beginPath();
         ctx.arc(maxX, maxY, 3, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#99ccff';
-        var yLine = canvas.height - waterHeight;
         ctx.strokeStyle = '#00f';
         ctx.beginPath();
-        ctx.moveTo(0, yLine);
-        ctx.lineTo(canvas.width, yLine);
+        ctx.moveTo(minX, yLine);
+        ctx.lineTo(maxX, yLine);
         ctx.stroke();
         ctx.strokeStyle = '#000';
         updateCoords(pts);
@@ -275,6 +292,27 @@
           var b = pts[(i + 1) % pts.length];
           var aInside = a.y >= yLine;
           var bInside = b.y >= yLine;
+          if (aInside && bInside) {
+            out.push(b);
+          } else if (aInside && !bInside) {
+            var x = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x, y: yLine});
+          } else if (!aInside && bInside) {
+            var x1 = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x1, y: yLine});
+            out.push(b);
+          }
+        }
+        return out;
+      }
+
+      function clipAbove(pts, yLine) {
+        var out = [];
+        for (var i = 0; i < pts.length; i++) {
+          var a = pts[i];
+          var b = pts[(i + 1) % pts.length];
+          var aInside = a.y <= yLine;
+          var bInside = b.y <= yLine;
           if (aInside && bInside) {
             out.push(b);
           } else if (aInside && !bInside) {
@@ -544,6 +582,15 @@
             draw();
           }
         });
+      }
+
+      function openShapeDialog() {
+        updateShapeList();
+        document.getElementById('shape-dialog').showModal();
+      }
+
+      function closeShapeDialog() {
+        document.getElementById('shape-dialog').close();
       }
 
       function drawGrid() {
