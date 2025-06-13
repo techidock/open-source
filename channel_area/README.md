@@ -50,7 +50,7 @@ beneath the canvas lists each vertex. Editing the table keeps the coordinates
 inside the canvas and immediately redraws the shape. Small red markers indicate
 the minimum and maximum points of the current shape.
 
-A **Allow Scaling** checkbox controls whether shapes can be edited with the
+An **Edit** checkbox controls whether shapes can be modified with the
 mouse or table. Use **Undo** and **Redo** to step through previous edits. Shape
 files are saved as SVG under `channel_area/shapes` and managed from the
 **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use
@@ -66,10 +66,11 @@ A simple menu at the top of the page provides quick access to the **New
 Channel** and **Manage Shapes** dialogs, and the application now uses a basic
 stylesheet for clearer layout.
 
-Two buttons under the canvas let you rotate the shape while keeping it anchored at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline.
+Two buttons under the canvas let you rotate the shape while keeping it anchored
+at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline. Shapes are automatically repositioned so their bounding box stays centred at the bottom of the canvas after every edit.
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
 
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 
-The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released.
+The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker the cursor changes to a crosshair to indicate it can be edited.

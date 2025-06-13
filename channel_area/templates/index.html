@@ -45,16 +45,11 @@
         <button type="button" onclick="closeNewChannelDialog()">Close</button>
       </form>
     </dialog>
-    <canvas id="canvas" width="400" height="300" style="border:1px solid #000;margin-top:10px;"></canvas>
-    <div id="water-controls" style="margin-top:5px;">
-      <label for="water-height">Water Height:</label>
-      <input type="number" step="any" id="water-height" min="0" oninput="draw()">
-      <button onclick="calculateArea()">Calculate</button>
-    </div>
+    <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
     <div>
       <button type="button" onclick="setOrientation(0)">Two Points Down</button>
       <button type="button" onclick="setOrientation(1)">One Point Down</button>
-      <label><input type="checkbox" id="scale-toggle" checked> Allow Scaling</label>
+      <label><input type="checkbox" id="edit-toggle" checked> Edit</label>
       <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
       <button type="button" onclick="undoEdit()">Undo</button>
       <button type="button" onclick="redoEdit()">Redo</button>
@@ -70,8 +65,13 @@
       </dialog>
     <p id="area-display"></p>
     <p id="water-area-display"></p>
-    <p id="width-label"></p>
+    <div id="water-controls" style="margin-top:5px;">
+      <label for="water-height">Water Height:</label>
+      <input type="number" step="any" id="water-height" min="0" oninput="draw()">
+      <button onclick="calculateArea()">Calculate</button>
+    </div>
     <p id="height-label"></p>
+    <p id="width-label"></p>
     <p id="cursor-pos">Cursor:</p>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
@@ -124,7 +124,7 @@
       var editIndex = -1;
       var editShape = '';
       var shapePts = [];
-      var scaleEnabled = true;
+      var editEnabled = true;
       var addPointEnabled = false;
       var undoStack = [];
       var redoStack = [];
@@ -139,8 +139,8 @@
         canvas.addEventListener('mouseleave', clearCursorPos);
         canvas.addEventListener('mouseup', endDrag);
         canvas.addEventListener('dblclick', handleDoubleClick);
-        document.getElementById('scale-toggle').onchange = function(){
-          scaleEnabled = this.checked;
+        document.getElementById('edit-toggle').onchange = function(){
+          editEnabled = this.checked;
         };
         document.getElementById('add-point-toggle').onchange = function(){
           addPointEnabled = this.checked;
@@ -152,7 +152,7 @@
       }
 
       function startDrag(e) {
-        if (!scaleEnabled) return;
+        if (!editEnabled) return;
         var shape = document.getElementById('shape').value;
         if (editIndex >= 0) {
           dragging = true;
@@ -176,12 +176,13 @@
         dragging = false;
         if (editIndex >= 0) {
           editIndex = -1;
-          draw();
         }
+        anchorBottomCenter();
+        draw();
       }
 
       function updateFromMouse(e) {
-        if (!scaleEnabled) return;
+        if (!editEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
@@ -350,7 +351,7 @@
       }
 
       function addPoint(e) {
-        if (!scaleEnabled) return;
+        if (!editEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, 0, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height);
@@ -368,6 +369,7 @@
         saveState();
         points.splice(idx + 1, 0, base);
         numPoints = points.length;
+        anchorBottomCenter();
         draw();
       }
 
@@ -380,7 +382,7 @@
       }
 
       function selectPoint(e) {
-        if (!scaleEnabled) return;
+        if (!editEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
@@ -400,7 +402,7 @@
       }
 
       function movePoint(e) {
-        if (!(e.buttons & 1) || !scaleEnabled) return;
+        if (!(e.buttons & 1) || !editEnabled) return;
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, 0, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height);
@@ -419,6 +421,7 @@
         saveState();
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
+        anchorBottomCenter();
         waterHeight = shapeHeight(points);
         document.getElementById('water-height').value = waterHeight.toFixed(1);
         draw();
@@ -447,6 +450,7 @@
           var ang = (i / n) * Math.PI * 2;
           points.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
         }
+        anchorBottomCenter();
         waterHeight = 2 * r;
         document.getElementById('water-height').value = waterHeight.toFixed(1);
         draw();
@@ -463,6 +467,7 @@
           {x: cx + w/2, y: canvas.height - d},
           {x: cx - w/2, y: canvas.height - d}
         ];
+        anchorBottomCenter();
         waterHeight = d;
         document.getElementById('water-height').value = waterHeight.toFixed(1);
         draw();
@@ -504,6 +509,22 @@
         return Math.max(min, Math.min(max, v));
       }
 
+      function anchorBottomCenter() {
+        if (points.length === 0) return;
+        var minX = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < points.length; i++) {
+          var p = points[i];
+          minX = Math.min(minX, p.x);
+          maxX = Math.max(maxX, p.x);
+          maxY = Math.max(maxY, p.y);
+        }
+        var dx = canvas.width / 2 - (minX + (maxX - minX) / 2);
+        var dy = canvas.height - maxY;
+        for (var i = 0; i < points.length; i++) {
+          points[i] = {x: points[i].x + dx, y: points[i].y + dy};
+        }
+      }
+
       function pointSegmentDistance(p, a, b) {
         var dx = b.x - a.x;
         var dy = b.y - a.y;
@@ -523,7 +544,7 @@
       }
 
       function tableChanged(e) {
-        if (!scaleEnabled) {
+        if (!editEnabled) {
           draw();
           return;
         }
@@ -537,6 +558,7 @@
         row.children[2].firstChild.value = y;
         saveState();
         points[idx] = {x: x, y: canvas.height - y};
+        anchorBottomCenter();
         draw();
       }
 
@@ -545,6 +567,14 @@
         var x = e.clientX - rect.left;
         var y = canvas.height - (e.clientY - rect.top);
         document.getElementById('cursor-pos').textContent = 'Cursor: (' + x.toFixed(1) + ', ' + y.toFixed(1) + ')';
+        var py = e.clientY - rect.top;
+        var shape = document.getElementById('shape').value;
+        var pts = getShapePoints(shape);
+        var over = false;
+        for (var i = 0; i < pts.length; i++) {
+          if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = true; break; }
+        }
+        canvas.style.cursor = over ? 'crosshair' : 'default';
       }
 
       function clearCursorPos() {
@@ -605,6 +635,7 @@
         var state = undoStack.pop();
         points = JSON.parse(JSON.stringify(state.points));
         orientation = state.orientation;
+        anchorBottomCenter();
         draw();
       }
 
@@ -614,6 +645,7 @@
         var state = redoStack.pop();
         points = JSON.parse(JSON.stringify(state.points));
         orientation = state.orientation;
+        anchorBottomCenter();
         draw();
       }
 
@@ -648,6 +680,7 @@
             saveState();
             points = data.points;
             document.getElementById('shape').value = 'polygon';
+            anchorBottomCenter();
             draw();
           }
         });
