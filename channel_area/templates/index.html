@@ -15,8 +15,6 @@
       <form method="dialog" onsubmit="return false;">
         <label for="shape">Shape:</label>
         <select name="shape" id="shape" onchange="showFields(); draw()">
-          <option value="circular">Circular Channel</option>
-          <option value="rectangle">Rectangle Channel</option>
           <option value="polygon">Polygon Channel</option>
         </select>
         <label for="units">Units:</label>
@@ -25,18 +23,8 @@
           <option value="cm">cm</option>
           <option value="mm">mm</option>
         </select>
-        <div id="circular-fields" class="fields">
-          <label for="radius">Radius:</label>
-          <input type="number" step="any" name="radius" id="radius" oninput="resetCircle()">
-          <label for="circle-points">Circle Points:</label>
-          <input type="number" id="circle-points" min="3" value="25" oninput="resetCircle()">
-        </div>
-        <div id="rectangle-fields" class="fields" style="display:none">
-          <label for="width">Width:</label>
-          <input type="number" step="any" name="width" id="width" oninput="resetRectangle()">
-          <label for="depth">Depth:</label>
-          <input type="number" step="any" name="depth" id="depth" oninput="resetRectangle()">
-        </div>
+        <div id="circular-fields" class="fields" style="display:none"></div>
+        <div id="rectangle-fields" class="fields" style="display:none"></div>
         <div id="polygon-fields" class="fields" style="display:none">
           <label for="num-points">Points:</label>
           <input type="number" id="num-points" min="3" value="3" onchange="resetPolygon()">
@@ -85,34 +73,17 @@
 
   <script>
       function showFields() {
-        var shape = document.getElementById('shape').value;
-        document.getElementById('circular-fields').style.display = shape == 'circular' ? 'block' : 'none';
-        document.getElementById('rectangle-fields').style.display = shape == 'rectangle' ? 'block' : 'none';
-        document.getElementById('polygon-fields').style.display = shape == 'polygon' ? 'block' : 'none';
-        polygonMode = shape == 'polygon';
-        setDefaults(shape);
+        document.getElementById('polygon-fields').style.display = 'block';
+        polygonMode = true;
+        setDefaults();
       }
 
-      function setDefaults(shape) {
-        if (shape == 'circular') {
-          document.getElementById('radius').value = 50;
-          document.getElementById('circle-points').value = 25;
-          resetCircle();
-          document.getElementById('water-height').value = (parseFloat(document.getElementById('radius').value) * 2).toFixed(1);
-          waterHeight = parseFloat(document.getElementById('water-height').value);
-        } else if (shape == 'rectangle') {
-          document.getElementById('width').value = 200;
-          document.getElementById('depth').value = 50;
-          resetRectangle();
-          document.getElementById('water-height').value = document.getElementById('depth').value;
-          waterHeight = parseFloat(document.getElementById('water-height').value);
-        } else if (shape == 'polygon') {
-          document.getElementById('num-points').value = 3;
-          resetPolygon();
-          var maxH = shapeHeight(points);
-          document.getElementById('water-height').value = maxH.toFixed(1);
-          waterHeight = maxH;
-        }
+      function setDefaults() {
+        document.getElementById('num-points').value = 3;
+        resetPolygon();
+        var maxH = shapeHeight(points);
+        document.getElementById('water-height').value = maxH.toFixed(1);
+        waterHeight = maxH;
       }
 
       var canvas, ctx;
@@ -150,7 +121,16 @@
         updateShapeList();
         showFields();
         waterHeight = parseFloat(document.getElementById('water-height').value) || 0;
-        draw();
+        fetch('/load_shape/_last').then(r => {
+          if (r.ok) return r.json();
+        }).then(data => {
+          if (data && data.points) {
+            points = data.points;
+            orientation = data.orientation || 0;
+            anchorBottomCenter();
+          }
+          draw();
+        }).catch(() => draw());
       }
 
       function startDrag(e) {
@@ -190,17 +170,7 @@
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = e.clientY - rect.top;
-        var shape = document.getElementById('shape').value;
         saveState();
-        if (shape == 'circular') {
-          var r = canvas.height - y;
-          document.getElementById('radius').value = r.toFixed(1);
-          resetCircle();
-        } else if (shape == 'rectangle') {
-          document.getElementById('width').value = x.toFixed(1);
-          document.getElementById('depth').value = (canvas.height - y).toFixed(1);
-          resetRectangle();
-        }
       }
 
       function draw() {
@@ -288,6 +258,7 @@
         var units = document.getElementById('units').value;
         document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2) + ' ' + units + '^2';
         document.getElementById('water-area-display').textContent = 'Water Area: ' + waterArea.toFixed(2) + ' ' + units + '^2';
+        autoSave();
       }
 
       function calculateArea() {
@@ -445,39 +416,6 @@
         return pts;
       }
 
-      function resetCircle() {
-        saveState();
-        var r = parseFloat(document.getElementById('radius').value) || 0;
-        var n = parseInt(document.getElementById('circle-points').value) || 25;
-        var cx = canvas.width / 2;
-        var cy = canvas.height - r;
-        points = [];
-        for (var i = 0; i < n; i++) {
-          var ang = (i / n) * Math.PI * 2;
-          points.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
-        }
-        anchorBottomCenter();
-        waterHeight = 2 * r;
-        document.getElementById('water-height').value = waterHeight.toFixed(1);
-        draw();
-      }
-
-      function resetRectangle() {
-        saveState();
-        var w = parseFloat(document.getElementById('width').value) || 0;
-        var d = parseFloat(document.getElementById('depth').value) || 0;
-        var cx = canvas.width / 2;
-        points = [
-          {x: cx - w/2, y: canvas.height},
-          {x: cx + w/2, y: canvas.height},
-          {x: cx + w/2, y: canvas.height - d},
-          {x: cx - w/2, y: canvas.height - d}
-        ];
-        anchorBottomCenter();
-        waterHeight = d;
-        document.getElementById('water-height').value = waterHeight.toFixed(1);
-        draw();
-      }
 
       function updateCoords(pts) {
         var tbody = document.getElementById('points-table').querySelector('tbody');
@@ -640,7 +578,6 @@
 
       function orientationAngle(shape, n) {
         if (orientation == 0) return 0;
-        if (shape == 'rectangle') return Math.PI / 4;
         if (shape == 'polygon') return Math.PI / (n || points.length);
         return 0;
       }
@@ -684,8 +621,16 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: name, points: points})
+          body: JSON.stringify({name: name, points: points, orientation: orientation})
         }).then(updateShapeList);
+      }
+
+      function autoSave() {
+        fetch('/save_shape', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name: '_last', points: points, orientation: orientation})
+        });
       }
 
       function updateShapeList() {
@@ -708,6 +653,7 @@
           if (data.points) {
             saveState();
             points = data.points;
+            orientation = data.orientation || 0;
             document.getElementById('shape').value = 'polygon';
             anchorBottomCenter();
             draw();

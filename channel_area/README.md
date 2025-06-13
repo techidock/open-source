@@ -1,21 +1,10 @@
 # Channel Area Web Application
 
-This is a simple Flask-based web application for calculating the cross-sectional area of different water channel shapes:
-
-- **Circular Channel**: circular cross-section, area = π * radius²
-- **Rectangle Channel**: rectangular cross-section, area = width * depth
-- **Polygon Channel**: free-form shape drawn by clicking points on the canvas
+This is a simple Flask-based web application for calculating the cross-sectional area of water channels. Shapes are drawn as polygons that you can freely edit.
 
 Each dimension field lets you choose units in metres, centimetres or millimetres.
-Areas are reported in the selected units squared. The circular channel also
-allows editing the number of points used to draw the circle (default is 25).
-Rectangular channels are centred at the bottom of the canvas and always use four
-points. The **New Channel** button opens a dialog containing all the options for
-creating a shape and adjusting its dimensions. An additional **Water Height**
-box sits beneath the canvas where you can specify how full the channel is, from
-0 up to the maximum height of the selected shape. The shape is coloured grey
-above the water line and blue below it. Both the overall shape area and the
-water-filled area are displayed beneath the canvas.
+Areas are reported in the selected units squared.
+The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas.
 
 ## Requirements
 
@@ -43,11 +32,7 @@ regular polygon is centred at the bottom of the canvas. You can then click to
 edit the points. You can clear the shape using the *Clear Polygon Channel* button.
 The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Double‑click a marker to drag it to a new location; it turns black
-while being edited. Choose the units (m, cm, or mm) from the drop‑down to have
-results displayed in the same units squared. All shapes are treated as polygons:
-the circular channel defaults to 25 points and the rectangle uses four. A table
-beneath the canvas lists each vertex. Editing the table keeps the coordinates
-inside the canvas and immediately redraws the shape. Small red markers indicate
+while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate
 the minimum and maximum points of the current shape.
 
 An **Edit** checkbox controls whether shapes can be modified with the
@@ -55,7 +40,7 @@ mouse or table. Use **Undo** and **Redo** to step through previous edits. Shape
 files are saved as SVG under `channel_area/shapes` and managed from the
 **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use
 the **New Channel** dialog to choose a shape type, units and dimensions when
-starting a drawing.
+starting a drawing. The last design is automatically saved and restored the next time you open the page.
 
 An **Add Points** checkbox lets you insert new vector points with a double
 click. The point is placed on the edge closest to where you clicked so the
