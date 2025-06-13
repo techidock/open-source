@@ -36,6 +36,8 @@
         <input type="number" id="num-points" min="3" value="3" onchange="resetPolygon()">
         <button type="button" onclick="clearPolygon()">Clear Polygon Channel</button>
       </div>
+      <label for="water-height">Water Height:</label>
+      <input type="number" step="any" id="water-height" min="0" oninput="draw()">
       <button onclick="calculateArea()">Calculate</button>
     </form>
     <canvas id="canvas" width="400" height="300" style="border:1px solid #000;margin-top:10px;"></canvas>
@@ -53,6 +55,7 @@
       <button type="button" onclick="loadShape()">Load</button>
     </div>
     <p id="area-display"></p>
+    <p id="water-area-display"></p>
     <p id="cursor-pos">Cursor:</p>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
@@ -79,13 +82,20 @@
           document.getElementById('radius').value = 50;
           document.getElementById('circle-points').value = 25;
           resetCircle();
+          document.getElementById('water-height').value = (parseFloat(document.getElementById('radius').value) * 2).toFixed(1);
+          waterHeight = parseFloat(document.getElementById('water-height').value);
         } else if (shape == 'rectangle') {
           document.getElementById('width').value = 200;
           document.getElementById('depth').value = 50;
           resetRectangle();
+          document.getElementById('water-height').value = document.getElementById('depth').value;
+          waterHeight = parseFloat(document.getElementById('water-height').value);
         } else if (shape == 'polygon') {
           document.getElementById('num-points').value = 3;
           resetPolygon();
+          var maxH = shapeHeight(points);
+          document.getElementById('water-height').value = maxH.toFixed(1);
+          waterHeight = maxH;
         }
       }
 
@@ -101,6 +111,7 @@
       var scaleEnabled = true;
       var undoStack = [];
       var redoStack = [];
+      var waterHeight = 0;
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -116,6 +127,7 @@
         };
         updateShapeList();
         showFields();
+        waterHeight = parseFloat(document.getElementById('water-height').value) || 0;
         draw();
       }
 
@@ -188,7 +200,13 @@
           ctx.stroke();
         }
 
+        var maxHeight = shapeHeight(pts);
         shapePts = pts;
+        var whInput = document.getElementById('water-height');
+        waterHeight = parseFloat(whInput.value) || 0;
+        waterHeight = clamp(waterHeight, 0, maxHeight);
+        whInput.value = waterHeight.toFixed(1);
+
         for (var i = 0; i < pts.length; i++) {
           var color = (i === editIndex && editShape === shape) ? '#000' : '#0000ff';
           ctx.fillStyle = color;
@@ -211,18 +229,24 @@
         ctx.arc(maxX, maxY, 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#99ccff';
+        var yLine = canvas.height - waterHeight;
+        ctx.strokeStyle = '#00f';
+        ctx.beginPath();
+        ctx.moveTo(0, yLine);
+        ctx.lineTo(canvas.width, yLine);
+        ctx.stroke();
+        ctx.strokeStyle = '#000';
         updateCoords(pts);
         var area = polygonArea(pts);
+        var waterPts = clipBelow(pts, yLine);
+        var waterArea = polygonArea(waterPts);
         var units = document.getElementById('units').value;
         document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2) + ' ' + units + '^2';
+        document.getElementById('water-area-display').textContent = 'Water Area: ' + waterArea.toFixed(2) + ' ' + units + '^2';
       }
 
       function calculateArea() {
-        var shape = document.getElementById('shape').value;
-        var pts = getShapePoints(shape);
-        var area = polygonArea(pts);
-        var units = document.getElementById('units').value;
-        document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2) + ' ' + units + '^2';
+        draw();
       }
 
       function polygonArea(pts) {
@@ -233,6 +257,36 @@
           sum += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
         }
         return Math.abs(sum / 2);
+      }
+
+      function shapeHeight(pts) {
+        if (pts.length === 0) return 0;
+        var minY = canvas.height;
+        for (var i = 0; i < pts.length; i++) {
+          minY = Math.min(minY, pts[i].y);
+        }
+        return canvas.height - minY;
+      }
+
+      function clipBelow(pts, yLine) {
+        var out = [];
+        for (var i = 0; i < pts.length; i++) {
+          var a = pts[i];
+          var b = pts[(i + 1) % pts.length];
+          var aInside = a.y >= yLine;
+          var bInside = b.y >= yLine;
+          if (aInside && bInside) {
+            out.push(b);
+          } else if (aInside && !bInside) {
+            var x = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x, y: yLine});
+          } else if (!aInside && bInside) {
+            var x1 = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x1, y: yLine});
+            out.push(b);
+          }
+        }
+        return out;
       }
 
       function addPoint(e) {
@@ -285,6 +339,8 @@
         saveState();
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
+        waterHeight = shapeHeight(points);
+        document.getElementById('water-height').value = waterHeight.toFixed(1);
         draw();
       }
 
@@ -311,6 +367,8 @@
           var ang = (i / n) * Math.PI * 2;
           points.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
         }
+        waterHeight = 2 * r;
+        document.getElementById('water-height').value = waterHeight.toFixed(1);
         draw();
       }
 
@@ -325,6 +383,8 @@
           {x: cx + w/2, y: canvas.height - d},
           {x: cx - w/2, y: canvas.height - d}
         ];
+        waterHeight = d;
+        document.getElementById('water-height').value = waterHeight.toFixed(1);
         draw();
       }
 

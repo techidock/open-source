@@ -10,7 +10,9 @@ Each dimension field lets you choose units in metres, centimetres or millimetres
 Areas are reported in the selected units squared. The circular channel also
 allows editing the number of points used to draw the circle (default is 25).
 Rectangular channels are centred at the bottom of the canvas and always use four
-points.
+points. An additional **Water Height** box lets you specify how full the channel
+is, from 0 up to the maximum height of the selected shape. Both the overall
+shape area and the water-filled area are displayed beneath the canvas.
 
 ## Requirements
 
@@ -51,5 +53,7 @@ can also save a shape by name and reload it later. Saved shapes are stored as
 SVG files under `channel_area/shapes`.
 
 Two buttons under the canvas let you rotate the shape while keeping it anchored at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline.
+
+Adjust the **Water Height** field to draw a blue line at that level and to see the area of water calculated below it.
 
 The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released.
