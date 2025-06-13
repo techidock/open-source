@@ -25,8 +25,9 @@ python app.py
 ```
 
 Then open your browser at [http://localhost:5000](http://localhost:5000).
-Use the form to pick a shape and adjust dimensions either by typing or by
-dragging on the canvas. Shapes are anchored to the bottom of the canvas so they
-maintain a fixed reference line. Select **Polygon** to add points by clicking on
-the canvas; you can clear the shape using the *Clear Polygon* button.
-The area updates automatically as you change the shape.
+Use the form to pick a shape and adjust dimensions. Each shape comes with a
+default size when selected and is rendered as a polygon on a grid. The canvas
+shows grid lines with **x** and **y** axes for reference. Select **Polygon** to
+set a number of points (minimum three) and click to place each vertex; the
+coordinates are listed below the canvas. You can clear the shape using the
+*Clear Polygon* button. The area updates automatically as you change the shape.
