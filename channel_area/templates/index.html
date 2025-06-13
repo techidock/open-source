@@ -12,6 +12,7 @@
         <option value="pipe">Pipe</option>
         <option value="river">River</option>
         <option value="vduct">V Duct</option>
+        <option value="poly">Polygon</option>
       </select>
       <div id="pipe-fields" class="fields">
         <label for="radius">Radius:</label>
@@ -29,6 +30,9 @@
         <label for="depth-v">Depth:</label>
         <input type="number" step="any" name="depth" id="depth-v" oninput="draw()">
       </div>
+      <div id="poly-fields" class="fields" style="display:none">
+        <button type="button" onclick="clearPolygon()">Clear Polygon</button>
+      </div>
       <button onclick="calculateArea()">Calculate</button>
     </form>
     <canvas id="canvas" width="400" height="300" style="border:1px solid #000;margin-top:10px;"></canvas>
@@ -43,10 +47,14 @@
         document.getElementById('pipe-fields').style.display = shape == 'pipe' ? 'block' : 'none';
         document.getElementById('river-fields').style.display = shape == 'river' ? 'block' : 'none';
         document.getElementById('vduct-fields').style.display = shape == 'vduct' ? 'block' : 'none';
+        document.getElementById('poly-fields').style.display = shape == 'poly' ? 'block' : 'none';
+        polyMode = shape == 'poly';
       }
 
       var canvas, ctx;
       var dragging = false;
+      var polyMode = false;
+      var points = [];
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -58,7 +66,14 @@
         draw();
       }
 
-      function startDrag(e) { dragging = true; updateFromMouse(e); }
+      function startDrag(e) {
+        if (polyMode) {
+          addPoint(e);
+          return;
+        }
+        dragging = true;
+        updateFromMouse(e);
+      }
       function drag(e) { if (dragging) updateFromMouse(e); }
       function endDrag(e) { dragging = false; }
 
@@ -68,14 +83,12 @@
         var y = e.clientY - rect.top;
         var shape = document.getElementById('shape').value;
         if (shape == 'pipe') {
-          var cx = canvas.width / 2;
-          var cy = canvas.height / 2;
-          var r = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+          var r = canvas.height - y;
           document.getElementById('radius').value = r.toFixed(1);
         } else if (shape == 'river') {
           document.getElementById('width').value = x.toFixed(1);
-          document.getElementById('depth').value = y.toFixed(1);
-        } else {
+          document.getElementById('depth').value = (canvas.height - y).toFixed(1);
+        } else if (shape == 'vduct') {
           document.getElementById('base').value = x.toFixed(1);
           document.getElementById('depth-v').value = (canvas.height - y).toFixed(1);
         }
@@ -90,16 +103,17 @@
         ctx.lineWidth = 2;
         if (shape == 'pipe') {
           var r = parseFloat(document.getElementById('radius').value) || 0;
+          var cy = canvas.height - r;
           ctx.beginPath();
-          ctx.arc(canvas.width/2, canvas.height/2, r, 0, Math.PI * 2);
+          ctx.arc(canvas.width/2, cy, r, 0, Math.PI * 2);
           ctx.fill();
           ctx.stroke();
         } else if (shape == 'river') {
           var w = parseFloat(document.getElementById('width').value) || 0;
           var d = parseFloat(document.getElementById('depth').value) || 0;
-          ctx.fillRect(0, 0, w, d);
-          ctx.strokeRect(0, 0, w, d);
-        } else {
+          ctx.fillRect(0, canvas.height - d, w, d);
+          ctx.strokeRect(0, canvas.height - d, w, d);
+        } else if (shape == 'vduct') {
           var b = parseFloat(document.getElementById('base').value) || 0;
           var d = parseFloat(document.getElementById('depth-v').value) || 0;
           ctx.beginPath();
@@ -109,6 +123,17 @@
           ctx.closePath();
           ctx.fill();
           ctx.stroke();
+        } else if (shape == 'poly') {
+          if (points.length > 0) {
+            ctx.beginPath();
+            ctx.moveTo(points[0].x, points[0].y);
+            for (var i = 1; i < points.length; i++) {
+              ctx.lineTo(points[i].x, points[i].y);
+            }
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
         }
         calculateArea();
       }
@@ -123,12 +148,35 @@
           var w = parseFloat(document.getElementById('width').value) || 0;
           var d = parseFloat(document.getElementById('depth').value) || 0;
           area = w * d;
-        } else {
+        } else if (shape == 'vduct') {
           var b = parseFloat(document.getElementById('base').value) || 0;
           var d = parseFloat(document.getElementById('depth-v').value) || 0;
           area = 0.5 * b * d;
+        } else if (shape == 'poly') {
+          area = polygonArea(points);
         }
         document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2);
+      }
+
+      function polygonArea(pts) {
+        if (pts.length < 3) return 0;
+        var sum = 0;
+        for (var i = 0; i < pts.length; i++) {
+          var j = (i + 1) % pts.length;
+          sum += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+        }
+        return Math.abs(sum / 2);
+      }
+
+      function addPoint(e) {
+        var rect = canvas.getBoundingClientRect();
+        points.push({x: e.clientX - rect.left, y: e.clientY - rect.top});
+        draw();
+      }
+
+      function clearPolygon() {
+        points = [];
+        draw();
       }
 
       window.onload = init;
