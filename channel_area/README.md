@@ -4,7 +4,7 @@ This is a simple Flask-based web application for calculating the cross-sectional
 
 - **Circular Channel**: circular cross-section, area = π * radius²
 - **Rectangle Channel**: rectangular cross-section, area = width * depth
-- **Polygon**: free-form shape drawn by clicking points on the canvas
+- **Polygon Channel**: free-form shape drawn by clicking points on the canvas
 
 Each dimension field lets you choose units in metres, centimetres or millimetres.
 Areas are reported in the selected units squared. The circular channel also
@@ -32,12 +32,15 @@ python app.py
 Then open your browser at [http://localhost:5000](http://localhost:5000).
 Use the form to pick a shape and adjust dimensions. Each shape comes with a
 default size when selected and is rendered as a polygon on a grid. The canvas
-shows grid lines with **x** and **y** axes for reference. Select **Polygon** to
+shows grid lines with **x** and **y** axes for reference. Select **Polygon Channel** to
 set a number of points (minimum three). When the value changes, a default
 regular polygon is centred at the bottom of the canvas. You can then click to
 edit the points; their coordinates are listed below. You can clear the shape
-using the *Clear Polygon* button. The area updates automatically as you change
+using the *Clear Polygon Channel* button. The area updates automatically as you change
 the shape. Each point is shown as a blue marker. Double‑click a marker to drag
 it to a new location; it turns black while being edited. Choose the units (m,
 cm, or mm) from the drop‑down to have results displayed in the same units
 squared.
+The circular and rectangle channels now display blue markers for each vertex, just like the polygon channel. Double-click a marker to turn it black and drag it to adjust the shape's dimensions.
+
+Two buttons under the canvas let you rotate the shape while keeping it anchored at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline.
