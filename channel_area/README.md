@@ -36,22 +36,14 @@ The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Double‑click a marker to drag it to a new location; it turns black
 while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate the minimum and maximum points of the current shape. Table numbers use three decimal places for metres, one for centimetres and none for millimetres.
 
-An **Edit Mode** checkbox controls whether shapes can be modified with the
-mouse or table. Use **Undo** and **Redo** to step through previous edits. Shape
-files are saved as SVG under `channel_area/shapes` and managed from the
-**Manage Shapes** dialog which lets you name, save and reload saved shapes.
-Use the **New Channel** dialog to choose a shape type when starting a drawing.
-The canvas size is configured from the **Setup** dialog, while display units are selected in the **Display Settings** panel.
+The sidebar includes an **Edit Tools** section. At the top is the **Edit Mode** checkbox that enables moving points with the mouse or table. This menu also offers an **Add Points** toggle plus **Undo** and **Redo** buttons for stepping through previous edits. Shape files are saved as SVG under `channel_area/shapes` and managed from the **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use the **New Channel** dialog to choose a shape type when starting a drawing. The canvas size is configured from the **Setup** dialog, while display units are selected in the **Display Settings** panel.
 The last design is automatically saved and restored the next time you open the page. When a saved shape is loaded, its canvas dimensions are also restored so the drawing matches the real-world scale it was saved with.
 
-An **Add Points** checkbox lets you insert new vector points with a double
-click. The point is placed on the edge closest to where you clicked so the
-polygon updates naturally. When the option is disabled, a double click selects a
-point for editing instead.
+Double clicking when **Add Points** is active inserts a new vertex on the nearest edge. With the option off, a double click selects a point for editing instead.
 
 The markers themselves can be hidden or shown with the **Show Vectors**
 checkbox found in the **Display Settings** section of the sidebar. This
-panel also contains the **Edit Mode** and **Show Bounding Box** options.
+panel lists **Show Bounding Box** and measurement options alongside the other display toggles.
 
 A simple menu at the top of the page provides quick access to the **New
 Channel** and **Manage Shapes** dialogs, and the application now uses a basic
@@ -63,9 +55,10 @@ Use the **Water Height** box below the canvas to draw a blue line at the chosen 
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area; this value is also displayed in **Channel Properties**.
 A **Height Units** dropdown lets you show these heights in metres, centimetres or millimetres independently of the shape units.
 The **Manage Shapes** dialog stores the water and silt heights along with the points when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
+These levels are automatically restored when a shape is loaded.
 
 A dashed orange rectangle indicates the shape's bounding box. Labels beside the rectangle show the current width and height in the chosen units and the same numbers appear in the **Display Properties** panel to the right of the canvas. A **Show Bounding Box** checkbox lets you hide or reveal this rectangle and its labels.
-The sidebar also provides a **Display Settings** section to toggle **Edit Mode**, **Show Vectors**, **Show Bounding Box** and **Enable Measurements**.
+The sidebar also provides a **Display Settings** section to toggle **Show Vectors**, **Show Bounding Box** and **Enable Measurements**.
 Below this menu, the **Channel Properties** panel lists the maximum width and height along with the **Total Area**, **Water Area** and **Silt Area**.
 
 The grid origin is the bottom left corner. Tick marks along the axes show the distance from the origin using a fixed spacing of **0.5&nbsp;metre** (50&nbsp;cm or 500&nbsp;mm). The current spacing is listed in the **Display Properties** panel along with the cursor coordinates. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.

@@ -38,11 +38,6 @@
     <div id="layout">
       <div id="drawing-area">
         <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
-        <div>
-      <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
-      <button type="button" onclick="undoEdit()">Undo</button>
-      <button type="button" onclick="redoEdit()">Redo</button>
-      </div>
       </div>
       <aside id="display-properties">
         <h3>Display Properties</h3>
@@ -55,7 +50,6 @@
           <option value="cm">cm</option>
           <option value="mm">mm</option>
         </select><br>
-        <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
         <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
         <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label><br>
         <label for="canvas-width">Canvas Width:</label>
@@ -65,6 +59,13 @@
         <span id="draw-unit"></span><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
         <button type="button" onclick="clearMeasurement()">Clear</button>
+      </aside>
+      <aside id="edit-tools">
+        <h3>Edit Tools</h3>
+        <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
+        <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
+        <button type="button" onclick="undoEdit()">Undo</button>
+        <button type="button" onclick="redoEdit()">Redo</button>
       </aside>
       <aside id="channel-properties">
         <h3>Channel Properties</h3>
@@ -290,9 +291,8 @@
             document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             waterHeightMM = data.waterHeight || 0;
-            document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
             siltHeightMM = data.siltHeight || 0;
-            document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
+            updateHeightUnitDisplay();
             anchorBottomLeft();
           }
           draw();
@@ -695,9 +695,8 @@
         points = defaultPolygon(numPoints);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
-        document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
         siltHeightMM = 0;
-        document.getElementById('silt-height').value = '0';
+        updateHeightUnitDisplay();
         draw();
       }
 
@@ -720,9 +719,8 @@
         points = defaultCircle(n, circleDiameterMM);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
-        document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
         siltHeightMM = 0;
-        document.getElementById('silt-height').value = '0';
+        updateHeightUnitDisplay();
         draw();
       }
 
@@ -1016,9 +1014,8 @@
             document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             siltHeightMM = data.siltHeight || 0;
-            document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
             waterHeightMM = data.waterHeight || 0;
-            document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
+            updateHeightUnitDisplay();
             document.getElementById('shape').value = 'polygon';
             anchorBottomLeft();
             draw();
