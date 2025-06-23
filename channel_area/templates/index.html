@@ -16,6 +16,7 @@
         <label for="shape">Shape:</label>
         <select name="shape" id="shape" onchange="showFields(); draw()">
           <option value="polygon">Polygon Channel</option>
+          <option value="circle">Circular Channel</option>
         </select>
         <label for="units">Units:</label>
         <select name="units" id="units" onchange="draw()">
@@ -23,7 +24,10 @@
           <option value="cm">cm</option>
           <option value="mm">mm</option>
         </select>
-        <div id="circular-fields" class="fields" style="display:none"></div>
+        <div id="circular-fields" class="fields" style="display:none">
+          <label for="circle-points">Points:</label>
+          <input type="number" id="circle-points" min="3" value="30" onchange="resetCircle()">
+        </div>
         <div id="rectangle-fields" class="fields" style="display:none"></div>
         <div id="polygon-fields" class="fields" style="display:none">
           <label for="num-points">Points:</label>
@@ -57,8 +61,10 @@
     <div id="water-controls" style="margin-top:5px;">
       <label for="water-height">Water Height:</label>
       <input type="number" step="any" id="water-height" min="0" oninput="draw()">
+      <span id="water-unit"></span>
       <label for="silt-height">Silt Height:</label>
       <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
+      <span id="silt-unit"></span>
       <button onclick="calculateArea()">Calculate</button>
     </div>
     <div id="inspect">
@@ -80,19 +86,14 @@
 
   <script>
       function showFields() {
-        document.getElementById('polygon-fields').style.display = 'block';
-        polygonMode = true;
-        setDefaults();
-      }
-
-      function setDefaults() {
-        document.getElementById('num-points').value = 3;
-        resetPolygon();
-        var maxH = shapeHeight(points);
-        document.getElementById('water-height').value = maxH.toFixed(1);
-        waterHeight = maxH;
-        document.getElementById('silt-height').value = '0';
-        siltHeight = 0;
+        var shape = document.getElementById('shape').value;
+        document.getElementById('polygon-fields').style.display = shape === 'polygon' ? 'block' : 'none';
+        document.getElementById('circular-fields').style.display = shape === 'circle' ? 'block' : 'none';
+        if (shape === 'polygon') {
+          resetPolygon();
+        } else if (shape === 'circle') {
+          resetCircle();
+        }
       }
 
       var canvas, ctx;
@@ -222,6 +223,8 @@
         var units = document.getElementById('units').value;
         document.getElementById('width-label').textContent = 'Width: ' + width.toFixed(1) + ' ' + units;
         document.getElementById('height-label').textContent = 'Height: ' + height.toFixed(1) + ' ' + units;
+        document.getElementById('water-unit').textContent = units;
+        document.getElementById('silt-unit').textContent = units;
 
         var maxHeight = shapeHeight(pts);
         shapePts = pts;
@@ -382,6 +385,7 @@
         ctx.lineTo(measureEnd.x, measureEnd.y);
         ctx.stroke();
         drawArrowHead(measureStart, measureEnd);
+        drawArrowHead(measureEnd, measureStart);
         var dist = Math.hypot(measureEnd.x - measureStart.x, measureEnd.y - measureStart.y);
         var units = document.getElementById('units').value;
         ctx.fillText(dist.toFixed(1) + ' ' + units, (measureStart.x + measureEnd.x) / 2 + 5, (measureStart.y + measureEnd.y) / 2 - 5);
@@ -480,6 +484,31 @@
 
       function defaultPolygon(n) {
         var r = 60;
+        var cx = canvas.width / 2;
+        var cy = canvas.height - r;
+        var pts = [];
+        for (var i = 0; i < n; i++) {
+          var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
+          pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
+        }
+        return pts;
+      }
+
+      function resetCircle() {
+        saveState();
+        var n = parseInt(document.getElementById('circle-points').value) || 30;
+        points = defaultCircle(n);
+        orientation = 0;
+        anchorBottomCenter();
+        waterHeight = shapeHeight(points);
+        document.getElementById('water-height').value = waterHeight.toFixed(1);
+        siltHeight = 0;
+        document.getElementById('silt-height').value = '0';
+        draw();
+      }
+
+      function defaultCircle(n) {
+        var r = 0.5; // 1m diameter
         var cx = canvas.width / 2;
         var cy = canvas.height - r;
         var pts = [];

@@ -3,8 +3,9 @@
 This is a simple Flask-based web application for calculating the cross-sectional area of water channels. Shapes are drawn as polygons that you can freely edit.
 
 Each dimension field lets you choose units in metres, centimetres or millimetres.
-Areas are reported in the selected units squared.
-The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas. A **Silt Height** box lets you define how much sediment fills the bottom of the channel; this region is shown in brown and its area is also reported.
+All channel data is stored internally in metres so switching units only changes
+the way values are displayed. Areas are reported in the selected units squared.
+The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The height inputs show the current units next to the edit boxes. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas. A **Silt Height** box lets you define how much sediment fills the bottom of the channel; this region is shown in brown and its area is also reported.
 
 ## Requirements
 
@@ -30,6 +31,7 @@ shows grid lines with **x** and **y** axes for reference. Select **Polygon Chann
 set a number of points (minimum three). When the value changes, a default
 regular polygon is centred at the bottom of the canvas. You can then click to
 edit the points. You can clear the shape using the *Clear Polygon Channel* button.
+Selecting **Circular Channel** creates a circle drawn with 30 points and one metre in diameter. You may adjust the number of points to change how smooth the circle appears.
 The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Double‑click a marker to drag it to a new location; it turns black
 while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate
@@ -61,4 +63,4 @@ The **Manage Shapes** dialog stores the silt height along with the points and or
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 
 The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.
-The **Inspect** section lets you measure distances. Enable measurements and click once to start an arrow; move the mouse to see the length and click again to set it. Use **Clear** to remove the arrow.
+The **Inspect** section lets you measure distances. Enable measurements and click once to start an arrow; move the mouse to see the length and click again to set it. Arrowheads are drawn at both ends of the line. Use **Clear** to remove the arrow.
