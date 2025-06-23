@@ -42,7 +42,7 @@ files are saved as SVG under `channel_area/shapes` and managed from the
 **Manage Shapes** dialog which lets you name, save and reload saved shapes.
 Use the **New Channel** dialog to choose a shape type when starting a drawing.
 The canvas size is configured from the **Setup** dialog, while display units are selected in the **Display Settings** panel.
-The last design is automatically saved and restored the next time you open the page.
+The last design is automatically saved and restored the next time you open the page. When a saved shape is loaded, its canvas dimensions are also restored so the drawing matches the real-world scale it was saved with.
 
 An **Add Points** checkbox lets you insert new vector points with a double
 click. The point is placed on the edge closest to where you clicked so the

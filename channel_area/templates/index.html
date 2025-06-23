@@ -283,16 +283,16 @@
           if (r.ok) return r.json();
         }).then(data => {
           if (data && data.points) {
+            if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
+            if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
+            mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+            document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+            document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             waterHeightMM = data.waterHeight || 0;
             document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
             siltHeightMM = data.siltHeight || 0;
             document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
-            if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
-            if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
-            document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
-            document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
-            mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
             anchorBottomLeft();
           }
           draw();
@@ -1009,14 +1009,16 @@
         fetch('/load_shape/' + name).then(r => r.json()).then(data => {
           if (data.points) {
             saveState();
+            if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
+            if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
+            mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+            document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+            document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             siltHeightMM = data.siltHeight || 0;
             document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
-            if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
-            if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
-            document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
-            document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
-            mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+            waterHeightMM = data.waterHeight || 0;
+            document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
             document.getElementById('shape').value = 'polygon';
             anchorBottomLeft();
             draw();
