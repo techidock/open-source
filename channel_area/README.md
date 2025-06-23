@@ -37,7 +37,7 @@ blue marker. Double‑click a marker to drag it to a new location; it turns blac
 while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate
 the minimum and maximum points of the current shape.
 
-An **Edit** checkbox controls whether shapes can be modified with the
+An **Edit Mode** checkbox controls whether shapes can be modified with the
 mouse or table. Use **Undo** and **Redo** to step through previous edits. Shape
 files are saved as SVG under `channel_area/shapes` and managed from the
 **Manage Shapes** dialog which lets you name, save and reload saved shapes.
@@ -51,7 +51,8 @@ polygon updates naturally. When the option is disabled, a double click selects a
 point for editing instead.
 
 The markers themselves can be hidden or shown with the **Show Vectors**
-checkbox found below the canvas.
+checkbox found in the **Display Settings** section of the sidebar. This
+panel also contains the **Edit Mode** and **Show Bounding Box** options.
 
 A simple menu at the top of the page provides quick access to the **New
 Channel** and **Manage Shapes** dialogs, and the application now uses a basic
@@ -65,9 +66,10 @@ A **Height Units** dropdown lets you show these heights in metres, centimetres o
 The **Manage Shapes** dialog stores the silt height along with the points when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
 
 A dashed orange rectangle indicates the shape's bounding box. Labels beside the rectangle show the current width and height in the chosen units and the same numbers appear in the **Display Properties** panel to the right of the canvas. A **Show Bounding Box** checkbox lets you hide or reveal this rectangle and its labels.
+The sidebar also provides a **Display Settings** section to toggle **Edit Mode**, **Show Vectors** and **Show Bounding Box**.
 Below this menu, the **Channel Properties** panel lists the maximum width and height as well as the overall channel area.
 
 The grid origin is the bottom left corner. Tick marks along the axes show the distance from the origin using a fixed spacing of **0.5&nbsp;metre** (50&nbsp;cm or 500&nbsp;mm). The current spacing is listed in the **Display Properties** panel along with the cursor coordinates. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.
-The **Tools** menu includes an **Enable Measurements** option. Click once on the canvas to start an arrow, move the mouse to see the length, then click again to fix it in place. Arrowheads are drawn at both ends and can be dragged to adjust the measurement. When an arrowhead is selected it turns black and follows the cursor until released. Use **Clear** to remove the arrow.
+The **Tools** menu includes an **Enable Measurements** option. Click once on the canvas to start an arrow, move the mouse to see the length, then click again to fix it in place. Arrowheads are drawn at both ends and can be dragged to adjust the measurement. When an arrowhead is selected it turns black and follows the cursor until released. Use **Clear** to remove the arrow. Distances show three decimals in metres, one in centimetres and none in millimetres.
 
 You can also set the real-world size represented by the canvas. The **Setup** dialog provides *Draw Width* and *Draw Height* fields which default to 4000&nbsp;mm by 4000&nbsp;mm along with a units selector. These values define how many millimetres span the canvas and all width, height and area readouts scale accordingly. A **Shape Scale** option lets you enlarge or shrink the polygon about the bottom left. Changing the draw size no longer alters the channel itself—only the scale used for measurements and labels. The grid spacing remains fixed at 500&nbsp;mm (0.5&nbsp;m) regardless of the units so switching display units does not resize the grid. The current spacing appears in the **Display Properties** panel.

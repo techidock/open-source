@@ -45,18 +45,19 @@
       <div id="drawing-area">
         <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
         <div>
-      <label><input type="checkbox" id="edit-toggle" checked> Edit</label>
       <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
       <button type="button" onclick="undoEdit()">Undo</button>
       <button type="button" onclick="redoEdit()">Redo</button>
-      <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label>
-      <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label>
       </div>
       </div>
       <aside id="display-properties">
         <h3>Display Properties</h3>
         <p id="grid-info"></p>
         <p id="cursor-pos">Cursor:</p>
+        <h4>Display Settings</h4>
+        <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
+        <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
+        <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label>
       </aside>
       <aside id="channel-properties">
         <h3>Channel Properties</h3>
@@ -231,6 +232,12 @@
       function pxToMMX(px) { return px * mmScale; }
       function pxToMMY(px) { return px * mmScale; }
 
+      function formatMeasurement(v, units) {
+        if (units === 'm') return v.toFixed(3);
+        if (units === 'cm') return v.toFixed(1);
+        return Math.round(v).toString();
+      }
+
       function updateGridInfo() {
         var units = document.getElementById('units').value;
         document.getElementById('grid-info').textContent = 'Grid: ' + (gridSpacingMM / unitFactor()).toFixed(1) + ' ' + units;
@@ -380,8 +387,8 @@
         var units = document.getElementById('units').value;
         var wMM = width * mmScale;
         var hMM = height * mmScale;
-        var wVal = (wMM / unitFactor()).toFixed(0) + ' ' + units;
-        var hVal = (hMM / unitFactor()).toFixed(0) + ' ' + units;
+        var wVal = formatMeasurement(wMM / unitFactor(), units) + ' ' + units;
+        var hVal = formatMeasurement(hMM / unitFactor(), units) + ' ' + units;
         document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
         document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
         if (bboxVisible) {
@@ -394,7 +401,7 @@
           ctx.textAlign = 'center';
           ctx.fillText(wVal, minX + width / 2, minY - 5);
           ctx.save();
-          ctx.translate(minX - 20, minY + height / 2);
+          ctx.translate(maxX + 20, minY + height / 2);
           ctx.rotate(-Math.PI / 2);
           ctx.fillText(hVal, 0, 0);
           ctx.restore();
@@ -577,7 +584,9 @@
         var dist = (distPx * mmScale) / unitFactor();
         var units = document.getElementById('units').value;
         ctx.fillStyle = '#ff0000';
-        ctx.fillText(dist.toFixed(1) + ' ' + units, (measureStart.x + measureEnd.x) / 2 + 5, (measureStart.y + measureEnd.y) / 2 - 5);
+        ctx.fillText(formatMeasurement(dist, units) + ' ' + units,
+                     (measureStart.x + measureEnd.x) / 2 + 5,
+                     (measureStart.y + measureEnd.y) / 2 - 5);
       }
 
       function drawArrowHead(a, b, color) {
