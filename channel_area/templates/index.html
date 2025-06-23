@@ -463,19 +463,20 @@
       function drawMeasurement() {
         if (!measureStart || !measureEnd) return;
         ctx.strokeStyle = '#ff0000';
-        ctx.fillStyle = '#ff0000';
         ctx.beginPath();
         ctx.moveTo(measureStart.x, measureStart.y);
         ctx.lineTo(measureEnd.x, measureEnd.y);
         ctx.stroke();
-        drawArrowHead(measureStart, measureEnd);
-        drawArrowHead(measureEnd, measureStart);
+        drawArrowHead(measureStart, measureEnd, measureDrag === 'start' ? '#000' : '#ff0000');
+        drawArrowHead(measureEnd, measureStart, measureDrag === 'end' ? '#000' : '#ff0000');
         var dist = Math.hypot(measureEnd.x - measureStart.x, measureEnd.y - measureStart.y);
         var units = document.getElementById('units').value;
+        ctx.fillStyle = '#ff0000';
         ctx.fillText(dist.toFixed(1) + ' ' + units, (measureStart.x + measureEnd.x) / 2 + 5, (measureStart.y + measureEnd.y) / 2 - 5);
       }
 
-      function drawArrowHead(a, b) {
+      function drawArrowHead(a, b, color) {
+        ctx.fillStyle = color || '#ff0000';
         var angle = Math.atan2(b.y - a.y, b.x - a.x);
         var size = 8;
         ctx.beginPath();
@@ -593,13 +594,14 @@
       }
 
       function defaultCircle(n, diamMM) {
-        var r = mmToPxX(diamMM / 2);
+        var rX = mmToPxX(diamMM / 2);
+        var rY = mmToPxY(diamMM / 2);
         var cx = canvas.width / 2;
-        var cy = canvas.height - r;
+        var cy = canvas.height - rY;
         var pts = [];
         for (var i = 0; i < n; i++) {
           var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
-          pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
+          pts.push({x: cx + rX * Math.cos(ang), y: cy + rY * Math.sin(ang)});
         }
         return pts;
       }
