@@ -157,6 +157,7 @@
       var drawWidthMM = 4000;
       var drawHeightMM = 4000;
       var mmScale = 1;
+      var gridSpacingMM = 500;
       var polygonScale = 1;
       var circleDiameterMM = 1000;
       var measureMode = false;
@@ -188,6 +189,7 @@
         document.getElementById('circle-unit').textContent = document.getElementById('units').value;
         updateHeightUnitDisplay();
         updateGridInfo();
+        anchorBottomCenter();
         draw();
       }
 
@@ -221,8 +223,7 @@
 
       function updateGridInfo() {
         var units = document.getElementById('units').value;
-        var spacingMM = drawWidthMM / 10;
-        document.getElementById('grid-info').textContent = 'Grid: ' + (spacingMM / unitFactor()).toFixed(0) + ' ' + units;
+        document.getElementById('grid-info').textContent = 'Grid: ' + (gridSpacingMM / unitFactor()).toFixed(1) + ' ' + units;
       }
 
       function init() {
@@ -1026,8 +1027,8 @@
       function drawGrid() {
         ctx.strokeStyle = '#e0e0e0';
         ctx.lineWidth = 1;
-        var stepX = canvas.width / 10;
-        var stepY = canvas.height / 10;
+        var stepX = mmToPxX(gridSpacingMM);
+        var stepY = mmToPxY(gridSpacingMM);
         for (var x = 0; x <= canvas.width; x += stepX) {
           ctx.beginPath();
           ctx.moveTo(x, 0);
@@ -1048,15 +1049,15 @@
         ctx.moveTo(0, canvas.height);
         ctx.lineTo(0, 0);
         ctx.stroke();
-        var spacingXMM = drawWidthMM / 10;
-        var spacingYMM = drawHeightMM / 10;
+        var spacingXMM = gridSpacingMM;
+        var spacingYMM = gridSpacingMM;
         var units = document.getElementById('units').value;
         for (var i = 0, x = 0; x <= canvas.width; x += stepX, i++) {
-          var val = (i * spacingXMM / unitFactor()).toFixed(0);
+          var val = (i * spacingXMM / unitFactor()).toFixed(1);
           ctx.fillText(val, x + 2, canvas.height - 2);
         }
         for (var i = 0, y = 0; y <= canvas.height; y += stepY, i++) {
-          var val = (i * spacingYMM / unitFactor()).toFixed(0);
+          var val = (i * spacingYMM / unitFactor()).toFixed(1);
           ctx.fillText(val, 2, canvas.height - y - 2);
         }
         ctx.fillText('x', canvas.width - 10, canvas.height - 5);
