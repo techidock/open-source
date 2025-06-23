@@ -51,14 +51,19 @@
           <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
           <button type="button" onclick="undoEdit()">Undo</button>
           <button type="button" onclick="redoEdit()">Redo</button>
-        <p id="cursor-pos">Cursor:</p>
+          <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label>
         </div>
       </div>
-      <aside id="properties">
-        <h3>Properties</h3>
+      <aside id="display-properties">
+        <h3>Display Properties</h3>
         <p id="grid-info"></p>
+        <p id="cursor-pos">Cursor:</p>
+      </aside>
+      <aside id="channel-properties">
+        <h3>Channel Properties</h3>
         <p id="width-label"></p>
         <p id="height-label"></p>
+        <p id="area-display"></p>
       </aside>
     </div>
       <dialog id="shape-dialog">
@@ -88,7 +93,6 @@
           <button type="button" onclick="closeSetupDialog()">Close</button>
         </form>
       </dialog>
-    <p id="area-display"></p>
     <p id="water-area-display"></p>
     <p id="silt-area-display"></p>
     <div id="water-controls" style="margin-top:5px;">
@@ -145,6 +149,7 @@
       var shapePts = [];
       var editEnabled = true;
       var addPointEnabled = false;
+      var vectorsVisible = true;
       var undoStack = [];
       var redoStack = [];
       var waterHeightMM = 0;
@@ -234,6 +239,10 @@
         };
         document.getElementById('add-point-toggle').onchange = function(){
           addPointEnabled = this.checked;
+        };
+        document.getElementById('vectors-toggle').onchange = function(){
+          vectorsVisible = this.checked;
+          draw();
         };
         document.getElementById('measure-toggle').onchange = function(){
           measureMode = this.checked;
@@ -422,12 +431,14 @@
           }
         }
 
-        for (var i = 0; i < pts.length; i++) {
-          var color = (i === editIndex && editShape === shape) ? '#000' : '#0000ff';
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
-          ctx.fill();
+        if (vectorsVisible) {
+          for (var i = 0; i < pts.length; i++) {
+            var color = (i === editIndex && editShape === shape) ? '#000' : '#0000ff';
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
         }
         ctx.fillStyle = 'red';
         ctx.beginPath();

@@ -33,7 +33,7 @@ canvas {
   align-items: flex-start;
 }
 
-#properties {
+#display-properties, #channel-properties {
   margin-left: 20px;
   border-left: 1px solid #ccc;
   padding-left: 10px;
