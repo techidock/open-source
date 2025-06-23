@@ -55,6 +55,12 @@
         <p id="grid-info"></p>
         <p id="cursor-pos">Cursor:</p>
         <h4>Display Settings</h4>
+        <label for="units">Display Units:</label>
+        <select name="units" id="units" onchange="updateUnitDisplay()">
+          <option value="m">m</option>
+          <option value="cm">cm</option>
+          <option value="mm">mm</option>
+        </select><br>
         <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
         <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
         <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label>
@@ -77,12 +83,6 @@
       </dialog>
       <dialog id="setup-dialog">
         <form method="dialog" onsubmit="return false;">
-          <label for="units">Display Units:</label>
-          <select name="units" id="units" onchange="updateUnitDisplay()">
-            <option value="m">m</option>
-            <option value="cm">cm</option>
-            <option value="mm">mm</option>
-          </select>
           <label for="draw-width">Draw Width:</label>
           <input type="number" id="draw-width" value="4000" oninput="updateDrawSize()">
           <label for="draw-height">Draw Height:</label>
@@ -157,6 +157,7 @@
       var drawWidthMM = 4000;
       var drawHeightMM = 4000;
       var mmScale = 1;
+      var axisMargin = 20;
       var gridSpacingMM = 500;
       var polygonScale = 1;
       var circleDiameterMM = 1000;
@@ -210,7 +211,7 @@
         var oldScale = mmScale;
         drawWidthMM = newW;
         drawHeightMM = newH;
-        mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
+        mmScale = Math.max(drawWidthMM / (canvas.width - axisMargin), drawHeightMM / (canvas.height - axisMargin));
         var factor = oldScale / mmScale;
         if (factor !== 1) {
           for (var i = 0; i < points.length; i++) {
@@ -223,14 +224,14 @@
         draw();
       }
 
-      function unitToPxX(v) { return v * unitFactor() / mmScale; }
-      function unitToPxY(v) { return v * unitFactor() / mmScale; }
-      function pxToUnitX(px) { return px * mmScale / unitFactor(); }
-      function pxToUnitY(px) { return px * mmScale / unitFactor(); }
-      function mmToPxX(mm) { return mm / mmScale; }
-      function mmToPxY(mm) { return mm / mmScale; }
-      function pxToMMX(px) { return px * mmScale; }
-      function pxToMMY(px) { return px * mmScale; }
+      function unitToPxX(v) { return axisMargin + v * unitFactor() / mmScale; }
+      function unitToPxY(v) { return canvas.height - axisMargin - v * unitFactor() / mmScale; }
+      function pxToUnitX(px) { return (px - axisMargin) * mmScale / unitFactor(); }
+      function pxToUnitY(py) { return (canvas.height - axisMargin - py) * mmScale / unitFactor(); }
+      function mmToPxX(mm) { return axisMargin + mm / mmScale; }
+      function mmToPxY(mm) { return canvas.height - axisMargin - mm / mmScale; }
+      function pxToMMX(px) { return (px - axisMargin) * mmScale; }
+      function pxToMMY(py) { return (canvas.height - axisMargin - py) * mmScale; }
 
       function formatMeasurement(v, units) {
         if (units === 'm') return v.toFixed(3);
@@ -260,6 +261,8 @@
         canvas.addEventListener('dblclick', handleDoubleClick);
         document.getElementById('edit-toggle').onchange = function(){
           editEnabled = this.checked;
+          if (!editEnabled) editIndex = -1;
+          draw();
         };
         document.getElementById('add-point-toggle').onchange = function(){
           addPointEnabled = this.checked;
@@ -280,7 +283,7 @@
         showFields();
         updateUnitDisplay();
         updateHeightUnitDisplay();
-        mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
+        mmScale = Math.max(drawWidthMM / (canvas.width - axisMargin), drawHeightMM / (canvas.height - axisMargin));
         updateGridInfo();
         waterHeightMM = parseFloat(document.getElementById('water-height').value) * heightUnitFactor() || 0;
         siltHeightMM = parseFloat(document.getElementById('silt-height').value) * heightUnitFactor() || 0;
@@ -300,8 +303,8 @@
       function startDrag(e) {
         if (measureMode) {
           var rect = canvas.getBoundingClientRect();
-          var x = clamp(e.clientX - rect.left, 0, canvas.width);
-          var y = clamp(e.clientY - rect.top, 0, canvas.height);
+          var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
+          var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
           if (!measuring && measureStart && measureEnd) {
             if (Math.hypot(x - measureStart.x, y - measureStart.y) < 6) {
               measureDrag = 'start';
@@ -330,8 +333,8 @@
         if (measureMode) {
           if (measureDrag) {
             var rect = canvas.getBoundingClientRect();
-            var x = clamp(e.clientX - rect.left, 0, canvas.width);
-            var y = clamp(e.clientY - rect.top, 0, canvas.height);
+            var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
+            var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
             if (measureDrag === 'start') measureStart = {x:x, y:y};
             else measureEnd = {x:x, y:y};
             draw();
@@ -424,8 +427,8 @@
         siltHeightMM = parseFloat(shInput.value) * heightUnitFactor() || 0;
         siltHeightMM = clamp(siltHeightMM, 0, waterHeightMM);
         shInput.value = (siltHeightMM / heightUnitFactor()).toFixed(1);
-        var yLine = canvas.height - mmToPxY(waterHeightMM);
-        var ySilt = canvas.height - mmToPxY(siltHeightMM);
+        var yLine = mmToPxY(waterHeightMM);
+        var ySilt = mmToPxY(siltHeightMM);
         if (pts.length > 0) {
           var belowWater = clipBelow(pts, yLine);
           var belowSilt = clipBelow(pts, ySilt);
@@ -461,7 +464,7 @@
 
         if (vectorsVisible) {
           for (var i = 0; i < pts.length; i++) {
-            var color = (i === editIndex && editShape === shape) ? '#000' : '#0000ff';
+            var color = (i === editIndex && editShape === shape && editEnabled) ? '#000' : '#0000ff';
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
@@ -523,7 +526,7 @@
         for (var i = 0; i < pts.length; i++) {
           minY = Math.min(minY, pts[i].y);
         }
-        return pxToUnitY(canvas.height - minY);
+        return pxToUnitY(minY);
       }
 
       function shapeHeightMM(pts) {
@@ -532,7 +535,7 @@
         for (var i = 0; i < pts.length; i++) {
           minY = Math.min(minY, pts[i].y);
         }
-        return pxToMMY(canvas.height - minY);
+        return pxToMMY(minY);
       }
 
       function clipBelow(pts, yLine) {
@@ -610,8 +613,8 @@
       function addPoint(e) {
         if (!editEnabled) return;
         var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, 0, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
+        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         var shape = document.getElementById('shape').value;
         var dispPts = getShapePoints(shape);
         var idx = dispPts.length - 1;
@@ -662,8 +665,8 @@
       function movePoint(e) {
         if (!(e.buttons & 1) || !editEnabled) return;
         var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, 0, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
+        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         saveState();
         points[editIndex] = {x: x, y: y};
         draw();
@@ -690,7 +693,7 @@
       function defaultPolygon(n) {
         var r = 60;
         var cx = canvas.width / 2;
-        var cy = canvas.height - r;
+        var cy = canvas.height - axisMargin - r;
         var pts = [];
         for (var i = 0; i < n; i++) {
           var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
@@ -721,7 +724,7 @@
           var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
           var xMM = Math.round(cxMM + rMM * Math.cos(ang));
           var yMM = Math.round(cyMM + rMM * Math.sin(ang));
-          pts.push({x: mmToPxX(xMM), y: canvas.height - mmToPxY(yMM)});
+          pts.push({x: mmToPxX(xMM), y: mmToPxY(yMM)});
         }
         return pts;
       }
@@ -748,7 +751,7 @@
           var tdY = document.createElement('td');
           var inputY = document.createElement('input');
           inputY.type = 'number';
-          inputY.value = pxToUnitY(canvas.height - pts[i].y).toFixed(dec);
+          inputY.value = pxToUnitY(pts[i].y).toFixed(dec);
           inputY.min = 0;
           inputY.max = drawHeightMM / unitFactor();
           inputY.dataset.index = i;
@@ -786,8 +789,8 @@
           minX = Math.min(minX, p.x);
           maxY = Math.max(maxY, p.y);
         }
-        var dx = -minX;
-        var dy = canvas.height - maxY;
+        var dx = axisMargin - minX;
+        var dy = canvas.height - axisMargin - maxY;
         for (var i = 0; i < points.length; i++) {
           points[i] = {x: points[i].x + dx, y: points[i].y + dy};
         }
@@ -813,8 +816,8 @@
 
       function startMeasurement(e) {
         var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, 0, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
+        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         if (!measureStart || (!measuring && measureEnd)) {
           measureStart = {x: x, y: y};
           measureEnd = {x: x, y: y};
@@ -829,8 +832,8 @@
       function measureMove(e) {
         if (!measuring) return;
         var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, 0, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height);
+        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
+        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         measureEnd = {x: x, y: y};
         draw();
       }
@@ -852,13 +855,13 @@
         var row = e.target.parentElement.parentElement;
         var x = unitToPxX(parseFloat(row.children[1].firstChild.value));
         var y = unitToPxY(parseFloat(row.children[2].firstChild.value));
-        x = clamp(x, 0, canvas.width);
-        y = clamp(y, 0, canvas.height);
+        x = clamp(x, axisMargin, canvas.width);
+        y = clamp(y, 0, canvas.height - axisMargin);
         var dec = decimalsForUnits(document.getElementById('units').value);
         row.children[1].firstChild.value = pxToUnitX(x).toFixed(dec);
         row.children[2].firstChild.value = pxToUnitY(y).toFixed(dec);
         saveState();
-        points[idx] = {x: x, y: canvas.height - y};
+        points[idx] = {x: x, y: y};
         anchorBottomLeft();
         draw();
       }
@@ -866,11 +869,11 @@
       function showCursorPos(e) {
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
-        var y = canvas.height - (e.clientY - rect.top);
+        var y = e.clientY - rect.top;
         var units = document.getElementById('units').value;
         var dec = decimalsForUnits(units);
         document.getElementById('cursor-pos').textContent = 'Cursor: (' + pxToUnitX(x).toFixed(dec) + ', ' + pxToUnitY(y).toFixed(dec) + ' ' + units + ')';
-        var py = e.clientY - rect.top;
+        var py = y;
         var shape = document.getElementById('shape').value;
         var pts = getShapePoints(shape);
         var over = -1;
@@ -1018,41 +1021,41 @@
       function drawGrid() {
         ctx.strokeStyle = '#e0e0e0';
         ctx.lineWidth = 1;
-        var stepX = mmToPxX(gridSpacingMM);
-        var stepY = mmToPxY(gridSpacingMM);
-        for (var x = 0; x <= canvas.width; x += stepX) {
+        var stepX = gridSpacingMM / mmScale;
+        var stepY = gridSpacingMM / mmScale;
+        for (var x = axisMargin; x <= canvas.width; x += stepX) {
           ctx.beginPath();
           ctx.moveTo(x, 0);
-          ctx.lineTo(x, canvas.height);
+          ctx.lineTo(x, canvas.height - axisMargin);
           ctx.stroke();
         }
-        for (var y = 0; y <= canvas.height; y += stepY) {
+        for (var y = axisMargin; y <= canvas.height; y += stepY) {
           var gy = canvas.height - y;
           ctx.beginPath();
-          ctx.moveTo(0, gy);
+          ctx.moveTo(axisMargin, gy);
           ctx.lineTo(canvas.width, gy);
           ctx.stroke();
         }
         ctx.strokeStyle = '#000';
         ctx.beginPath();
-        ctx.moveTo(0, canvas.height);
-        ctx.lineTo(canvas.width, canvas.height);
-        ctx.moveTo(0, canvas.height);
-        ctx.lineTo(0, 0);
+        ctx.moveTo(axisMargin, canvas.height - axisMargin);
+        ctx.lineTo(canvas.width, canvas.height - axisMargin);
+        ctx.moveTo(axisMargin, canvas.height - axisMargin);
+        ctx.lineTo(axisMargin, 0);
         ctx.stroke();
         var spacingXMM = gridSpacingMM;
         var spacingYMM = gridSpacingMM;
         var units = document.getElementById('units').value;
-        for (var i = 0, x = 0; x <= canvas.width; x += stepX, i++) {
+        for (var i = 0, x = axisMargin; x <= canvas.width; x += stepX, i++) {
           var val = (i * spacingXMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, x + 2, canvas.height - 2);
+          ctx.fillText(val, x + 2, canvas.height - axisMargin + 12);
         }
-        for (var i = 0, y = 0; y <= canvas.height; y += stepY, i++) {
+        for (var i = 0, y = axisMargin; y <= canvas.height; y += stepY, i++) {
           var val = (i * spacingYMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, 2, canvas.height - y - 2);
+          ctx.fillText(val, axisMargin - 18, canvas.height - y - 2);
         }
-        ctx.fillText('x', canvas.width - 10, canvas.height - 5);
-        ctx.fillText('y', 5, 10);
+        ctx.fillText('x', canvas.width - 10, canvas.height - axisMargin + 12);
+        ctx.fillText('y', axisMargin - 10, 10);
       }
 
       window.onload = init;
