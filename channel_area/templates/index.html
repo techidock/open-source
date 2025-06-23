@@ -205,9 +205,20 @@
 
       function updateDrawSize() {
         var f = unitFactor();
-        drawWidthMM = parseFloat(document.getElementById('draw-width').value) * f || 4000;
-        drawHeightMM = parseFloat(document.getElementById('draw-height').value) * f || 4000;
+        var newW = parseFloat(document.getElementById('draw-width').value) * f || 4000;
+        var newH = parseFloat(document.getElementById('draw-height').value) * f || 4000;
+        var oldScale = mmScale;
+        drawWidthMM = newW;
+        drawHeightMM = newH;
         mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
+        var factor = oldScale / mmScale;
+        if (factor !== 1) {
+          for (var i = 0; i < points.length; i++) {
+            points[i].x *= factor;
+            points[i].y *= factor;
+          }
+          anchorBottomCenter();
+        }
         updateGridInfo();
         draw();
       }
@@ -371,10 +382,10 @@
         ctx.restore();
 
         var units = document.getElementById('units').value;
-        var sx = drawWidthMM / canvas.width;
-        var sy = drawHeightMM / canvas.height;
-        var wVal = (width * sx / unitFactor()).toFixed(0) + ' ' + units;
-        var hVal = (height * sy / unitFactor()).toFixed(0) + ' ' + units;
+        var wMM = width * mmScale;
+        var hMM = height * mmScale;
+        var wVal = (wMM / unitFactor()).toFixed(0) + ' ' + units;
+        var hVal = (hMM / unitFactor()).toFixed(0) + ' ' + units;
         document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
         document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
         ctx.fillStyle = '#ff9900';
