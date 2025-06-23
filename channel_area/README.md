@@ -3,8 +3,8 @@
 This is a simple Flask-based web application for calculating the cross-sectional area of water channels. Shapes are drawn as polygons that you can freely edit.
 
 Each dimension field lets you choose units in metres, centimetres or millimetres.
-All channel data is stored internally in metres so switching units only changes
-the way values are displayed. Areas are reported in the selected units squared.
+All channel data is stored internally in millimetres so switching units only changes the way values are displayed.
+Areas are reported in the selected units squared.
 The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The height inputs show the current units next to the edit boxes. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas. A **Silt Height** box lets you define how much sediment fills the bottom of the channel; this region is shown in brown and its area is also reported.
 
 ## Requirements
@@ -31,7 +31,7 @@ shows grid lines with **x** and **y** axes for reference. Select **Polygon Chann
 set a number of points (minimum three). When the value changes, a default
 regular polygon is centred at the bottom of the canvas. You can then click to
 edit the points. You can clear the shape using the *Clear Polygon Channel* button.
-Selecting **Circular Channel** creates a circle drawn with 30 points and one metre in diameter. You may adjust the number of points to change how smooth the circle appears.
+Selecting **Circular Channel** creates a circle drawn with 30 points and a default diameter of 1000&nbsp;mm. You may adjust the number of points to change how smooth the circle appears.
 The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Double‑click a marker to drag it to a new location; it turns black
 while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate
@@ -58,7 +58,7 @@ at the bottom centre. Use **One Point Down** to place a single vertex on the bas
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area.
-The **Manage Shapes** dialog stores the silt height along with the points and orientation when saving a design so it reloads exactly as drawn.
+The **Manage Shapes** dialog stores the silt height along with the points and orientation when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
 
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 

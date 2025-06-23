@@ -153,6 +153,10 @@
       function unitToPxY(v) { return v * unitFactor() * canvas.height / drawHeightMM; }
       function pxToUnitX(px) { return px * drawWidthMM / canvas.width / unitFactor(); }
       function pxToUnitY(px) { return px * drawHeightMM / canvas.height / unitFactor(); }
+      function mmToPxX(mm) { return mm * canvas.width / drawWidthMM; }
+      function mmToPxY(mm) { return mm * canvas.height / drawHeightMM; }
+      function pxToMMX(px) { return px * drawWidthMM / canvas.width; }
+      function pxToMMY(px) { return px * drawHeightMM / canvas.height; }
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -182,7 +186,7 @@
           if (r.ok) return r.json();
         }).then(data => {
           if (data && data.points) {
-            points = data.points;
+            points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             orientation = data.orientation || 0;
             siltHeight = data.siltHeight || 0;
             document.getElementById('silt-height').value = siltHeight.toFixed(1);
@@ -547,7 +551,7 @@
       }
 
       function defaultCircle(n) {
-        var r = 0.5; // 1m diameter
+        var r = mmToPxX(500); // 1000 mm diameter
         var cx = canvas.width / 2;
         var cy = canvas.height - r;
         var pts = [];
@@ -795,7 +799,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: name, points: points, orientation: orientation, siltHeight: siltHeight})
+          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeight})
         }).then(updateShapeList);
       }
 
@@ -803,7 +807,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: '_last', points: points, orientation: orientation, siltHeight: siltHeight})
+          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeight})
         });
       }
 
@@ -826,7 +830,7 @@
         fetch('/load_shape/' + name).then(r => r.json()).then(data => {
           if (data.points) {
             saveState();
-            points = data.points;
+            points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             orientation = data.orientation || 0;
             siltHeight = data.siltHeight || 0;
             document.getElementById('silt-height').value = siltHeight.toFixed(1);
