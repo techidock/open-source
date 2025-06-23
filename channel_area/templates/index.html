@@ -72,6 +72,8 @@
           <label for="draw-height">Draw Height:</label>
           <input type="number" id="draw-height" value="4000" oninput="updateDrawSize()">
           <span id="draw-unit"></span>
+          <label for="shape-scale">Shape Scale:</label>
+          <input type="number" step="0.1" id="shape-scale" value="1" min="0.1" oninput="scaleShape(this.value)">
           <button type="button" onclick="closeSetupDialog()">Close</button>
         </form>
       </dialog>
@@ -99,6 +101,7 @@
     </div>
     <p id="height-label"></p>
     <p id="width-label"></p>
+    <p id="grid-info"></p>
     <p id="cursor-pos">Cursor:</p>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
@@ -142,6 +145,7 @@
       var drawWidthMM = 4000;
       var drawHeightMM = 4000;
       var mmScale = 1;
+      var polygonScale = 1;
       var circleDiameterMM = 1000;
       var measureMode = false;
       var measureStart = null;
@@ -171,6 +175,7 @@
         document.getElementById('circle-diameter').value = (circleDiameterMM / f).toFixed(1);
         document.getElementById('circle-unit').textContent = document.getElementById('units').value;
         updateHeightUnitDisplay();
+        updateGridInfo();
         draw();
       }
 
@@ -189,6 +194,7 @@
         drawWidthMM = parseFloat(document.getElementById('draw-width').value) * f || 4000;
         drawHeightMM = parseFloat(document.getElementById('draw-height').value) * f || 4000;
         mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
+        updateGridInfo();
         draw();
       }
 
@@ -200,6 +206,12 @@
       function mmToPxY(mm) { return mm / mmScale; }
       function pxToMMX(px) { return px * mmScale; }
       function pxToMMY(px) { return px * mmScale; }
+
+      function updateGridInfo() {
+        var spacingMM = 20 * mmScale;
+        var units = document.getElementById('units').value;
+        document.getElementById('grid-info').textContent = 'Grid: ' + (spacingMM / unitFactor()).toFixed(1) + ' ' + units;
+      }
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -225,6 +237,7 @@
         updateUnitDisplay();
         updateHeightUnitDisplay();
         mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
+        updateGridInfo();
         waterHeightMM = parseFloat(document.getElementById('water-height').value) * heightUnitFactor() || 0;
         siltHeightMM = parseFloat(document.getElementById('silt-height').value) * heightUnitFactor() || 0;
         fetch('/load_shape/_last').then(r => {
@@ -343,8 +356,19 @@
         var units = document.getElementById('units').value;
         var sx = drawWidthMM / canvas.width;
         var sy = drawHeightMM / canvas.height;
-        document.getElementById('width-label').textContent = 'Width: ' + (width * sx / unitFactor()).toFixed(1) + ' ' + units;
-        document.getElementById('height-label').textContent = 'Height: ' + (height * sy / unitFactor()).toFixed(1) + ' ' + units;
+        var wVal = (width * sx / unitFactor()).toFixed(1) + ' ' + units;
+        var hVal = (height * sy / unitFactor()).toFixed(1) + ' ' + units;
+        document.getElementById('width-label').textContent = 'Width: ' + wVal;
+        document.getElementById('height-label').textContent = 'Height: ' + hVal;
+        ctx.fillStyle = '#ff9900';
+        ctx.textAlign = 'center';
+        ctx.fillText(wVal, minX + width / 2, minY - 5);
+        ctx.save();
+        ctx.translate(minX - 20, minY + height / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(hVal, 0, 0);
+        ctx.restore();
+        ctx.textAlign = 'start';
 
         var maxHeight = shapeHeightMM(pts);
         shapePts = pts;
@@ -858,6 +882,23 @@
         return 0;
       }
 
+      function scaleShape(val) {
+        var f = parseFloat(val);
+        if (!isFinite(f) || f <= 0) return;
+        saveState();
+        var cx = canvas.width / 2;
+        var cy = canvas.height;
+        for (var i = 0; i < points.length; i++) {
+          var dx = points[i].x - cx;
+          var dy = points[i].y - cy;
+          points[i].x = cx + dx * (f / polygonScale);
+          points[i].y = cy + dy * (f / polygonScale);
+        }
+        polygonScale = f;
+        anchorBottomCenter();
+        draw();
+      }
+
       function toBaseCoords(pt, shape) {
         var ang = orientationAngle(shape);
         if (ang === 0) return pt;
@@ -987,6 +1028,21 @@
         ctx.moveTo(0, canvas.height);
         ctx.lineTo(0, 0);
         ctx.stroke();
+        var spacingMM = 20 * mmScale;
+        var units = document.getElementById('units').value;
+        var step = 5; // label every 5 grid lines
+        for (var i = 0, x = 0; x <= canvas.width; x += 20, i++) {
+          if (i % step === 0) {
+            var val = (i * spacingMM / unitFactor()).toFixed(0);
+            ctx.fillText(val, x + 2, canvas.height - 2);
+          }
+        }
+        for (var i = 0, y = 0; y <= canvas.height; y += 20, i++) {
+          if (i % step === 0) {
+            var val = (i * spacingMM / unitFactor()).toFixed(0);
+            ctx.fillText(val, 2, canvas.height - y - 2);
+          }
+        }
         ctx.fillText('x', canvas.width - 10, canvas.height - 5);
         ctx.fillText('y', 5, 10);
       }
