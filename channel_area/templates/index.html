@@ -872,27 +872,26 @@
       function defaultEgg(d1MM, d2MM, distMM) {
         var r1 = d1MM / 2;
         var r2 = d2MM / 2;
-        var cx1 = r1;
+        var cx = Math.max(r1, r2);
         var cy1 = r1;
-        var cx2 = r2;
         var cy2 = r1 + distMM;
         var n = 18;
         var pts = [];
         // start at left of bottom circle
-        pts.push({x: mmToPxX(cx1 - r1), y: mmToPxY(cy1)});
+        pts.push({x: mmToPxX(cx - r1), y: mmToPxY(cy1)});
         // line to left of top circle
-        pts.push({x: mmToPxX(cx2 - r2), y: mmToPxY(cy2)});
+        pts.push({x: mmToPxX(cx - r2), y: mmToPxY(cy2)});
         // top semicircle
         for (var i = 1; i <= n; i++) {
           var ang = Math.PI - i * Math.PI / n;
-          pts.push({x: mmToPxX(cx2 + r2 * Math.cos(ang)), y: mmToPxY(cy2 + r2 * Math.sin(ang))});
+          pts.push({x: mmToPxX(cx + r2 * Math.cos(ang)), y: mmToPxY(cy2 + r2 * Math.sin(ang))});
         }
         // line to right of bottom circle
-        pts.push({x: mmToPxX(cx1 + r1), y: mmToPxY(cy1)});
+        pts.push({x: mmToPxX(cx + r1), y: mmToPxY(cy1)});
         // bottom semicircle
         for (var i = 1; i <= n; i++) {
           var ang = - i * Math.PI / n;
-          pts.push({x: mmToPxX(cx1 + r1 * Math.cos(ang)), y: mmToPxY(cy1 + r1 * Math.sin(ang))});
+          pts.push({x: mmToPxX(cx + r1 * Math.cos(ang)), y: mmToPxY(cy1 + r1 * Math.sin(ang))});
         }
         return pts;
       }
