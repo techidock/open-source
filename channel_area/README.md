@@ -56,7 +56,9 @@ at the bottom centre. Use **One Point Down** to place a single vertex on the bas
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area.
+The **Manage Shapes** dialog stores the silt height along with the points and orientation when saving a design so it reloads exactly as drawn.
 
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 
 The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.
+The **Inspect** section lets you measure distances. Enable measurements and click once to start an arrow; move the mouse to see the length and click again to set it. Use **Clear** to remove the arrow.

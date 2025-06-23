@@ -39,3 +39,7 @@ table {
 .row-edit {
   background-color: #ffcccc;
 }
+
+#inspect {
+  margin-top: 10px;
+}
