@@ -18,6 +18,13 @@
         <select name="shape" id="shape" onchange="showFields(); draw()">
           <option value="polygon">Polygon Channel</option>
           <option value="circle">Circular Channel</option>
+          <option value="rectangle">Rectangle Channel</option>
+        </select>
+        <label for="shape-units">Units:</label>
+        <select id="shape-units" onchange="updateShapeUnitDisplay()">
+          <option value="m">m</option>
+          <option value="cm">cm</option>
+          <option value="mm" selected>mm</option>
         </select>
         <div id="circular-fields" class="fields" style="display:none">
           <label for="circle-diameter">Diameter:</label>
@@ -26,7 +33,15 @@
           <label for="circle-points">Points:</label>
           <input type="number" id="circle-points" min="3" value="36" onchange="resetCircle()">
         </div>
-        <div id="rectangle-fields" class="fields" style="display:none"></div>
+        <div id="rectangle-fields" class="fields" style="display:none">
+          <label for="rect-width">Width:</label>
+          <input type="number" id="rect-width" value="1000" oninput="resetRectangle()">
+          <label for="rect-height">Height:</label>
+          <input type="number" id="rect-height" value="1000" oninput="resetRectangle()">
+          <label for="rect-radius">Corner Radius:</label>
+          <input type="number" id="rect-radius" value="0" oninput="resetRectangle()">
+          <span id="rect-unit"></span>
+        </div>
         <div id="polygon-fields" class="fields" style="display:none">
           <label for="num-points">Points:</label>
           <input type="number" id="num-points" min="3" value="3" onchange="resetPolygon()">
@@ -122,10 +137,14 @@
         var shape = document.getElementById('shape').value;
         document.getElementById('polygon-fields').style.display = shape === 'polygon' ? 'block' : 'none';
         document.getElementById('circular-fields').style.display = shape === 'circle' ? 'block' : 'none';
+        document.getElementById('rectangle-fields').style.display = shape === 'rectangle' ? 'block' : 'none';
+        updateShapeUnitDisplay();
         if (shape === 'polygon') {
           resetPolygon();
         } else if (shape === 'circle') {
           resetCircle();
+        } else if (shape === 'rectangle') {
+          resetRectangle();
         }
       }
 
@@ -154,6 +173,9 @@
       var gridSpacingMM = 500;
       var polygonScale = 1;
       var circleDiameterMM = 1000;
+      var rectWidthMM = 1000;
+      var rectHeightMM = 1000;
+      var rectRadiusMM = 0;
       var measureMode = false;
       var measureStart = null;
       var measureEnd = null;
@@ -162,6 +184,13 @@
 
       function unitFactor() {
         var u = document.getElementById('units').value;
+        if (u === 'm') return 1000;
+        if (u === 'cm') return 10;
+        return 1;
+      }
+
+      function shapeUnitFactor() {
+        var u = document.getElementById('shape-units').value;
         if (u === 'm') return 1000;
         if (u === 'cm') return 10;
         return 1;
@@ -179,12 +208,21 @@
         document.getElementById('canvas-width').value = (canvasWidthMM / f).toFixed(1);
         document.getElementById('canvas-height').value = (canvasHeightMM / f).toFixed(1);
         document.getElementById('draw-unit').textContent = document.getElementById('units').value;
-        document.getElementById('circle-diameter').value = (circleDiameterMM / f).toFixed(1);
-        document.getElementById('circle-unit').textContent = document.getElementById('units').value;
         updateHeightUnitDisplay();
         updateGridInfo();
         anchorBottomLeft();
         draw();
+      }
+
+      function updateShapeUnitDisplay() {
+        var f = shapeUnitFactor();
+        document.getElementById('circle-diameter').value = (circleDiameterMM / f).toFixed(1);
+        document.getElementById('rect-width').value = (rectWidthMM / f).toFixed(1);
+        document.getElementById('rect-height').value = (rectHeightMM / f).toFixed(1);
+        document.getElementById('rect-radius').value = (rectRadiusMM / f).toFixed(1);
+        var u = document.getElementById('shape-units').value;
+        document.getElementById('circle-unit').textContent = u;
+        document.getElementById('rect-unit').textContent = u;
       }
 
       function updateHeightUnitDisplay() {
@@ -275,6 +313,7 @@
         updateShapeList();
         showFields();
         updateUnitDisplay();
+        updateShapeUnitDisplay();
         updateHeightUnitDisplay();
         mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
         updateGridInfo();
@@ -720,7 +759,7 @@
       function resetCircle() {
         saveState();
         var n = parseInt(document.getElementById('circle-points').value) || 36;
-        circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * unitFactor() || 1000;
+        circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * shapeUnitFactor() || 1000;
         points = defaultCircle(n, circleDiameterMM);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
@@ -740,6 +779,60 @@
           var yMM = Math.round(cyMM + rMM * Math.sin(ang));
           pts.push({x: mmToPxX(xMM), y: mmToPxY(yMM)});
         }
+        return pts;
+      }
+
+      function resetRectangle() {
+        saveState();
+        rectWidthMM = parseFloat(document.getElementById('rect-width').value) * shapeUnitFactor() || 1000;
+        rectHeightMM = parseFloat(document.getElementById('rect-height').value) * shapeUnitFactor() || 1000;
+        rectRadiusMM = parseFloat(document.getElementById('rect-radius').value) * shapeUnitFactor() || 0;
+        points = defaultRectangle(rectWidthMM, rectHeightMM, rectRadiusMM);
+        anchorBottomLeft();
+        waterHeightMM = shapeHeightMM(points);
+        siltHeightMM = 0;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function defaultRectangle(wMM, hMM, rMM) {
+        rMM = Math.min(rMM, wMM / 2, hMM / 2);
+        var pts = [];
+        var n = 8;
+        var step = (Math.PI / 2) / n;
+        var cx, cy, angle, i;
+        // bottom-right corner
+        cx = wMM - rMM; cy = rMM;
+        for (i = 0; i <= n; i++) {
+          angle = -Math.PI/2 + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // right edge
+        pts.push({x: mmToPxX(wMM), y: mmToPxY(hMM - rMM)});
+        // top-right corner
+        cx = wMM - rMM; cy = hMM - rMM;
+        for (i = 0; i <= n; i++) {
+          angle = 0 + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // top edge
+        pts.push({x: mmToPxX(rMM), y: mmToPxY(hMM)});
+        // top-left corner
+        cx = rMM; cy = hMM - rMM;
+        for (i = 0; i <= n; i++) {
+          angle = Math.PI/2 + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // left edge
+        pts.push({x: mmToPxX(0), y: mmToPxY(rMM)});
+        // bottom-left corner
+        cx = rMM; cy = rMM;
+        for (i = 0; i <= n; i++) {
+          angle = Math.PI + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // bottom edge back to start
+        pts.push({x: mmToPxX(wMM - rMM), y: mmToPxY(0)});
         return pts;
       }
 

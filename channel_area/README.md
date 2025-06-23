@@ -32,6 +32,7 @@ set a number of points (minimum three). When the value changes, a default
 regular polygon is positioned at the bottom left of the canvas. You can then click to
 edit the points. You can clear the shape using the *Clear Polygon Channel* button.
 Selecting **Circular Channel** creates a circle drawn with 36 points and a default diameter of 1000&nbsp;mm. A *Diameter* field lets you set this size and you may adjust the number of points to change how smooth the circle appears. The circle's points are rounded to the nearest millimetre so its width and height always equal the chosen diameter.
+Selecting **Rectangle Channel** lets you enter a width, height and corner radius. Each corner uses nine points, producing rounded edges while still forming a polygon. A units selector in the dialog defines the units for these values.
 The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Double‑click a marker to drag it to a new location; it turns black
 while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate the minimum and maximum points of the current shape. Table numbers use three decimal places for metres, one for centimetres and none for millimetres.
