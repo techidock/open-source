@@ -11,12 +11,6 @@
       <button type="button" onclick="openNewChannelDialog()">New Channel</button>
       <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
       <button type="button" onclick="openSetupDialog()">Setup</button>
-      <div id="tools-menu" style="display:inline-block;">
-        <label style="color:#fff; margin-left:8px;">
-          <input type="checkbox" id="measure-toggle"> Enable Measurements
-        </label>
-        <button type="button" onclick="clearMeasurement()">Clear</button>
-      </div>
     </nav>
     <dialog id="new-channel-dialog">
       <form method="dialog" onsubmit="return false;">
@@ -30,7 +24,7 @@
           <input type="number" id="circle-diameter" value="1000" oninput="resetCircle()">
           <span id="circle-unit"></span>
           <label for="circle-points">Points:</label>
-          <input type="number" id="circle-points" min="3" value="30" onchange="resetCircle()">
+          <input type="number" id="circle-points" min="3" value="36" onchange="resetCircle()">
         </div>
         <div id="rectangle-fields" class="fields" style="display:none"></div>
         <div id="polygon-fields" class="fields" style="display:none">
@@ -68,13 +62,17 @@
         <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
         <label for="canvas-height">Canvas Height:</label>
         <input type="number" id="canvas-height" value="4000" oninput="updateCanvasSize()">
-        <span id="draw-unit"></span>
+        <span id="draw-unit"></span><br>
+        <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
+        <button type="button" onclick="clearMeasurement()">Clear</button>
       </aside>
       <aside id="channel-properties">
         <h3>Channel Properties</h3>
         <p id="width-label"></p>
         <p id="height-label"></p>
-        <p id="area-display"></p>
+        <p id="area-display" title="Maximum Area in the Channel"></p>
+        <p id="water-area-display"></p>
+        <p id="silt-area-display"></p>
       </aside>
     </div>
       <dialog id="shape-dialog">
@@ -93,8 +91,6 @@
           <button type="button" onclick="closeSetupDialog()">Close</button>
         </form>
       </dialog>
-    <p id="water-area-display"></p>
-    <p id="silt-area-display"></p>
     <div id="water-controls" style="margin-top:5px;">
       <label for="water-height">Water Height:</label>
       <input type="number" step="any" id="water-height" min="0" oninput="draw()">
@@ -109,10 +105,6 @@
         <option value="mm">mm</option>
       </select>
       <button onclick="calculateArea()">Calculate</button>
-    </div>
-    <div id="inspect">
-      <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
-      <button type="button" onclick="clearMeasurement()">Clear</button>
     </div>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
@@ -292,6 +284,8 @@
         }).then(data => {
           if (data && data.points) {
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
+            waterHeightMM = data.waterHeight || 0;
+            document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
             siltHeightMM = data.siltHeight || 0;
             document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
             if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
@@ -504,7 +498,7 @@
         var units = document.getElementById('units').value;
         var mm2perpx2 = (canvasWidthMM / canvas.width) * (canvasHeightMM / canvas.height);
         var unitSq = unitFactor() * unitFactor();
-        document.getElementById('area-display').textContent = 'Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('area-display').textContent = 'Total Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         document.getElementById('silt-area-display').textContent = 'Silt Area: ' + (siltArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         drawMeasurement();
@@ -721,7 +715,7 @@
 
       function resetCircle() {
         saveState();
-        var n = parseInt(document.getElementById('circle-points').value) || 30;
+        var n = parseInt(document.getElementById('circle-points').value) || 36;
         circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * unitFactor() || 1000;
         points = defaultCircle(n, circleDiameterMM);
         anchorBottomLeft();
@@ -984,7 +978,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), siltHeight: siltHeightMM, canvasWidth: canvasWidthMM, canvasHeight: canvasHeightMM})
+          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), waterHeight: waterHeightMM, siltHeight: siltHeightMM, canvasWidth: canvasWidthMM, canvasHeight: canvasHeightMM})
         }).then(updateShapeList);
       }
 
@@ -992,7 +986,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), siltHeight: siltHeightMM, canvasWidth: canvasWidthMM, canvasHeight: canvasHeightMM})
+          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), waterHeight: waterHeightMM, siltHeight: siltHeightMM, canvasWidth: canvasWidthMM, canvasHeight: canvasHeightMM})
         });
       }
 
