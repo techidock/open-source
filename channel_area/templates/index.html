@@ -41,14 +41,25 @@
         <button type="button" onclick="closeNewChannelDialog()">Close</button>
       </form>
     </dialog>
-    <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
-    <div>
-      <button type="button" onclick="setOrientation(0)">Two Points Down</button>
-      <button type="button" onclick="setOrientation(1)">One Point Down</button>
-      <label><input type="checkbox" id="edit-toggle" checked> Edit</label>
-      <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
-      <button type="button" onclick="undoEdit()">Undo</button>
-      <button type="button" onclick="redoEdit()">Redo</button>
+    <div id="layout">
+      <div id="drawing-area">
+        <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
+        <div>
+          <button type="button" onclick="setOrientation(0)">Two Points Down</button>
+          <button type="button" onclick="setOrientation(1)">One Point Down</button>
+          <label><input type="checkbox" id="edit-toggle" checked> Edit</label>
+          <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
+          <button type="button" onclick="undoEdit()">Undo</button>
+          <button type="button" onclick="redoEdit()">Redo</button>
+        <p id="cursor-pos">Cursor:</p>
+        </div>
+      </div>
+      <aside id="properties">
+        <h3>Properties</h3>
+        <p id="grid-info"></p>
+        <p id="width-label"></p>
+        <p id="height-label"></p>
+      </aside>
     </div>
       <dialog id="shape-dialog">
         <form method="dialog" onsubmit="return false;">
@@ -99,10 +110,6 @@
       <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
       <button type="button" onclick="clearMeasurement()">Clear</button>
     </div>
-    <p id="height-label"></p>
-    <p id="width-label"></p>
-    <p id="grid-info"></p>
-    <p id="cursor-pos">Cursor:</p>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
         <tr><th>Index</th><th>x</th><th>y</th></tr>
@@ -208,9 +215,9 @@
       function pxToMMY(px) { return px * mmScale; }
 
       function updateGridInfo() {
-        var spacingMM = 20 * mmScale;
         var units = document.getElementById('units').value;
-        document.getElementById('grid-info').textContent = 'Grid: ' + (spacingMM / unitFactor()).toFixed(1) + ' ' + units;
+        var spacingMM = drawWidthMM / 10;
+        document.getElementById('grid-info').textContent = 'Grid: ' + (spacingMM / unitFactor()).toFixed(0) + ' ' + units;
       }
 
       function init() {
@@ -356,10 +363,10 @@
         var units = document.getElementById('units').value;
         var sx = drawWidthMM / canvas.width;
         var sy = drawHeightMM / canvas.height;
-        var wVal = (width * sx / unitFactor()).toFixed(1) + ' ' + units;
-        var hVal = (height * sy / unitFactor()).toFixed(1) + ' ' + units;
-        document.getElementById('width-label').textContent = 'Width: ' + wVal;
-        document.getElementById('height-label').textContent = 'Height: ' + hVal;
+        var wVal = (width * sx / unitFactor()).toFixed(0) + ' ' + units;
+        var hVal = (height * sy / unitFactor()).toFixed(0) + ' ' + units;
+        document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
+        document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
         ctx.fillStyle = '#ff9900';
         ctx.textAlign = 'center';
         ctx.fillText(wVal, minX + width / 2, minY - 5);
@@ -1008,13 +1015,15 @@
       function drawGrid() {
         ctx.strokeStyle = '#e0e0e0';
         ctx.lineWidth = 1;
-        for (var x = 0; x <= canvas.width; x += 20) {
+        var stepX = canvas.width / 10;
+        var stepY = canvas.height / 10;
+        for (var x = 0; x <= canvas.width; x += stepX) {
           ctx.beginPath();
           ctx.moveTo(x, 0);
           ctx.lineTo(x, canvas.height);
           ctx.stroke();
         }
-        for (var y = 0; y <= canvas.height; y += 20) {
+        for (var y = 0; y <= canvas.height; y += stepY) {
           var gy = canvas.height - y;
           ctx.beginPath();
           ctx.moveTo(0, gy);
@@ -1028,20 +1037,16 @@
         ctx.moveTo(0, canvas.height);
         ctx.lineTo(0, 0);
         ctx.stroke();
-        var spacingMM = 20 * mmScale;
+        var spacingXMM = drawWidthMM / 10;
+        var spacingYMM = drawHeightMM / 10;
         var units = document.getElementById('units').value;
-        var step = 5; // label every 5 grid lines
-        for (var i = 0, x = 0; x <= canvas.width; x += 20, i++) {
-          if (i % step === 0) {
-            var val = (i * spacingMM / unitFactor()).toFixed(0);
-            ctx.fillText(val, x + 2, canvas.height - 2);
-          }
+        for (var i = 0, x = 0; x <= canvas.width; x += stepX, i++) {
+          var val = (i * spacingXMM / unitFactor()).toFixed(0);
+          ctx.fillText(val, x + 2, canvas.height - 2);
         }
-        for (var i = 0, y = 0; y <= canvas.height; y += 20, i++) {
-          if (i % step === 0) {
-            var val = (i * spacingMM / unitFactor()).toFixed(0);
-            ctx.fillText(val, 2, canvas.height - y - 2);
-          }
+        for (var i = 0, y = 0; y <= canvas.height; y += stepY, i++) {
+          var val = (i * spacingYMM / unitFactor()).toFixed(0);
+          ctx.fillText(val, 2, canvas.height - y - 2);
         }
         ctx.fillText('x', canvas.width - 10, canvas.height - 5);
         ctx.fillText('y', 5, 10);
