@@ -29,7 +29,7 @@ Use the form to pick a shape and adjust dimensions. Each shape comes with a
 default size when selected and is rendered as a polygon on a grid. The canvas
 shows grid lines with **x** and **y** axes for reference. Select **Polygon Channel** to
 set a number of points (minimum three). When the value changes, a default
-regular polygon is centred at the bottom of the canvas. You can then click to
+regular polygon is positioned at the bottom left of the canvas. You can then click to
 edit the points. You can clear the shape using the *Clear Polygon Channel* button.
 Selecting **Circular Channel** creates a circle drawn with 30 points and a default diameter of 1000&nbsp;mm. A *Diameter* field lets you set this size and you may adjust the number of points to change how smooth the circle appears.
 The area updates automatically as you change the shape. Each point is shown as a
@@ -57,18 +57,17 @@ A simple menu at the top of the page provides quick access to the **New
 Channel** and **Manage Shapes** dialogs, and the application now uses a basic
 stylesheet for clearer layout.
 
-Two buttons under the canvas let you rotate the shape while keeping it anchored
-at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline. Shapes are automatically repositioned so their bounding box stays centred at the bottom of the canvas after every edit.
+Shapes are always positioned with their left edge along the bottom of the canvas.
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area.
 A **Height Units** dropdown lets you show these heights in metres, centimetres or millimetres independently of the shape units.
-The **Manage Shapes** dialog stores the silt height along with the points and orientation when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
+The **Manage Shapes** dialog stores the silt height along with the points when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
 
-A dashed orange rectangle indicates the shape's bounding box. Labels beside the rectangle show the current width and height in the chosen units and the same numbers appear in the **Display Properties** panel to the right of the canvas.
+A dashed orange rectangle indicates the shape's bounding box. Labels beside the rectangle show the current width and height in the chosen units and the same numbers appear in the **Display Properties** panel to the right of the canvas. A **Show Bounding Box** checkbox lets you hide or reveal this rectangle and its labels.
 Below this menu, the **Channel Properties** panel lists the maximum width and height as well as the overall channel area.
 
 The grid origin is the bottom left corner. Tick marks along the axes show the distance from the origin using a fixed spacing of **0.5&nbsp;metre** (50&nbsp;cm or 500&nbsp;mm). The current spacing is listed in the **Display Properties** panel along with the cursor coordinates. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.
 The **Tools** menu includes an **Enable Measurements** option. Click once on the canvas to start an arrow, move the mouse to see the length, then click again to fix it in place. Arrowheads are drawn at both ends and can be dragged to adjust the measurement. When an arrowhead is selected it turns black and follows the cursor until released. Use **Clear** to remove the arrow.
 
-You can also set the real-world size represented by the canvas. The **Setup** dialog provides *Draw Width* and *Draw Height* fields which default to 4000&nbsp;mm by 4000&nbsp;mm along with a units selector. These values define how many millimetres span the canvas and all width, height and area readouts scale accordingly. A **Shape Scale** option lets you enlarge or shrink the polygon about the bottom centre. Changing the draw size no longer alters the channel itself—only the scale used for measurements and labels. The grid spacing remains fixed at 500&nbsp;mm (0.5&nbsp;m) regardless of the units so switching display units does not resize the grid. The current spacing appears in the **Display Properties** panel.
+You can also set the real-world size represented by the canvas. The **Setup** dialog provides *Draw Width* and *Draw Height* fields which default to 4000&nbsp;mm by 4000&nbsp;mm along with a units selector. These values define how many millimetres span the canvas and all width, height and area readouts scale accordingly. A **Shape Scale** option lets you enlarge or shrink the polygon about the bottom left. Changing the draw size no longer alters the channel itself—only the scale used for measurements and labels. The grid spacing remains fixed at 500&nbsp;mm (0.5&nbsp;m) regardless of the units so switching display units does not resize the grid. The current spacing appears in the **Display Properties** panel.

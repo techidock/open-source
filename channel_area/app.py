@@ -17,7 +17,6 @@ def save_shape():
     data = request.get_json(force=True)
     name = data.get('name')
     points = data.get('points', [])
-    orientation = data.get('orientation', 0)
     silt_height = data.get('siltHeight', 0)
     if not name or not points:
         return jsonify({'status': 'error', 'message': 'invalid data'}), 400
@@ -33,7 +32,7 @@ def save_shape():
     with open(svg_path, 'w') as f:
         f.write(svg)
     with open(json_path, 'w') as f:
-        json.dump({'points': points, 'orientation': orientation, 'siltHeight': silt_height}, f)
+        json.dump({'points': points, 'siltHeight': silt_height}, f)
     return jsonify({'status': 'ok'})
 
 

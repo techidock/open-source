@@ -45,14 +45,13 @@
       <div id="drawing-area">
         <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
         <div>
-          <button type="button" onclick="setOrientation(0)">Two Points Down</button>
-          <button type="button" onclick="setOrientation(1)">One Point Down</button>
-          <label><input type="checkbox" id="edit-toggle" checked> Edit</label>
-          <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
-          <button type="button" onclick="undoEdit()">Undo</button>
-          <button type="button" onclick="redoEdit()">Redo</button>
-          <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label>
-        </div>
+      <label><input type="checkbox" id="edit-toggle" checked> Edit</label>
+      <label><input type="checkbox" id="add-point-toggle"> Add Points</label>
+      <button type="button" onclick="undoEdit()">Undo</button>
+      <button type="button" onclick="redoEdit()">Redo</button>
+      <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label>
+      <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label>
+      </div>
       </div>
       <aside id="display-properties">
         <h3>Display Properties</h3>
@@ -140,7 +139,6 @@
       var blueCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJibHVlIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiPjxsaW5lIHgxPSI4IiB5MT0iMCIgeDI9IjgiIHkyPSIxNiIvPjxsaW5lIHgxPSIwIiB5MT0iOCIgeDI9IjE2IiB5Mj0iOCIvPjwvc3ZnPg==") 8 8, auto';
       var dragging = false;
       var polygonMode = false;
-      var orientation = 0;
       var points = [];
       var numPoints = 3;
       var editIndex = -1;
@@ -150,6 +148,7 @@
       var editEnabled = true;
       var addPointEnabled = false;
       var vectorsVisible = true;
+      var bboxVisible = true;
       var undoStack = [];
       var redoStack = [];
       var waterHeightMM = 0;
@@ -189,7 +188,7 @@
         document.getElementById('circle-unit').textContent = document.getElementById('units').value;
         updateHeightUnitDisplay();
         updateGridInfo();
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
       }
 
@@ -217,7 +216,7 @@
             points[i].x *= factor;
             points[i].y *= factor;
           }
-          anchorBottomCenter();
+          anchorBottomLeft();
         }
         updateGridInfo();
         draw();
@@ -256,6 +255,10 @@
           vectorsVisible = this.checked;
           draw();
         };
+        document.getElementById('bbox-toggle').onchange = function(){
+          bboxVisible = this.checked;
+          draw();
+        };
         document.getElementById('measure-toggle').onchange = function(){
           measureMode = this.checked;
           if (!measureMode) clearMeasurement();
@@ -273,10 +276,9 @@
         }).then(data => {
           if (data && data.points) {
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
-            orientation = data.orientation || 0;
             siltHeightMM = data.siltHeight || 0;
             document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
-            anchorBottomCenter();
+            anchorBottomLeft();
           }
           draw();
         }).catch(() => draw());
@@ -344,7 +346,7 @@
         if (editIndex >= 0) {
           editIndex = -1;
         }
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
         showCursorPos(e);
         updateRowHighlights();
@@ -375,12 +377,6 @@
         }
         var width = maxX - minX;
         var height = maxY - minY;
-        ctx.save();
-        ctx.setLineDash([4,2]);
-        ctx.strokeStyle = '#ff9900';
-        ctx.strokeRect(minX, minY, width, height);
-        ctx.restore();
-
         var units = document.getElementById('units').value;
         var wMM = width * mmScale;
         var hMM = height * mmScale;
@@ -388,15 +384,22 @@
         var hVal = (hMM / unitFactor()).toFixed(0) + ' ' + units;
         document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
         document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
-        ctx.fillStyle = '#ff9900';
-        ctx.textAlign = 'center';
-        ctx.fillText(wVal, minX + width / 2, minY - 5);
-        ctx.save();
-        ctx.translate(minX - 20, minY + height / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText(hVal, 0, 0);
-        ctx.restore();
-        ctx.textAlign = 'start';
+        if (bboxVisible) {
+          ctx.save();
+          ctx.setLineDash([4,2]);
+          ctx.strokeStyle = '#ff9900';
+          ctx.strokeRect(minX, minY, width, height);
+          ctx.restore();
+          ctx.fillStyle = '#ff9900';
+          ctx.textAlign = 'center';
+          ctx.fillText(wVal, minX + width / 2, minY - 5);
+          ctx.save();
+          ctx.translate(minX - 20, minY + height / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText(hVal, 0, 0);
+          ctx.restore();
+          ctx.textAlign = 'start';
+        }
 
         var maxHeight = shapeHeightMM(pts);
         shapePts = pts;
@@ -608,7 +611,7 @@
         saveState();
         points.splice(idx + 1, 0, base);
         numPoints = points.length;
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
       }
 
@@ -661,7 +664,7 @@
         saveState();
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
-        anchorBottomCenter();
+        anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
         siltHeightMM = 0;
@@ -686,8 +689,7 @@
         var n = parseInt(document.getElementById('circle-points').value) || 30;
         circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * unitFactor() || 1000;
         points = defaultCircle(n, circleDiameterMM);
-        orientation = 0;
-        anchorBottomCenter();
+        anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
         siltHeightMM = 0;
@@ -758,16 +760,15 @@
         return Math.max(min, Math.min(max, v));
       }
 
-      function anchorBottomCenter() {
+      function anchorBottomLeft() {
         if (points.length === 0) return;
-        var minX = Infinity, maxX = -Infinity, maxY = -Infinity;
+        var minX = Infinity, maxY = -Infinity;
         for (var i = 0; i < points.length; i++) {
           var p = points[i];
           minX = Math.min(minX, p.x);
-          maxX = Math.max(maxX, p.x);
           maxY = Math.max(maxY, p.y);
         }
-        var dx = canvas.width / 2 - (minX + (maxX - minX) / 2);
+        var dx = -minX;
         var dy = canvas.height - maxY;
         for (var i = 0; i < points.length; i++) {
           points[i] = {x: points[i].x + dx, y: points[i].y + dy};
@@ -787,7 +788,7 @@
       }
 
       function saveState() {
-        undoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
+        undoStack.push({points: JSON.parse(JSON.stringify(points))});
         if (undoStack.length > 50) undoStack.shift();
         redoStack = [];
       }
@@ -839,7 +840,7 @@
         row.children[2].firstChild.value = pxToUnitY(y).toFixed(1);
         saveState();
         points[idx] = {x: x, y: canvas.height - y};
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
       }
 
@@ -878,38 +879,9 @@
         updateRowHighlights();
       }
 
-      function setOrientation(o) {
-        saveState();
-        orientation = o;
-        draw();
-      }
 
       function getShapePoints(shape) {
-        return applyOrientation(points.slice(), shape);
-      }
-
-      function applyOrientation(pts, shape) {
-        if (orientation == 0) return pts;
-        var ang = orientationAngle(shape, pts.length);
-        if (ang === 0) return pts;
-        var cx = canvas.width / 2;
-        var cy = canvas.height;
-        var rot = [];
-        for (var i = 0; i < pts.length; i++) {
-          var dx = pts[i].x - cx;
-          var dy = pts[i].y - cy;
-          rot.push({
-            x: cx + dx * Math.cos(ang) - dy * Math.sin(ang),
-            y: cy + dx * Math.sin(ang) + dy * Math.cos(ang)
-          });
-        }
-        return rot;
-      }
-
-      function orientationAngle(shape, n) {
-        if (orientation == 0) return 0;
-        if (shape == 'polygon') return Math.PI / (n || points.length);
-        return 0;
+        return points.slice();
       }
 
       function scaleShape(val) {
@@ -925,40 +897,29 @@
           points[i].y = cy + dy * (f / polygonScale);
         }
         polygonScale = f;
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
       }
 
       function toBaseCoords(pt, shape) {
-        var ang = orientationAngle(shape);
-        if (ang === 0) return pt;
-        var cx = canvas.width / 2;
-        var cy = canvas.height;
-        var dx = pt.x - cx;
-        var dy = pt.y - cy;
-        return {
-          x: cx + dx * Math.cos(-ang) - dy * Math.sin(-ang),
-          y: cy + dx * Math.sin(-ang) + dy * Math.cos(-ang)
-        };
+        return pt;
       }
 
       function undoEdit() {
         if (undoStack.length === 0) return;
-        redoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
+        redoStack.push({points: JSON.parse(JSON.stringify(points))});
         var state = undoStack.pop();
         points = JSON.parse(JSON.stringify(state.points));
-        orientation = state.orientation;
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
       }
 
       function redoEdit() {
         if (redoStack.length === 0) return;
-        undoStack.push({points: JSON.parse(JSON.stringify(points)), orientation: orientation});
+        undoStack.push({points: JSON.parse(JSON.stringify(points))});
         var state = redoStack.pop();
         points = JSON.parse(JSON.stringify(state.points));
-        orientation = state.orientation;
-        anchorBottomCenter();
+        anchorBottomLeft();
         draw();
       }
 
@@ -968,7 +929,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeightMM})
+          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), siltHeight: siltHeightMM})
         }).then(updateShapeList);
       }
 
@@ -976,7 +937,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeightMM})
+          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), siltHeight: siltHeightMM})
         });
       }
 
@@ -1000,11 +961,10 @@
           if (data.points) {
             saveState();
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
-            orientation = data.orientation || 0;
             siltHeightMM = data.siltHeight || 0;
             document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
             document.getElementById('shape').value = 'polygon';
-            anchorBottomCenter();
+            anchorBottomLeft();
             draw();
           }
         });
