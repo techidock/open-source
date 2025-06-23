@@ -4,7 +4,7 @@ This is a simple Flask-based web application for calculating the cross-sectional
 
 Each dimension field lets you choose units in metres, centimetres or millimetres.
 Areas are reported in the selected units squared.
-The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas.
+The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas. A **Silt Height** box lets you define how much sediment fills the bottom of the channel; this region is shown in brown and its area is also reported.
 
 ## Requirements
 
@@ -55,6 +55,7 @@ Two buttons under the canvas let you rotate the shape while keeping it anchored
 at the bottom centre. Use **One Point Down** to place a single vertex on the baseline or **Two Points Down** to place a flat edge along the baseline. Shapes are automatically repositioned so their bounding box stays centred at the bottom of the canvas after every edit.
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
+Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area.
 
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 

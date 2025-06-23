@@ -53,9 +53,12 @@
       </dialog>
     <p id="area-display"></p>
     <p id="water-area-display"></p>
+    <p id="silt-area-display"></p>
     <div id="water-controls" style="margin-top:5px;">
       <label for="water-height">Water Height:</label>
       <input type="number" step="any" id="water-height" min="0" oninput="draw()">
+      <label for="silt-height">Silt Height:</label>
+      <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
       <button onclick="calculateArea()">Calculate</button>
     </div>
     <p id="height-label"></p>
@@ -84,6 +87,8 @@
         var maxH = shapeHeight(points);
         document.getElementById('water-height').value = maxH.toFixed(1);
         waterHeight = maxH;
+        document.getElementById('silt-height').value = '0';
+        siltHeight = 0;
       }
 
       var canvas, ctx;
@@ -102,6 +107,7 @@
       var undoStack = [];
       var redoStack = [];
       var waterHeight = 0;
+      var siltHeight = 0;
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -121,6 +127,7 @@
         updateShapeList();
         showFields();
         waterHeight = parseFloat(document.getElementById('water-height').value) || 0;
+        siltHeight = parseFloat(document.getElementById('silt-height').value) || 0;
         fetch('/load_shape/_last').then(r => {
           if (r.ok) return r.json();
         }).then(data => {
@@ -206,9 +213,15 @@
         waterHeight = parseFloat(whInput.value) || 0;
         waterHeight = clamp(waterHeight, 0, maxHeight);
         whInput.value = waterHeight.toFixed(1);
+        var shInput = document.getElementById('silt-height');
+        siltHeight = parseFloat(shInput.value) || 0;
+        siltHeight = clamp(siltHeight, 0, waterHeight);
+        shInput.value = siltHeight.toFixed(1);
         var yLine = canvas.height - waterHeight;
+        var ySilt = canvas.height - siltHeight;
         if (pts.length > 0) {
-          var below = clipBelow(pts, yLine);
+          var belowWater = clipBelow(pts, yLine);
+          var belowSilt = clipBelow(pts, ySilt);
           var above = clipAbove(pts, yLine);
           if (above.length > 0) {
             ctx.fillStyle = '#cccccc';
@@ -219,11 +232,20 @@
             ctx.fill();
             ctx.stroke();
           }
-          if (below.length > 0) {
+          if (belowWater.length > 0) {
             ctx.fillStyle = '#99ccff';
             ctx.beginPath();
-            ctx.moveTo(below[0].x, below[0].y);
-            for (var i = 1; i < below.length; i++) ctx.lineTo(below[i].x, below[i].y);
+            ctx.moveTo(belowWater[0].x, belowWater[0].y);
+            for (var i = 1; i < belowWater.length; i++) ctx.lineTo(belowWater[i].x, belowWater[i].y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          if (belowSilt.length > 0) {
+            ctx.fillStyle = '#d2b48c';
+            ctx.beginPath();
+            ctx.moveTo(belowSilt[0].x, belowSilt[0].y);
+            for (var i = 1; i < belowSilt.length; i++) ctx.lineTo(belowSilt[i].x, belowSilt[i].y);
             ctx.closePath();
             ctx.fill();
             ctx.stroke();
@@ -244,6 +266,11 @@
         ctx.beginPath();
         ctx.arc(maxX, maxY, 3, 0, Math.PI * 2);
         ctx.fill();
+        ctx.strokeStyle = '#964B00';
+        ctx.beginPath();
+        ctx.moveTo(minX, ySilt);
+        ctx.lineTo(maxX, ySilt);
+        ctx.stroke();
         ctx.strokeStyle = '#00f';
         ctx.beginPath();
         ctx.moveTo(minX, yLine);
@@ -254,10 +281,13 @@
         updateRowHighlights();
         var area = polygonArea(pts);
         var waterPts = clipBelow(pts, yLine);
-        var waterArea = polygonArea(waterPts);
+        var siltPts = clipBelow(pts, ySilt);
+        var waterArea = polygonArea(waterPts) - polygonArea(siltPts);
+        var siltArea = polygonArea(siltPts);
         var units = document.getElementById('units').value;
         document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2) + ' ' + units + '^2';
         document.getElementById('water-area-display').textContent = 'Water Area: ' + waterArea.toFixed(2) + ' ' + units + '^2';
+        document.getElementById('silt-area-display').textContent = 'Silt Area: ' + siltArea.toFixed(2) + ' ' + units + '^2';
         autoSave();
       }
 
@@ -401,6 +431,8 @@
         anchorBottomCenter();
         waterHeight = shapeHeight(points);
         document.getElementById('water-height').value = waterHeight.toFixed(1);
+        siltHeight = 0;
+        document.getElementById('silt-height').value = '0';
         draw();
       }
 
