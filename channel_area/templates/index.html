@@ -10,6 +10,13 @@
     <nav id="menu">
       <button type="button" onclick="openNewChannelDialog()">New Channel</button>
       <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
+      <button type="button" onclick="openSetupDialog()">Setup</button>
+      <div id="tools-menu" style="display:inline-block;">
+        <label style="color:#fff; margin-left:8px;">
+          <input type="checkbox" id="measure-toggle"> Enable Measurements
+        </label>
+        <button type="button" onclick="clearMeasurement()">Clear</button>
+      </div>
     </nav>
     <dialog id="new-channel-dialog">
       <form method="dialog" onsubmit="return false;">
@@ -18,17 +25,6 @@
           <option value="polygon">Polygon Channel</option>
           <option value="circle">Circular Channel</option>
         </select>
-        <label for="units">Units:</label>
-        <select name="units" id="units" onchange="updateUnitDisplay()">
-          <option value="m">m</option>
-          <option value="cm">cm</option>
-          <option value="mm">mm</option>
-        </select>
-        <label for="draw-width">Draw Width:</label>
-        <input type="number" id="draw-width" value="4000" oninput="updateDrawSize()">
-        <label for="draw-height">Draw Height:</label>
-        <input type="number" id="draw-height" value="4000" oninput="updateDrawSize()">
-        <span id="draw-unit"></span>
         <div id="circular-fields" class="fields" style="display:none">
           <label for="circle-diameter">Diameter:</label>
           <input type="number" id="circle-diameter" value="1000" oninput="resetCircle()">
@@ -61,6 +57,22 @@
           <select id="load-list"></select>
           <button type="button" onclick="loadShape()">Load</button>
           <button type="button" onclick="closeShapeDialog()">Close</button>
+        </form>
+      </dialog>
+      <dialog id="setup-dialog">
+        <form method="dialog" onsubmit="return false;">
+          <label for="units">Display Units:</label>
+          <select name="units" id="units" onchange="updateUnitDisplay()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select>
+          <label for="draw-width">Draw Width:</label>
+          <input type="number" id="draw-width" value="4000" oninput="updateDrawSize()">
+          <label for="draw-height">Draw Height:</label>
+          <input type="number" id="draw-height" value="4000" oninput="updateDrawSize()">
+          <span id="draw-unit"></span>
+          <button type="button" onclick="closeSetupDialog()">Close</button>
         </form>
       </dialog>
     <p id="area-display"></p>
@@ -129,6 +141,7 @@
       var siltHeightMM = 0;
       var drawWidthMM = 4000;
       var drawHeightMM = 4000;
+      var mmScale = 1;
       var circleDiameterMM = 1000;
       var measureMode = false;
       var measureStart = null;
@@ -173,29 +186,20 @@
 
       function updateDrawSize() {
         var f = unitFactor();
-        var newW = parseFloat(document.getElementById('draw-width').value) * f || 4000;
-        var newH = parseFloat(document.getElementById('draw-height').value) * f || 4000;
-        var oldW = drawWidthMM;
-        var oldH = drawHeightMM;
-        points = points.map(function(p){
-          var mmx = p.x * oldW / canvas.width;
-          var mmy = p.y * oldH / canvas.height;
-          return {x: mmx * canvas.width / newW, y: mmy * canvas.height / newH};
-        });
-        drawWidthMM = newW;
-        drawHeightMM = newH;
-        anchorBottomCenter();
+        drawWidthMM = parseFloat(document.getElementById('draw-width').value) * f || 4000;
+        drawHeightMM = parseFloat(document.getElementById('draw-height').value) * f || 4000;
+        mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
         draw();
       }
 
-      function unitToPxX(v) { return v * unitFactor() * canvas.width / drawWidthMM; }
-      function unitToPxY(v) { return v * unitFactor() * canvas.height / drawHeightMM; }
-      function pxToUnitX(px) { return px * drawWidthMM / canvas.width / unitFactor(); }
-      function pxToUnitY(px) { return px * drawHeightMM / canvas.height / unitFactor(); }
-      function mmToPxX(mm) { return mm * canvas.width / drawWidthMM; }
-      function mmToPxY(mm) { return mm * canvas.height / drawHeightMM; }
-      function pxToMMX(px) { return px * drawWidthMM / canvas.width; }
-      function pxToMMY(px) { return px * drawHeightMM / canvas.height; }
+      function unitToPxX(v) { return v * unitFactor() / mmScale; }
+      function unitToPxY(v) { return v * unitFactor() / mmScale; }
+      function pxToUnitX(px) { return px * mmScale / unitFactor(); }
+      function pxToUnitY(px) { return px * mmScale / unitFactor(); }
+      function mmToPxX(mm) { return mm / mmScale; }
+      function mmToPxY(mm) { return mm / mmScale; }
+      function pxToMMX(px) { return px * mmScale; }
+      function pxToMMY(px) { return px * mmScale; }
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -220,6 +224,7 @@
         showFields();
         updateUnitDisplay();
         updateHeightUnitDisplay();
+        mmScale = Math.max(drawWidthMM / canvas.width, drawHeightMM / canvas.height);
         waterHeightMM = parseFloat(document.getElementById('water-height').value) * heightUnitFactor() || 0;
         siltHeightMM = parseFloat(document.getElementById('silt-height').value) * heightUnitFactor() || 0;
         fetch('/load_shape/_last').then(r => {
@@ -511,7 +516,8 @@
         ctx.stroke();
         drawArrowHead(measureStart, measureEnd, measureDrag === 'start' ? '#000' : '#ff0000');
         drawArrowHead(measureEnd, measureStart, measureDrag === 'end' ? '#000' : '#ff0000');
-        var dist = Math.hypot(measureEnd.x - measureStart.x, measureEnd.y - measureStart.y);
+        var distPx = Math.hypot(measureEnd.x - measureStart.x, measureEnd.y - measureStart.y);
+        var dist = (distPx * mmScale) / unitFactor();
         var units = document.getElementById('units').value;
         ctx.fillStyle = '#ff0000';
         ctx.fillText(dist.toFixed(1) + ' ' + units, (measureStart.x + measureEnd.x) / 2 + 5, (measureStart.y + measureEnd.y) / 2 - 5);
@@ -636,14 +642,13 @@
       }
 
       function defaultCircle(n, diamMM) {
-        var rX = mmToPxX(diamMM / 2);
-        var rY = mmToPxY(diamMM / 2);
+        var r = mmToPxX(diamMM / 2);
         var cx = canvas.width / 2;
-        var cy = canvas.height - rY;
+        var cy = canvas.height - r;
         var pts = [];
         for (var i = 0; i < n; i++) {
           var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
-          pts.push({x: cx + rX * Math.cos(ang), y: cy + rY * Math.sin(ang)});
+          pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
         }
         return pts;
       }
@@ -949,6 +954,14 @@
 
       function closeNewChannelDialog() {
         document.getElementById('new-channel-dialog').close();
+      }
+
+      function openSetupDialog() {
+        document.getElementById('setup-dialog').showModal();
+      }
+
+      function closeSetupDialog() {
+        document.getElementById('setup-dialog').close();
       }
 
       function drawGrid() {

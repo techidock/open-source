@@ -40,9 +40,10 @@ the minimum and maximum points of the current shape.
 An **Edit** checkbox controls whether shapes can be modified with the
 mouse or table. Use **Undo** and **Redo** to step through previous edits. Shape
 files are saved as SVG under `channel_area/shapes` and managed from the
-**Manage Shapes** dialog which lets you name, save and reload saved shapes. Use
-the **New Channel** dialog to choose a shape type, units and dimensions when
-starting a drawing. The last design is automatically saved and restored the next time you open the page.
+**Manage Shapes** dialog which lets you name, save and reload saved shapes.
+Use the **New Channel** dialog to choose a shape type when starting a drawing.
+Display units and the canvas size are configured from the **Setup** dialog.
+The last design is automatically saved and restored the next time you open the page.
 
 An **Add Points** checkbox lets you insert new vector points with a double
 click. The point is placed on the edge closest to where you clicked so the
@@ -64,7 +65,6 @@ The **Manage Shapes** dialog stores the silt height along with the points and or
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
 
 The grid origin is the bottom left corner. A label beneath the canvas shows the current cursor coordinates in this system. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.
-The **Inspect** section lets you measure distances. Enable measurements and click once to start an arrow; move the mouse to see the length and click again to set it. Arrowheads are drawn at both ends of the line and you can drag them afterwards to adjust the measurement. When an arrowhead is selected it turns black and follows the cursor until you release the mouse. Use **Clear** to remove the arrow.
+The **Tools** menu includes an **Enable Measurements** option. Click once on the canvas to start an arrow, move the mouse to see the length, then click again to fix it in place. Arrowheads are drawn at both ends and can be dragged to adjust the measurement. When an arrowhead is selected it turns black and follows the cursor until released. Use **Clear** to remove the arrow.
 
-You can also set the real-world size represented by the canvas. The **New Channel** dialog includes *Draw Width* and *Draw Height* fields which default to 4000&nbsp;mm by 4000&nbsp;mm. These values define how many millimetres span the canvas and all width, height and area readouts scale accordingly.
-Changing the draw size no longer alters the channel itself—only the scale used for the measurements and labels.
+You can also set the real-world size represented by the canvas. The **Setup** dialog provides *Draw Width* and *Draw Height* fields which default to 4000&nbsp;mm by 4000&nbsp;mm along with a units selector. These values define how many millimetres span the canvas and all width, height and area readouts scale accordingly. Changing the draw size no longer alters the channel itself—only the scale used for measurements and labels. The grid spacing is always shown in millimetres so switching display units does not resize the grid.
