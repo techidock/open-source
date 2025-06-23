@@ -496,7 +496,12 @@
         var waterArea = polygonArea(waterPts) - polygonArea(siltPts);
         var siltArea = polygonArea(siltPts);
         var units = document.getElementById('units').value;
-        var mm2perpx2 = (canvasWidthMM / canvas.width) * (canvasHeightMM / canvas.height);
+        /*
+         * Convert pixel area to real-world units. We use the common mmScale
+         * factor for both axes so resizing the canvas doesn't change the
+         * calculated channel area unless the polygon itself is edited.
+         */
+        var mm2perpx2 = mmScale * mmScale;
         var unitSq = unitFactor() * unitFactor();
         document.getElementById('area-display').textContent = 'Total Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
