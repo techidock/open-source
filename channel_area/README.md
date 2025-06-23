@@ -58,6 +58,7 @@ at the bottom centre. Use **One Point Down** to place a single vertex on the bas
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape.
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area.
+A **Height Units** dropdown lets you show these heights in metres, centimetres or millimetres independently of the shape units.
 The **Manage Shapes** dialog stores the silt height along with the points and orientation when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
 
 A dashed orange rectangle indicates the shape's bounding box so you can see its maximum width and height. These values are listed below the canvas.
@@ -66,3 +67,4 @@ The grid origin is the bottom left corner. A label beneath the canvas shows the 
 The **Inspect** section lets you measure distances. Enable measurements and click once to start an arrow; move the mouse to see the length and click again to set it. Arrowheads are drawn at both ends of the line and you can drag them afterwards to adjust the measurement. When an arrowhead is selected it turns black and follows the cursor until you release the mouse. Use **Clear** to remove the arrow.
 
 You can also set the real-world size represented by the canvas. The **New Channel** dialog includes *Draw Width* and *Draw Height* fields which default to 4000&nbsp;mm by 4000&nbsp;mm. These values define how many millimetres span the canvas and all width, height and area readouts scale accordingly.
+Changing the draw size no longer alters the channel itself—only the scale used for the measurements and labels.

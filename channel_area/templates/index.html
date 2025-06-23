@@ -73,6 +73,12 @@
       <label for="silt-height">Silt Height:</label>
       <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
       <span id="silt-unit"></span>
+      <label for="height-units">Height Units:</label>
+      <select id="height-units" onchange="updateHeightUnitDisplay()">
+        <option value="m">m</option>
+        <option value="cm">cm</option>
+        <option value="mm">mm</option>
+      </select>
       <button onclick="calculateArea()">Calculate</button>
     </div>
     <div id="inspect">
@@ -119,8 +125,8 @@
       var addPointEnabled = false;
       var undoStack = [];
       var redoStack = [];
-      var waterHeight = 0;
-      var siltHeight = 0;
+      var waterHeightMM = 0;
+      var siltHeightMM = 0;
       var drawWidthMM = 4000;
       var drawHeightMM = 4000;
       var circleDiameterMM = 1000;
@@ -137,22 +143,48 @@
         return 1;
       }
 
+      function heightUnitFactor() {
+        var u = document.getElementById('height-units').value;
+        if (u === 'm') return 1000;
+        if (u === 'cm') return 10;
+        return 1;
+      }
+
       function updateUnitDisplay() {
         var f = unitFactor();
         document.getElementById('draw-width').value = (drawWidthMM / f).toFixed(1);
         document.getElementById('draw-height').value = (drawHeightMM / f).toFixed(1);
         document.getElementById('draw-unit').textContent = document.getElementById('units').value;
-        document.getElementById('water-unit').textContent = document.getElementById('units').value;
-        document.getElementById('silt-unit').textContent = document.getElementById('units').value;
         document.getElementById('circle-diameter').value = (circleDiameterMM / f).toFixed(1);
         document.getElementById('circle-unit').textContent = document.getElementById('units').value;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function updateHeightUnitDisplay() {
+        var f = heightUnitFactor();
+        document.getElementById('water-height').value = (waterHeightMM / f).toFixed(1);
+        document.getElementById('silt-height').value = (siltHeightMM / f).toFixed(1);
+        var u = document.getElementById('height-units').value;
+        document.getElementById('water-unit').textContent = u;
+        document.getElementById('silt-unit').textContent = u;
         draw();
       }
 
       function updateDrawSize() {
         var f = unitFactor();
-        drawWidthMM = parseFloat(document.getElementById('draw-width').value) * f || 4000;
-        drawHeightMM = parseFloat(document.getElementById('draw-height').value) * f || 4000;
+        var newW = parseFloat(document.getElementById('draw-width').value) * f || 4000;
+        var newH = parseFloat(document.getElementById('draw-height').value) * f || 4000;
+        var oldW = drawWidthMM;
+        var oldH = drawHeightMM;
+        points = points.map(function(p){
+          var mmx = p.x * oldW / canvas.width;
+          var mmy = p.y * oldH / canvas.height;
+          return {x: mmx * canvas.width / newW, y: mmy * canvas.height / newH};
+        });
+        drawWidthMM = newW;
+        drawHeightMM = newH;
+        anchorBottomCenter();
         draw();
       }
 
@@ -187,16 +219,17 @@
         updateShapeList();
         showFields();
         updateUnitDisplay();
-        waterHeight = parseFloat(document.getElementById('water-height').value) || 0;
-        siltHeight = parseFloat(document.getElementById('silt-height').value) || 0;
+        updateHeightUnitDisplay();
+        waterHeightMM = parseFloat(document.getElementById('water-height').value) * heightUnitFactor() || 0;
+        siltHeightMM = parseFloat(document.getElementById('silt-height').value) * heightUnitFactor() || 0;
         fetch('/load_shape/_last').then(r => {
           if (r.ok) return r.json();
         }).then(data => {
           if (data && data.points) {
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             orientation = data.orientation || 0;
-            siltHeight = data.siltHeight || 0;
-            document.getElementById('silt-height').value = siltHeight.toFixed(1);
+            siltHeightMM = data.siltHeight || 0;
+            document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
             anchorBottomCenter();
           }
           draw();
@@ -308,18 +341,18 @@
         document.getElementById('width-label').textContent = 'Width: ' + (width * sx / unitFactor()).toFixed(1) + ' ' + units;
         document.getElementById('height-label').textContent = 'Height: ' + (height * sy / unitFactor()).toFixed(1) + ' ' + units;
 
-        var maxHeight = shapeHeight(pts);
+        var maxHeight = shapeHeightMM(pts);
         shapePts = pts;
         var whInput = document.getElementById('water-height');
-        waterHeight = parseFloat(whInput.value) || 0;
-        waterHeight = clamp(waterHeight, 0, maxHeight);
-        whInput.value = waterHeight.toFixed(1);
+        waterHeightMM = parseFloat(whInput.value) * heightUnitFactor() || 0;
+        waterHeightMM = clamp(waterHeightMM, 0, maxHeight);
+        whInput.value = (waterHeightMM / heightUnitFactor()).toFixed(1);
         var shInput = document.getElementById('silt-height');
-        siltHeight = parseFloat(shInput.value) || 0;
-        siltHeight = clamp(siltHeight, 0, waterHeight);
-        shInput.value = siltHeight.toFixed(1);
-        var yLine = canvas.height - unitToPxY(waterHeight);
-        var ySilt = canvas.height - unitToPxY(siltHeight);
+        siltHeightMM = parseFloat(shInput.value) * heightUnitFactor() || 0;
+        siltHeightMM = clamp(siltHeightMM, 0, waterHeightMM);
+        shInput.value = (siltHeightMM / heightUnitFactor()).toFixed(1);
+        var yLine = canvas.height - mmToPxY(waterHeightMM);
+        var ySilt = canvas.height - mmToPxY(siltHeightMM);
         if (pts.length > 0) {
           var belowWater = clipBelow(pts, yLine);
           var belowSilt = clipBelow(pts, ySilt);
@@ -416,6 +449,15 @@
           minY = Math.min(minY, pts[i].y);
         }
         return pxToUnitY(canvas.height - minY);
+      }
+
+      function shapeHeightMM(pts) {
+        if (pts.length === 0) return 0;
+        var minY = canvas.height;
+        for (var i = 0; i < pts.length; i++) {
+          minY = Math.min(minY, pts[i].y);
+        }
+        return pxToMMY(canvas.height - minY);
       }
 
       function clipBelow(pts, yLine) {
@@ -560,9 +602,9 @@
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
         anchorBottomCenter();
-        waterHeight = shapeHeight(points);
-        document.getElementById('water-height').value = waterHeight.toFixed(1);
-        siltHeight = 0;
+        waterHeightMM = shapeHeightMM(points);
+        document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
+        siltHeightMM = 0;
         document.getElementById('silt-height').value = '0';
         draw();
       }
@@ -586,9 +628,9 @@
         points = defaultCircle(n, circleDiameterMM);
         orientation = 0;
         anchorBottomCenter();
-        waterHeight = shapeHeight(points);
-        document.getElementById('water-height').value = waterHeight.toFixed(1);
-        siltHeight = 0;
+        waterHeightMM = shapeHeightMM(points);
+        document.getElementById('water-height').value = (waterHeightMM / heightUnitFactor()).toFixed(1);
+        siltHeightMM = 0;
         document.getElementById('silt-height').value = '0';
         draw();
       }
@@ -850,7 +892,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeight})
+          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeightMM})
         }).then(updateShapeList);
       }
 
@@ -858,7 +900,7 @@
         fetch('/save_shape', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeight})
+          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), orientation: orientation, siltHeight: siltHeightMM})
         });
       }
 
@@ -883,8 +925,8 @@
             saveState();
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
             orientation = data.orientation || 0;
-            siltHeight = data.siltHeight || 0;
-            document.getElementById('silt-height').value = siltHeight.toFixed(1);
+            siltHeightMM = data.siltHeight || 0;
+            document.getElementById('silt-height').value = (siltHeightMM / heightUnitFactor()).toFixed(1);
             document.getElementById('shape').value = 'polygon';
             anchorBottomCenter();
             draw();
