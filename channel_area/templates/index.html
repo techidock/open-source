@@ -19,11 +19,16 @@
           <option value="circle">Circular Channel</option>
         </select>
         <label for="units">Units:</label>
-        <select name="units" id="units" onchange="draw()">
+        <select name="units" id="units" onchange="updateUnitDisplay()">
           <option value="m">m</option>
           <option value="cm">cm</option>
           <option value="mm">mm</option>
         </select>
+        <label for="draw-width">Draw Width:</label>
+        <input type="number" id="draw-width" value="4000" oninput="updateDrawSize()">
+        <label for="draw-height">Draw Height:</label>
+        <input type="number" id="draw-height" value="4000" oninput="updateDrawSize()">
+        <span id="draw-unit"></span>
         <div id="circular-fields" class="fields" style="display:none">
           <label for="circle-points">Points:</label>
           <input type="number" id="circle-points" min="3" value="30" onchange="resetCircle()">
@@ -113,10 +118,41 @@
       var redoStack = [];
       var waterHeight = 0;
       var siltHeight = 0;
+      var drawWidthMM = 4000;
+      var drawHeightMM = 4000;
       var measureMode = false;
       var measureStart = null;
       var measureEnd = null;
       var measuring = false;
+
+      function unitFactor() {
+        var u = document.getElementById('units').value;
+        if (u === 'm') return 1000;
+        if (u === 'cm') return 10;
+        return 1;
+      }
+
+      function updateUnitDisplay() {
+        var f = unitFactor();
+        document.getElementById('draw-width').value = (drawWidthMM / f).toFixed(1);
+        document.getElementById('draw-height').value = (drawHeightMM / f).toFixed(1);
+        document.getElementById('draw-unit').textContent = document.getElementById('units').value;
+        document.getElementById('water-unit').textContent = document.getElementById('units').value;
+        document.getElementById('silt-unit').textContent = document.getElementById('units').value;
+        draw();
+      }
+
+      function updateDrawSize() {
+        var f = unitFactor();
+        drawWidthMM = parseFloat(document.getElementById('draw-width').value) * f || 4000;
+        drawHeightMM = parseFloat(document.getElementById('draw-height').value) * f || 4000;
+        draw();
+      }
+
+      function unitToPxX(v) { return v * unitFactor() * canvas.width / drawWidthMM; }
+      function unitToPxY(v) { return v * unitFactor() * canvas.height / drawHeightMM; }
+      function pxToUnitX(px) { return px * drawWidthMM / canvas.width / unitFactor(); }
+      function pxToUnitY(px) { return px * drawHeightMM / canvas.height / unitFactor(); }
 
       function init() {
         canvas = document.getElementById('canvas');
@@ -139,6 +175,7 @@
         };
         updateShapeList();
         showFields();
+        updateUnitDisplay();
         waterHeight = parseFloat(document.getElementById('water-height').value) || 0;
         siltHeight = parseFloat(document.getElementById('silt-height').value) || 0;
         fetch('/load_shape/_last').then(r => {
@@ -221,10 +258,10 @@
         ctx.restore();
 
         var units = document.getElementById('units').value;
-        document.getElementById('width-label').textContent = 'Width: ' + width.toFixed(1) + ' ' + units;
-        document.getElementById('height-label').textContent = 'Height: ' + height.toFixed(1) + ' ' + units;
-        document.getElementById('water-unit').textContent = units;
-        document.getElementById('silt-unit').textContent = units;
+        var sx = drawWidthMM / canvas.width;
+        var sy = drawHeightMM / canvas.height;
+        document.getElementById('width-label').textContent = 'Width: ' + (width * sx / unitFactor()).toFixed(1) + ' ' + units;
+        document.getElementById('height-label').textContent = 'Height: ' + (height * sy / unitFactor()).toFixed(1) + ' ' + units;
 
         var maxHeight = shapeHeight(pts);
         shapePts = pts;
@@ -236,8 +273,8 @@
         siltHeight = parseFloat(shInput.value) || 0;
         siltHeight = clamp(siltHeight, 0, waterHeight);
         shInput.value = siltHeight.toFixed(1);
-        var yLine = canvas.height - waterHeight;
-        var ySilt = canvas.height - siltHeight;
+        var yLine = canvas.height - unitToPxY(waterHeight);
+        var ySilt = canvas.height - unitToPxY(siltHeight);
         if (pts.length > 0) {
           var belowWater = clipBelow(pts, yLine);
           var belowSilt = clipBelow(pts, ySilt);
@@ -304,9 +341,11 @@
         var waterArea = polygonArea(waterPts) - polygonArea(siltPts);
         var siltArea = polygonArea(siltPts);
         var units = document.getElementById('units').value;
-        document.getElementById('area-display').textContent = 'Area: ' + area.toFixed(2) + ' ' + units + '^2';
-        document.getElementById('water-area-display').textContent = 'Water Area: ' + waterArea.toFixed(2) + ' ' + units + '^2';
-        document.getElementById('silt-area-display').textContent = 'Silt Area: ' + siltArea.toFixed(2) + ' ' + units + '^2';
+        var mm2perpx2 = (drawWidthMM / canvas.width) * (drawHeightMM / canvas.height);
+        var unitSq = unitFactor() * unitFactor();
+        document.getElementById('area-display').textContent = 'Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('silt-area-display').textContent = 'Silt Area: ' + (siltArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         drawMeasurement();
         autoSave();
       }
@@ -331,7 +370,7 @@
         for (var i = 0; i < pts.length; i++) {
           minY = Math.min(minY, pts[i].y);
         }
-        return canvas.height - minY;
+        return pxToUnitY(canvas.height - minY);
       }
 
       function clipBelow(pts, yLine) {
@@ -531,18 +570,18 @@
           var tdX = document.createElement('td');
           var inputX = document.createElement('input');
           inputX.type = 'number';
-          inputX.value = pts[i].x.toFixed(1);
+          inputX.value = pxToUnitX(pts[i].x).toFixed(1);
           inputX.min = 0;
-          inputX.max = canvas.width;
+          inputX.max = drawWidthMM / unitFactor();
           inputX.dataset.index = i;
           inputX.onchange = tableChanged;
           tdX.appendChild(inputX);
           var tdY = document.createElement('td');
           var inputY = document.createElement('input');
           inputY.type = 'number';
-          inputY.value = (canvas.height - pts[i].y).toFixed(1);
+          inputY.value = pxToUnitY(canvas.height - pts[i].y).toFixed(1);
           inputY.min = 0;
-          inputY.max = canvas.height;
+          inputY.max = drawHeightMM / unitFactor();
           inputY.dataset.index = i;
           inputY.onchange = tableChanged;
           tdY.appendChild(inputY);
@@ -642,12 +681,12 @@
         }
         var idx = parseInt(e.target.dataset.index);
         var row = e.target.parentElement.parentElement;
-        var x = parseFloat(row.children[1].firstChild.value);
-        var y = parseFloat(row.children[2].firstChild.value);
+        var x = unitToPxX(parseFloat(row.children[1].firstChild.value));
+        var y = unitToPxY(parseFloat(row.children[2].firstChild.value));
         x = clamp(x, 0, canvas.width);
         y = clamp(y, 0, canvas.height);
-        row.children[1].firstChild.value = x;
-        row.children[2].firstChild.value = y;
+        row.children[1].firstChild.value = pxToUnitX(x).toFixed(1);
+        row.children[2].firstChild.value = pxToUnitY(y).toFixed(1);
         saveState();
         points[idx] = {x: x, y: canvas.height - y};
         anchorBottomCenter();
@@ -658,7 +697,8 @@
         var rect = canvas.getBoundingClientRect();
         var x = e.clientX - rect.left;
         var y = canvas.height - (e.clientY - rect.top);
-        document.getElementById('cursor-pos').textContent = 'Cursor: (' + x.toFixed(1) + ', ' + y.toFixed(1) + ')';
+        var units = document.getElementById('units').value;
+        document.getElementById('cursor-pos').textContent = 'Cursor: (' + pxToUnitX(x).toFixed(1) + ', ' + pxToUnitY(y).toFixed(1) + ' ' + units + ')';
         var py = e.clientY - rect.top;
         var shape = document.getElementById('shape').value;
         var pts = getShapePoints(shape);
