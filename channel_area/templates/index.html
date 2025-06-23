@@ -30,6 +30,9 @@
         <input type="number" id="draw-height" value="4000" oninput="updateDrawSize()">
         <span id="draw-unit"></span>
         <div id="circular-fields" class="fields" style="display:none">
+          <label for="circle-diameter">Diameter:</label>
+          <input type="number" id="circle-diameter" value="1000" oninput="resetCircle()">
+          <span id="circle-unit"></span>
           <label for="circle-points">Points:</label>
           <input type="number" id="circle-points" min="3" value="30" onchange="resetCircle()">
         </div>
@@ -120,10 +123,12 @@
       var siltHeight = 0;
       var drawWidthMM = 4000;
       var drawHeightMM = 4000;
+      var circleDiameterMM = 1000;
       var measureMode = false;
       var measureStart = null;
       var measureEnd = null;
       var measuring = false;
+      var measureDrag = null;
 
       function unitFactor() {
         var u = document.getElementById('units').value;
@@ -139,6 +144,8 @@
         document.getElementById('draw-unit').textContent = document.getElementById('units').value;
         document.getElementById('water-unit').textContent = document.getElementById('units').value;
         document.getElementById('silt-unit').textContent = document.getElementById('units').value;
+        document.getElementById('circle-diameter').value = (circleDiameterMM / f).toFixed(1);
+        document.getElementById('circle-unit').textContent = document.getElementById('units').value;
         draw();
       }
 
@@ -197,7 +204,23 @@
       }
 
       function startDrag(e) {
-        if (measureMode) { startMeasurement(e); return; }
+        if (measureMode) {
+          var rect = canvas.getBoundingClientRect();
+          var x = clamp(e.clientX - rect.left, 0, canvas.width);
+          var y = clamp(e.clientY - rect.top, 0, canvas.height);
+          if (!measuring && measureStart && measureEnd) {
+            if (Math.hypot(x - measureStart.x, y - measureStart.y) < 6) {
+              measureDrag = 'start';
+              return;
+            }
+            if (Math.hypot(x - measureEnd.x, y - measureEnd.y) < 6) {
+              measureDrag = 'end';
+              return;
+            }
+          }
+          startMeasurement(e);
+          return;
+        }
         if (!editEnabled) return;
         var shape = document.getElementById('shape').value;
         if (editIndex >= 0) {
@@ -210,7 +233,19 @@
       }
 
       function drag(e) {
-        if (measureMode) { if (measuring) measureMove(e); return; }
+        if (measureMode) {
+          if (measureDrag) {
+            var rect = canvas.getBoundingClientRect();
+            var x = clamp(e.clientX - rect.left, 0, canvas.width);
+            var y = clamp(e.clientY - rect.top, 0, canvas.height);
+            if (measureDrag === 'start') measureStart = {x:x, y:y};
+            else measureEnd = {x:x, y:y};
+            draw();
+            return;
+          }
+          if (measuring) { measureMove(e); }
+          return;
+        }
         if (!dragging) return;
         if (editIndex >= 0) {
           movePoint(e);
@@ -220,6 +255,12 @@
       }
 
       function endDrag(e) {
+        if (measureMode) {
+          measureDrag = null;
+          if (measuring) measureMove(e);
+          draw();
+          return;
+        }
         dragging = false;
         if (editIndex >= 0) {
           editIndex = -1;
@@ -540,7 +581,8 @@
       function resetCircle() {
         saveState();
         var n = parseInt(document.getElementById('circle-points').value) || 30;
-        points = defaultCircle(n);
+        circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * unitFactor() || 1000;
+        points = defaultCircle(n, circleDiameterMM);
         orientation = 0;
         anchorBottomCenter();
         waterHeight = shapeHeight(points);
@@ -550,8 +592,8 @@
         draw();
       }
 
-      function defaultCircle(n) {
-        var r = mmToPxX(500); // 1000 mm diameter
+      function defaultCircle(n, diamMM) {
+        var r = mmToPxX(diamMM / 2);
         var cx = canvas.width / 2;
         var cy = canvas.height - r;
         var pts = [];
@@ -675,6 +717,7 @@
         measureStart = null;
         measureEnd = null;
         measuring = false;
+        measureDrag = null;
         draw();
       }
 
@@ -712,7 +755,13 @@
         }
         hoverIndex = over;
         updateRowHighlights();
-        if (over >= 0 || editIndex >= 0) {
+        var overArrow = false;
+        if (measureMode && measureStart && measureEnd && !measuring) {
+          if (Math.hypot(measureStart.x - x, measureStart.y - py) < 6 || Math.hypot(measureEnd.x - x, measureEnd.y - py) < 6) {
+            overArrow = true;
+          }
+        }
+        if (over >= 0 || editIndex >= 0 || overArrow || measureDrag) {
           canvas.style.cursor = blueCursor;
         } else {
           canvas.style.cursor = 'default';
