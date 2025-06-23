@@ -19,6 +19,7 @@
           <option value="polygon">Polygon Channel</option>
           <option value="circle">Circular Channel</option>
           <option value="rectangle">Rectangle Channel</option>
+          <option value="egg">Egg Shape Channel</option>
         </select>
         <label for="shape-units">Units:</label>
         <select id="shape-units" onchange="updateShapeUnitDisplay()">
@@ -41,6 +42,15 @@
           <label for="rect-radius">Corner Radius:</label>
           <input type="number" id="rect-radius" value="0" oninput="resetRectangle()">
           <span id="rect-unit"></span>
+        </div>
+        <div id="egg-fields" class="fields" style="display:none">
+          <label for="egg-diam1">Bottom Diameter:</label>
+          <input type="number" id="egg-diam1" value="1000" oninput="resetEgg()">
+          <label for="egg-diam2">Top Diameter:</label>
+          <input type="number" id="egg-diam2" value="800" oninput="resetEgg()">
+          <label for="egg-dist">Centre Distance:</label>
+          <input type="number" id="egg-dist" value="600" oninput="resetEgg()">
+          <span id="egg-unit"></span>
         </div>
         <div id="polygon-fields" class="fields" style="display:none">
           <label for="num-points">Points:</label>
@@ -138,6 +148,7 @@
         document.getElementById('polygon-fields').style.display = shape === 'polygon' ? 'block' : 'none';
         document.getElementById('circular-fields').style.display = shape === 'circle' ? 'block' : 'none';
         document.getElementById('rectangle-fields').style.display = shape === 'rectangle' ? 'block' : 'none';
+        document.getElementById('egg-fields').style.display = shape === 'egg' ? 'block' : 'none';
         updateShapeUnitDisplay();
         if (shape === 'polygon') {
           resetPolygon();
@@ -145,6 +156,8 @@
           resetCircle();
         } else if (shape === 'rectangle') {
           resetRectangle();
+        } else if (shape === 'egg') {
+          resetEgg();
         }
       }
 
@@ -176,6 +189,9 @@
       var rectWidthMM = 1000;
       var rectHeightMM = 1000;
       var rectRadiusMM = 0;
+      var eggDiam1MM = 1000;
+      var eggDiam2MM = 800;
+      var eggDistMM = 600;
       var measureMode = false;
       var measureStart = null;
       var measureEnd = null;
@@ -220,9 +236,13 @@
         document.getElementById('rect-width').value = (rectWidthMM / f).toFixed(1);
         document.getElementById('rect-height').value = (rectHeightMM / f).toFixed(1);
         document.getElementById('rect-radius').value = (rectRadiusMM / f).toFixed(1);
+        document.getElementById('egg-diam1').value = (eggDiam1MM / f).toFixed(1);
+        document.getElementById('egg-diam2').value = (eggDiam2MM / f).toFixed(1);
+        document.getElementById('egg-dist').value = (eggDistMM / f).toFixed(1);
         var u = document.getElementById('shape-units').value;
         document.getElementById('circle-unit').textContent = u;
         document.getElementById('rect-unit').textContent = u;
+        document.getElementById('egg-unit').textContent = u;
       }
 
       function updateHeightUnitDisplay() {
@@ -833,6 +853,47 @@
         }
         // bottom edge back to start
         pts.push({x: mmToPxX(wMM - rMM), y: mmToPxY(0)});
+        return pts;
+      }
+
+      function resetEgg() {
+        saveState();
+        eggDiam1MM = parseFloat(document.getElementById('egg-diam1').value) * shapeUnitFactor() || 1000;
+        eggDiam2MM = parseFloat(document.getElementById('egg-diam2').value) * shapeUnitFactor() || 800;
+        eggDistMM = parseFloat(document.getElementById('egg-dist').value) * shapeUnitFactor() || 600;
+        points = defaultEgg(eggDiam1MM, eggDiam2MM, eggDistMM);
+        anchorBottomLeft();
+        waterHeightMM = shapeHeightMM(points);
+        siltHeightMM = 0;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function defaultEgg(d1MM, d2MM, distMM) {
+        var r1 = d1MM / 2;
+        var r2 = d2MM / 2;
+        var cx1 = r1;
+        var cy1 = r1;
+        var cx2 = r2;
+        var cy2 = r1 + distMM;
+        var n = 18;
+        var pts = [];
+        // start at left of bottom circle
+        pts.push({x: mmToPxX(cx1 - r1), y: mmToPxY(cy1)});
+        // line to left of top circle
+        pts.push({x: mmToPxX(cx2 - r2), y: mmToPxY(cy2)});
+        // top semicircle
+        for (var i = 1; i <= n; i++) {
+          var ang = Math.PI - i * Math.PI / n;
+          pts.push({x: mmToPxX(cx2 + r2 * Math.cos(ang)), y: mmToPxY(cy2 + r2 * Math.sin(ang))});
+        }
+        // line to right of bottom circle
+        pts.push({x: mmToPxX(cx1 + r1), y: mmToPxY(cy1)});
+        // bottom semicircle
+        for (var i = 1; i <= n; i++) {
+          var ang = - i * Math.PI / n;
+          pts.push({x: mmToPxX(cx1 + r1 * Math.cos(ang)), y: mmToPxY(cy1 + r1 * Math.sin(ang))});
+        }
         return pts;
       }
 
