@@ -19,11 +19,21 @@ canvas {
   align-items: flex-start;
 }
 
-#display-properties, #channel-properties, #edit-tools {
-  margin-left: 20px;
+
+#layout.with-properties {
+  margin-right: 260px;
+}
+
+#properties-menu.pinned {
+  position: static;
+  transform: none;
+  visibility: visible !important;
+  width: 260px;
   border-left: 1px solid #ccc;
-  padding-left: 10px;
-  min-width: 120px;
+}
+
+#properties-menu.pinned .btn-close {
+  display: none;
 }
 
 table {

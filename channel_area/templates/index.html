@@ -9,6 +9,7 @@
     <div class="container-fluid">
       <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
       <a class="navbar-brand" href="#">Channel Area</a>
+      <button class="btn btn-outline-light ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#properties-menu" aria-controls="properties-menu">Properties</button>
     </div>
   </nav>
 
@@ -21,6 +22,69 @@
       <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openNewChannelDialog()">New Channel</button>
       <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openShapeDialog()">Manage Shapes</button>
       <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openSetupDialog()">Setup</button>
+    </div>
+  </div>
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="properties-menu">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Properties</h5>
+      <div class="form-check ms-auto me-2">
+        <input class="form-check-input" type="checkbox" id="pin-properties" onchange="togglePinProperties()">
+        <label class="form-check-label" for="pin-properties">Pin</label>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <ul class="nav nav-tabs" id="prop-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="display-tab" data-bs-toggle="tab" data-bs-target="#display-panel" type="button" role="tab">Display</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-panel" type="button" role="tab">Channel</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit-panel" type="button" role="tab">Edit Tools</button>
+        </li>
+      </ul>
+      <div class="tab-content mt-2">
+        <div class="tab-pane fade show active" id="display-panel" role="tabpanel">
+          <h3>Display Properties</h3>
+          <p id="grid-info"></p>
+          <p id="cursor-pos">Cursor:</p>
+          <h4>Display Settings</h4>
+          <label for="units">Display Units:</label>
+          <select name="units" id="units" onchange="updateUnitDisplay()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select><br>
+          <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
+          <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label><br>
+          <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
+          <label for="canvas-width">Canvas Width:</label>
+          <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
+          <label for="canvas-height">Canvas Height:</label>
+          <input type="number" id="canvas-height" value="4000" oninput="updateCanvasSize()">
+          <span id="draw-unit"></span><br>
+        </div>
+        <div class="tab-pane fade" id="channel-panel" role="tabpanel">
+          <h3>Channel Properties</h3>
+          <p id="width-label"></p>
+          <p id="height-label"></p>
+          <p id="area-display" title="Maximum Area in the Channel"></p>
+          <p id="water-area-display"></p>
+          <p id="silt-area-display"></p>
+        </div>
+        <div class="tab-pane fade" id="edit-panel" role="tabpanel">
+          <h3>Edit Tools</h3>
+          <label><input type="checkbox" id="edit-toggle"> Edit Mode</label><br>
+          <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
+          <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
+          <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
+          <button type="button" onclick="undoEdit()">Undo</button>
+          <button type="button" onclick="redoEdit()">Redo</button>
+          <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="container-fluid mt-3">
@@ -75,47 +139,10 @@
   <div class="tab-content">
   <div class="tab-pane fade show active" id="draw-tab">
     <div id="layout" class="row">
-      <div id="drawing-area" class="col-md-8 col-lg-9">
+      <div id="drawing-area" class="col">
         <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
       </div>
-      <aside id="display-properties" class="col-md-4 col-lg-3">
-        <h3>Display Properties</h3>
-        <p id="grid-info"></p>
-        <p id="cursor-pos">Cursor:</p>
-        <h4>Display Settings</h4>
-        <label for="units">Display Units:</label>
-        <select name="units" id="units" onchange="updateUnitDisplay()">
-          <option value="m">m</option>
-          <option value="cm">cm</option>
-          <option value="mm">mm</option>
-        </select><br>
-        <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
-        <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label><br>
-        <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
-        <label for="canvas-width">Canvas Width:</label>
-        <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
-        <label for="canvas-height">Canvas Height:</label>
-        <input type="number" id="canvas-height" value="4000" oninput="updateCanvasSize()">
-        <span id="draw-unit"></span><br>
-      </aside>
-      <aside id="edit-tools" class="col-md-4 col-lg-2">
-        <h3>Edit Tools</h3>
-        <label><input type="checkbox" id="edit-toggle"> Edit Mode</label><br>
-        <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
-        <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
-        <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
-        <button type="button" onclick="undoEdit()">Undo</button>
-        <button type="button" onclick="redoEdit()">Redo</button>
-        <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
-      </aside>
-      <aside id="channel-properties" class="col-md-4 col-lg-2">
-        <h3>Channel Properties</h3>
-        <p id="width-label"></p>
-        <p id="height-label"></p>
-        <p id="area-display" title="Maximum Area in the Channel"></p>
-        <p id="water-area-display"></p>
-        <p id="silt-area-display"></p>
-      </aside>
+      <!-- properties menu moved to offcanvas -->
     </div>
       <dialog id="shape-dialog">
         <form method="dialog" onsubmit="return false;">
@@ -233,6 +260,7 @@
       var activeMeasure = -1;
       var measuring = false;
       var measureDrag = null;
+      var propertiesOffcanvas;
 
       function resizeCanvas() {
         canvas.width = canvas.clientWidth;
@@ -413,6 +441,7 @@
       function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
+        propertiesOffcanvas = new bootstrap.Offcanvas(document.getElementById('properties-menu'));
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         canvas.addEventListener('mousedown', startDrag);
@@ -486,6 +515,7 @@
           }
           draw();
         }).catch(() => draw());
+        togglePinProperties();
       }
 
       function startDrag(e) {
@@ -1391,6 +1421,19 @@
 
       function closeSetupDialog() {
         document.getElementById('setup-dialog').close();
+      }
+
+      function togglePinProperties() {
+        var oc = document.getElementById('properties-menu');
+        var layout = document.getElementById('layout');
+        if (document.getElementById('pin-properties').checked) {
+          propertiesOffcanvas.show();
+          oc.classList.add('pinned');
+          layout.classList.add('with-properties');
+        } else {
+          oc.classList.remove('pinned');
+          layout.classList.remove('with-properties');
+        }
       }
 
       function drawGrid() {
