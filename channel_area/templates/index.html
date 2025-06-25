@@ -152,7 +152,13 @@
   <div class="tab-pane fade show active" id="draw-tab">
     <div id="layout" class="row">
       <div id="drawing-area" class="col">
-        <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
+        <div id="canvas-container">
+          <canvas id="canvas" width="500" height="500"></canvas>
+          <div id="zoom-controls">
+            <button type="button" onclick="zoomIn()">+</button>
+            <button type="button" onclick="zoomOut()">-</button>
+          </div>
+        </div>
       </div>
       <!-- properties menu moved to offcanvas -->
     </div>
@@ -255,10 +261,26 @@
       var measuring = false;
       var measureDrag = null;
       var propertiesOffcanvas;
+      var zoomLevel = 1;
+
+      function applyZoom() {
+        canvas.style.transformOrigin = 'bottom left';
+        canvas.style.transform = 'scale(' + zoomLevel + ')';
+      }
+
+      function zoomIn() { zoomLevel *= 1.25; applyZoom(); }
+      function zoomOut() { zoomLevel = Math.max(0.5, zoomLevel / 1.25); applyZoom(); }
+
+      function getCanvasPos(e) {
+        var rect = canvas.getBoundingClientRect();
+        var x = (e.clientX - rect.left) / zoomLevel;
+        var y = (e.clientY - rect.top) / zoomLevel;
+        return {x: clamp(x, axisMargin, canvas.width), y: clamp(y, 0, canvas.height - axisMargin)};
+      }
 
       function resizeCanvas() {
         canvas.width = canvas.clientWidth;
-        canvas.height = canvas.width * 0.75;
+        canvas.height = canvas.width;
         mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
         updateGridInfo();
         draw();
@@ -435,9 +457,11 @@
       function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
+        applyZoom();
         propertiesOffcanvas = new bootstrap.Offcanvas(document.getElementById('properties-menu'));
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('resize', togglePinProperties);
         canvas.addEventListener('mousedown', startDrag);
         canvas.addEventListener('mousemove', drag);
         canvas.addEventListener('mousemove', showCursorPos);
@@ -518,9 +542,9 @@
             startMeasurement(e);
             return;
           }
-          var rect = canvas.getBoundingClientRect();
-          var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
-          var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
+          var pos = getCanvasPos(e);
+          var x = pos.x;
+          var y = pos.y;
           for (var i = 0; i < measurements.length; i++) {
             var m = measurements[i];
             if (Math.hypot(x - m.start.x, y - m.start.y) < 6) {
@@ -837,9 +861,9 @@
 
       function addPoint(e) {
         if (!editEnabled) return;
-        var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
         var shape = document.getElementById('shape').value;
         var dispPts = getShapePoints(shape);
         var idx = dispPts.length - 1;
@@ -868,9 +892,9 @@
 
       function selectPoint(e) {
         if (!editEnabled) return;
-        var rect = canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
         var shape = document.getElementById('shape').value;
         var pts = getShapePoints(shape);
         editIndex = -1;
@@ -889,9 +913,9 @@
 
       function movePoint(e) {
         if (!(e.buttons & 1) || !editEnabled) return;
-        var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
         points[editIndex] = {x: x, y: y};
         draw();
       }
@@ -1143,9 +1167,9 @@
 
       function startMeasurement(e) {
         if (measurements.length >= 10 && !measuring) return;
-        var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
         var snap = snapToPoint(x, y);
         if (!measuring) {
           measurements.push({start: {x: snap.x, y: snap.y, index: snap.index},
@@ -1165,9 +1189,9 @@
 
       function measureMove(e) {
         if (!measuring && !measureDrag) return;
-        var rect = canvas.getBoundingClientRect();
-        var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
-        var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
         var snap = snapToPoint(x, y);
         if (measureDrag && activeMeasure >= 0) {
           var m = measurements[activeMeasure];
@@ -1220,9 +1244,9 @@
       }
 
       function showCursorPos(e) {
-        var rect = canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
         var units = document.getElementById('units').value;
         var dec = decimalsForUnits(units);
         document.getElementById('cursor-pos').textContent = 'Cursor: (' + pxToUnitX(x).toFixed(dec) + ', ' + pxToUnitY(y).toFixed(dec) + ' ' + units + ')';
@@ -1417,12 +1441,14 @@
       function togglePinProperties() {
         var oc = document.getElementById('properties-menu');
         var layout = document.getElementById('layout');
-        if (document.getElementById('pin-properties').checked) {
+        var landscape = window.innerWidth > window.innerHeight;
+        if (document.getElementById('pin-properties').checked && landscape) {
           propertiesOffcanvas.show();
           oc.classList.add('pinned');
           layout.classList.add('with-properties');
           resizeCanvas();
         } else {
+          document.getElementById('pin-properties').checked = false;
           oc.classList.remove('pinned');
           layout.classList.remove('with-properties');
           resizeCanvas();

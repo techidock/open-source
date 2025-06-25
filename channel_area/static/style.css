@@ -5,12 +5,35 @@ body {
 }
 
 
+#canvas-container {
+  position: relative;
+  overflow: auto;
+}
+
 canvas {
   border: 1px solid #000;
   margin-top: 10px;
   background: #fafafa;
   width: 100%;
   height: auto;
+  display: block;
+}
+
+#zoom-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+#zoom-controls button {
+  margin: 0 2px;
+  width: 30px;
+  height: 30px;
+  line-height: 1;
 }
 
 #layout {
