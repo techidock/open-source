@@ -403,6 +403,10 @@
 
       function startDrag(e) {
         if (measureMode) {
+          if (measuring) {
+            startMeasurement(e);
+            return;
+          }
           var rect = canvas.getBoundingClientRect();
           var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
           var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
