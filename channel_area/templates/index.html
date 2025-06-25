@@ -84,6 +84,7 @@
         <span id="draw-unit"></span><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
         <button type="button" onclick="clearMeasurement()">Clear</button>
+        <p id="measure-info"></p>
       </aside>
       <aside id="edit-tools">
         <h3>Edit Tools</h3>
@@ -195,6 +196,8 @@
       var measureMode = false;
       var measureStart = null;
       var measureEnd = null;
+      var measureStartIndex = -1;
+      var measureEndIndex = -1;
       var measuring = false;
       var measureDrag = null;
 
@@ -301,6 +304,17 @@
         document.getElementById('grid-info').textContent = 'Grid: ' + (gridSpacingMM / unitFactor()).toFixed(1) + ' ' + units;
       }
 
+      function updateMeasurementInfo(dist, units) {
+        var text = '';
+        if (measureStart && measureEnd) {
+          text = 'Distance: ' + formatMeasurement(dist, units) + ' ' + units;
+          if (measureStartIndex >= 0 && measureEndIndex >= 0) {
+            text += ' (points ' + measureStartIndex + '–' + measureEndIndex + ')';
+          }
+        }
+        document.getElementById('measure-info').textContent = text;
+      }
+
       function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
@@ -393,8 +407,14 @@
             var rect = canvas.getBoundingClientRect();
             var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
             var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
-            if (measureDrag === 'start') measureStart = {x:x, y:y};
-            else measureEnd = {x:x, y:y};
+            var snap = snapToPoint(x, y);
+            if (measureDrag === 'start') {
+              measureStart = {x: snap.x, y: snap.y};
+              measureStartIndex = snap.index;
+            } else {
+              measureEnd = {x: snap.x, y: snap.y};
+              measureEndIndex = snap.index;
+            }
             draw();
             return;
           }
@@ -671,6 +691,7 @@
         ctx.fillText(formatMeasurement(dist, units) + ' ' + units,
                      (measureStart.x + measureEnd.x) / 2 + 5,
                      (measureStart.y + measureEnd.y) / 2 - 5);
+        updateMeasurementInfo(dist, units);
       }
 
       function drawArrowHead(a, b, color) {
@@ -975,6 +996,17 @@
         return Math.hypot(p.x - projX, p.y - projY);
       }
 
+      function snapToPoint(x, y) {
+        if (!vectorsVisible) return {x: x, y: y, index: -1};
+        var pts = getShapePoints(document.getElementById('shape').value);
+        for (var i = 0; i < pts.length; i++) {
+          if (Math.hypot(pts[i].x - x, pts[i].y - y) < 6) {
+            return {x: pts[i].x, y: pts[i].y, index: i};
+          }
+        }
+        return {x: x, y: y, index: -1};
+      }
+
       function saveState() {
         undoStack.push({points: JSON.parse(JSON.stringify(points))});
         if (undoStack.length > 50) undoStack.shift();
@@ -986,11 +1018,16 @@
         var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         if (!measureStart || (!measuring && measureEnd)) {
-          measureStart = {x: x, y: y};
-          measureEnd = {x: x, y: y};
+          var snap = snapToPoint(x, y);
+          measureStart = {x: snap.x, y: snap.y};
+          measureStartIndex = snap.index;
+          measureEnd = {x: snap.x, y: snap.y};
+          measureEndIndex = snap.index;
           measuring = true;
         } else if (measuring) {
-          measureEnd = {x: x, y: y};
+          var snap2 = snapToPoint(x, y);
+          measureEnd = {x: snap2.x, y: snap2.y};
+          measureEndIndex = snap2.index;
           measuring = false;
         }
         draw();
@@ -1001,15 +1038,20 @@
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
-        measureEnd = {x: x, y: y};
+        var snap = snapToPoint(x, y);
+        measureEnd = {x: snap.x, y: snap.y};
+        measureEndIndex = snap.index;
         draw();
       }
 
       function clearMeasurement() {
         measureStart = null;
         measureEnd = null;
+        measureStartIndex = -1;
+        measureEndIndex = -1;
         measuring = false;
         measureDrag = null;
+        updateMeasurementInfo(0, document.getElementById('units').value);
         draw();
       }
 
