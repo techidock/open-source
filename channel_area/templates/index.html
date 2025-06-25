@@ -153,11 +153,13 @@
   <div class="tab-pane fade show active" id="draw-tab">
     <div id="layout" class="row">
       <div id="drawing-area" class="col">
-        <div id="canvas-container">
-          <canvas id="canvas" width="500" height="500"></canvas>
-          <div id="zoom-controls">
-            <button type="button" onclick="zoomIn()">+</button>
-            <button type="button" onclick="zoomOut()">-</button>
+        <div id="canvas-panel" class="border p-2">
+          <div id="canvas-container">
+            <canvas id="canvas" width="500" height="500"></canvas>
+            <div id="zoom-controls">
+              <button type="button" onclick="zoomIn()">+</button>
+              <button type="button" onclick="zoomOut()">-</button>
+            </div>
           </div>
         </div>
       </div>
@@ -286,8 +288,15 @@
         var ptsMM = points.map(function(p){
           return {x: pxToMMX(p.x), y: pxToMMY(p.y)};
         });
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.width;
+        var panel = document.getElementById('canvas-panel');
+        var topNav = document.querySelector('nav.navbar');
+        var bottomNav = document.getElementById('bottom-nav');
+        var navH = topNav ? topNav.offsetHeight : 0;
+        var bottomH = (bottomNav && bottomNav.style.display !== 'none') ? bottomNav.offsetHeight : 0;
+        var avail = window.innerHeight - navH - bottomH - 20;
+        var size = Math.min(panel.clientWidth, avail);
+        canvas.width = size;
+        canvas.height = size;
         mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin),
                            canvasHeightMM / (canvas.height - axisMargin));
         points = ptsMM.map(function(p){
@@ -1518,10 +1527,20 @@
         ctx.fillText('y', axisMargin - 10, 10);
       }
 
+      function toggleBottomNav() {
+        var nav = document.getElementById('bottom-nav');
+        var btn = document.getElementById('nav-toggle');
+        var show = nav.style.display === 'none';
+        nav.style.display = show ? 'block' : 'none';
+        btn.innerHTML = show ? '&#9660;' : '&#9650;';
+        resizeCanvas();
+      }
+
       window.onload = init;
   </script>
   </div>
-<nav class="navbar navbar-light bg-light fixed-bottom">
+<button id="nav-toggle" type="button" onclick="toggleBottomNav()">&#9650;</button>
+<nav id="bottom-nav" class="navbar navbar-light bg-light fixed-bottom" style="display:none;">
   <ul class="nav nav-tabs nav-justified w-100">
     <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#draw-tab">Draw</a></li>
     <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tables-tab">Tables</a></li>
