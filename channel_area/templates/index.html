@@ -636,8 +636,19 @@
         }
         if (!editEnabled) return;
         var shape = document.getElementById('shape').value;
-        if (editIndex >= 0) {
-          saveState();
+        var pos = getCanvasPos(e);
+        var pts = getShapePoints(shape);
+        var found = -1;
+        for (var i = 0; i < pts.length; i++) {
+          if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
+            found = i;
+            break;
+          }
+        }
+        if (found >= 0) {
+          if (editIndex !== found) saveState();
+          editIndex = found;
+          editShape = shape;
           dragging = true;
           movePoint(e);
           return;
