@@ -84,7 +84,7 @@
         <span id="draw-unit"></span><br>
         <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
-        <button type="button" onclick="clearMeasurement()">Clear All</button>
+        <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
         <table id="measure-table" border="1" style="border-collapse:collapse">
           <thead>
             <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
@@ -355,9 +355,12 @@
           rem.textContent = 'Remove';
           rem.dataset.index = i;
           rem.onclick = function(){
-            measurements.splice(parseInt(this.dataset.index), 1);
-            updateMeasurementTable();
-            draw();
+            var idx = parseInt(this.dataset.index);
+            if (confirm('Remove this measurement?')) {
+              measurements.splice(idx, 1);
+              updateMeasurementTable();
+              draw();
+            }
           };
           tdR.appendChild(rem);
           tr.appendChild(tdIdx);
@@ -403,7 +406,10 @@
         };
         document.getElementById('measure-toggle').onchange = function(){
           measureMode = this.checked;
-          if (!measureMode) clearMeasurement();
+          measuring = false;
+          measureDrag = null;
+          activeMeasure = -1;
+          draw();
         };
         updateShapeList();
         showFields();
@@ -1127,6 +1133,13 @@
         activeMeasure = -1;
         updateMeasurementTable();
         draw();
+      }
+
+      function confirmClearMeasurement() {
+        if (measurements.length === 0) return;
+        if (confirm('Clear all measurements?')) {
+          clearMeasurement();
+        }
       }
 
       function tableChanged(e) {
