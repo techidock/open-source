@@ -98,6 +98,9 @@
           <button type="button" onclick="copyCanvas()">Copy Image</button>
           <button type="button" onclick="openImageUpload()">Upload Image</button>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
+          <label><input type="checkbox" id="move-image-toggle"> Move Image</label><br>
+          <label for="image-scale">Image Scale:</label>
+          <input type="number" id="image-scale" value="1" step="0.1" min="0.1" oninput="updateImageScale(this.value)">
         </div>
       </div>
     </div>
@@ -271,6 +274,12 @@
       var propertiesOffcanvas;
       var zoomLevel = 1;
       var bgImage = null;
+      var bgBaseScale = 1;
+      var bgUserScale = 1;
+      var bgX = 0;
+      var bgY = 0;
+      var imageDragging = false;
+      var imageDragOffset = {x:0, y:0};
 
       function applyZoom() {
         canvas.style.transformOrigin = 'bottom left';
@@ -292,11 +301,24 @@
           var img = new Image();
           img.onload = function(){
             bgImage = img;
+            bgBaseScale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            bgUserScale = 1;
+            bgX = 0;
+            bgY = 0;
+            document.getElementById('image-scale').value = 1;
+            document.getElementById('move-image-toggle').checked = false;
             draw();
           };
           img.src = e.target.result;
         };
         reader.readAsDataURL(file);
+      }
+
+      function updateImageScale(val) {
+        var f = parseFloat(val);
+        if (!isFinite(f) || f <= 0) return;
+        bgUserScale = f;
+        draw();
       }
 
       function getCanvasPos(e) {
@@ -606,6 +628,12 @@
           startMeasurement(e);
           return;
         }
+        if (document.getElementById('move-image-toggle').checked && bgImage) {
+          var pos = getCanvasPos(e);
+          imageDragOffset = {x: pos.x - bgX, y: pos.y - bgY};
+          imageDragging = true;
+          return;
+        }
         if (!editEnabled) return;
         var shape = document.getElementById('shape').value;
         if (editIndex >= 0) {
@@ -625,6 +653,13 @@
           }
           return;
         }
+        if (imageDragging) {
+          var pos = getCanvasPos(e);
+          bgX = pos.x - imageDragOffset.x;
+          bgY = pos.y - imageDragOffset.y;
+          draw();
+          return;
+        }
         if (!dragging) return;
         if (editIndex >= 0) {
           movePoint(e);
@@ -636,6 +671,11 @@
           measureDrag = null;
           if (measuring) measureMove(e);
           updateMeasurementTable();
+          draw();
+          return;
+        }
+        if (imageDragging) {
+          imageDragging = false;
           draw();
           return;
         }
@@ -652,7 +692,9 @@
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         if (bgImage) {
-          ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+          var w = bgImage.width * bgBaseScale * bgUserScale;
+          var h = bgImage.height * bgBaseScale * bgUserScale;
+          ctx.drawImage(bgImage, bgX, bgY, w, h);
         }
         drawGrid();
         var shape = document.getElementById('shape').value;
