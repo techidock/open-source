@@ -1,17 +1,26 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Channel Area Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  </head>
-  <body>
-    <h1>Water Channel Area Calculator</h1>
-    <nav id="menu">
-      <button type="button" onclick="openNewChannelDialog()">New Channel</button>
-      <button type="button" onclick="openShapeDialog()">Manage Shapes</button>
-      <button type="button" onclick="openSetupDialog()">Setup</button>
-    </nav>
+{% extends 'bootstrap/base.html' %}
+{% block title %}Channel Area Calculator{% endblock %}
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
+  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Channel Area</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="topNav">
+        <ul class="navbar-nav me-auto mb-2 mb-md-0">
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openNewChannelDialog()">New Channel</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openShapeDialog()">Manage Shapes</a></li>
+          <li class="nav-item"><a class="nav-link" href="#" onclick="openSetupDialog()">Setup</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="container-fluid mt-3">
     <dialog id="new-channel-dialog">
       <form method="dialog" onsubmit="return false;">
         <label for="shape">Shape:</label>
@@ -60,11 +69,11 @@
         <button type="button" onclick="closeNewChannelDialog()">Close</button>
       </form>
     </dialog>
-    <div id="layout">
-      <div id="drawing-area">
+    <div id="layout" class="row">
+      <div id="drawing-area" class="col-md-8 col-lg-9">
         <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
       </div>
-      <aside id="display-properties">
+      <aside id="display-properties" class="col-md-4 col-lg-3">
         <h3>Display Properties</h3>
         <p id="grid-info"></p>
         <p id="cursor-pos">Cursor:</p>
@@ -92,14 +101,14 @@
           <tbody></tbody>
         </table>
       </aside>
-      <aside id="edit-tools">
+      <aside id="edit-tools" class="col-md-4 col-lg-2">
         <h3>Edit Tools</h3>
         <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
         <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
         <button type="button" onclick="undoEdit()">Undo</button>
         <button type="button" onclick="redoEdit()">Redo</button>
       </aside>
-      <aside id="channel-properties">
+      <aside id="channel-properties" class="col-md-4 col-lg-2">
         <h3>Channel Properties</h3>
         <p id="width-label"></p>
         <p id="height-label"></p>
@@ -1381,5 +1390,6 @@
 
       window.onload = init;
   </script>
-  </body>
-</html>
+  </div>
+  {{ bootstrap.load_js() }}
+{% endblock %}

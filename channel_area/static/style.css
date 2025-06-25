@@ -4,23 +4,6 @@ body {
   padding: 0;
 }
 
-#menu {
-  background: #333;
-  padding: 8px;
-}
-
-#menu button {
-  margin-right: 8px;
-  color: #fff;
-  background: #555;
-  border: none;
-  padding: 6px 12px;
-  cursor: pointer;
-}
-
-#menu button:hover {
-  background: #666;
-}
 
 canvas {
   border: 1px solid #000;
@@ -30,6 +13,7 @@ canvas {
 
 #layout {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
 }
 
