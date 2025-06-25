@@ -180,9 +180,6 @@
           </div>
         </div>
       </div>
-      <div id="dock-panel" class="col-12 col-md-3">
-        <div class="border p-2">Dock Panel</div>
-      </div>
       <!-- properties menu moved to offcanvas -->
     </div>
       <dialog id="shape-dialog">
@@ -353,9 +350,10 @@
         var avail = window.innerHeight - navH - bottomH - 20;
         panel.style.height = avail + 'px';
         document.getElementById('canvas-container').style.height = avail + 'px';
-        var size = Math.min(panel.clientWidth, avail);
-        canvas.width = size;
-        canvas.height = size;
+        var width = panel.clientWidth;
+        var height = avail;
+        canvas.width = width;
+        canvas.height = height;
         mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin),
                            canvasHeightMM / (canvas.height - axisMargin));
         points = ptsMM.map(function(p){
