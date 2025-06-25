@@ -53,7 +53,7 @@ an option.
 A **Properties** button on the right opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas.
 A bottom navigation bar provides tabs for **Draw** and **Tables**, but it is hidden by default. Click the arrow button at the bottom of the page to reveal or hide the bar. The Tables tab lists your measurements and the polygon's vertices.
 
-Shapes are always positioned with their left edge along the bottom of the canvas. The canvas itself sits inside a **Canvas Panel** that keeps it neatly contained.
+Shapes are always positioned with their left edge along the bottom of the canvas. The canvas itself sits inside a **Canvas Panel** that fits the available browser height so the entire drawing stays visible without scrolling.
 The canvas is always square and resizes automatically to fit your screen. Portrait mode shows the Properties panel below the canvas. Landscape mode allows the panel to be pinned on the right and the full canvas is visible without scrolling.
 Edit Mode is off by default so the point markers remain hidden until enabled.
 
@@ -71,4 +71,4 @@ A small margin on the left and bottom edges keeps the axes slightly inside the c
 
  You can also set the real-world size represented by the canvas. The **Display** tab provides *Canvas Width* and *Canvas Height* inputs (default 4000&nbsp;mm each). These values define how many millimetres span the canvas and are saved with each shape so it reloads at the same scale. **Changing the canvas size does not modify the channel geometry or its total area**&mdash;only editing the points alters the shape itself. A **Shape Scale** field in the **Setup** dialog lets you enlarge or shrink the polygon about the bottom left. If scaling makes the shape exceed the canvas, the canvas size automatically expands to the next 500&nbsp;mm step up to a limit of 20&nbsp;m. The grid spacing remains fixed at 500&nbsp;mm (0.5&nbsp;m) regardless of the units so switching display units does not resize the grid. The current spacing appears in the **Display** tab. Zoom buttons on the canvas let you zoom in and out without altering measurements.
 
-A responsive Dock Panel appears beside the canvas in landscape and below it in portrait mode. Use the **Copy Image** button on the Edit Tools tab to copy the current canvas to the clipboard.
+A responsive Dock Panel appears beside the canvas in landscape and below it in portrait mode. Use the **Copy Image** button on the Edit Tools tab to copy the current canvas to the clipboard. An **Upload Image** button lets you place a reference picture onto the canvas for tracing.

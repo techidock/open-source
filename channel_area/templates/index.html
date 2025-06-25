@@ -96,6 +96,8 @@
           <button type="button" onclick="redoEdit()">Redo</button>
           <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
           <button type="button" onclick="copyCanvas()">Copy Image</button>
+          <button type="button" onclick="openImageUpload()">Upload Image</button>
+          <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
       </div>
     </div>
@@ -268,6 +270,7 @@
       var measureDrag = null;
       var propertiesOffcanvas;
       var zoomLevel = 1;
+      var bgImage = null;
 
       function applyZoom() {
         canvas.style.transformOrigin = 'bottom left';
@@ -276,6 +279,25 @@
 
       function zoomIn() { zoomLevel *= 1.25; applyZoom(); }
       function zoomOut() { zoomLevel = Math.max(0.5, zoomLevel / 1.25); applyZoom(); }
+
+      function openImageUpload() {
+        document.getElementById('image-upload').click();
+      }
+
+      function loadImage(evt) {
+        var file = evt.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var img = new Image();
+          img.onload = function(){
+            bgImage = img;
+            draw();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
 
       function getCanvasPos(e) {
         var rect = canvas.getBoundingClientRect();
@@ -294,6 +316,8 @@
         var navH = topNav ? topNav.offsetHeight : 0;
         var bottomH = (bottomNav && bottomNav.style.display !== 'none') ? bottomNav.offsetHeight : 0;
         var avail = window.innerHeight - navH - bottomH - 20;
+        panel.style.height = avail + 'px';
+        document.getElementById('canvas-container').style.height = avail + 'px';
         var size = Math.min(panel.clientWidth, avail);
         canvas.width = size;
         canvas.height = size;
@@ -627,6 +651,9 @@
 
       function draw() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (bgImage) {
+          ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+        }
         drawGrid();
         var shape = document.getElementById('shape').value;
         ctx.strokeStyle = '#000';
