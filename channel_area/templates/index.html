@@ -1,4 +1,4 @@
-{% extends 'bootstrap/base.html' %}
+{% extends 'bootstrap5/base.html' %}
 {% block title %}Channel Area Calculator{% endblock %}
 {% block styles %}
   {{ super() }}
@@ -1391,5 +1391,9 @@
       window.onload = init;
   </script>
   </div>
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
   {{ bootstrap.load_js() }}
 {% endblock %}

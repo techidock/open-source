@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, jsonify
-from flask_bootstrap import Bootstrap
+from flask_bootstrap import Bootstrap5
 import os
 import json
 
 app = Flask(__name__)
-Bootstrap(app)
+Bootstrap5(app)
 SHAPE_DIR = os.path.join(os.path.dirname(__file__), 'shapes')
 os.makedirs(SHAPE_DIR, exist_ok=True)
 

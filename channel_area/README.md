@@ -1,6 +1,6 @@
 # Channel Area Web Application
 
-This is a simple Flask-based web application for calculating the cross-sectional area of water channels. Shapes are drawn as polygons that you can freely edit. The interface uses **Flask-Bootstrap** so it adapts well to mobile screens.
+This is a simple Flask-based web application for calculating the cross-sectional area of water channels. Shapes are drawn as polygons that you can freely edit. The interface uses **Bootstrap-Flask** so it adapts well to mobile screens.
 
 Each dimension field lets you choose units in metres, centimetres or millimetres.
 All channel data is stored internally in millimetres so switching units only changes the way values are displayed.
@@ -11,7 +11,7 @@ The **New Channel** button opens a dialog containing all the options for creatin
 
 - Python 3.x
 - Flask
-- Flask-Bootstrap
+- bootstrap-flask
 
 Install dependencies with:
 
