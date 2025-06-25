@@ -69,6 +69,8 @@
         <button type="button" onclick="closeNewChannelDialog()">Close</button>
       </form>
     </dialog>
+  <div class="tab-content">
+  <div class="tab-pane fade show active" id="draw-tab">
     <div id="layout" class="row">
       <div id="drawing-area" class="col-md-8 col-lg-9">
         <canvas id="canvas" width="500" height="375" style="border:1px solid #000;margin-top:10px;"></canvas>
@@ -94,12 +96,6 @@
         <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
         <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
-        <table id="measure-table" border="1" style="border-collapse:collapse">
-          <thead>
-            <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
       </aside>
       <aside id="edit-tools" class="col-md-4 col-lg-2">
         <h3>Edit Tools</h3>
@@ -107,6 +103,7 @@
         <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
         <button type="button" onclick="undoEdit()">Undo</button>
         <button type="button" onclick="redoEdit()">Redo</button>
+        <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
       </aside>
       <aside id="channel-properties" class="col-md-4 col-lg-2">
         <h3>Channel Properties</h3>
@@ -133,6 +130,13 @@
           <button type="button" onclick="closeSetupDialog()">Close</button>
         </form>
       </dialog>
+      <dialog id="delete-dialog">
+        <form method="dialog" onsubmit="return false;">
+          <p>Delete point <span id="delete-point-number"></span>?</p>
+          <button type="button" onclick="deletePointConfirmed()">Delete</button>
+          <button type="button" onclick="closeDeleteDialog()">Cancel</button>
+        </form>
+      </dialog>
     <div id="water-controls" style="margin-top:5px;">
       <label for="water-height">Water Height:</label>
       <input type="number" step="any" id="water-height" min="0" oninput="draw()">
@@ -148,15 +152,27 @@
       </select>
       <button onclick="calculateArea()">Calculate</button>
     </div>
+    {% if area is not none %}
+      <h2>Area of {{ shape }}: {{ area }} {{ units }}²</h2>
+    {% endif %}
+  </div>
+  <div class="tab-pane fade" id="tables-tab">
+    <h3>Measurements</h3>
+    <table id="measure-table" border="1" style="border-collapse:collapse">
+      <thead>
+        <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <h3>Points</h3>
     <table id="points-table" border="1" style="border-collapse:collapse">
       <thead>
         <tr><th>Index</th><th>x</th><th>y</th></tr>
       </thead>
       <tbody></tbody>
     </table>
-    {% if area is not none %}
-      <h2>Area of {{ shape }}: {{ area }} {{ units }}²</h2>
-    {% endif %}
+  </div>
+</div>
 
   <script>
       function showFields() {
@@ -1269,6 +1285,24 @@
         anchorBottomLeft();
         draw();
       }
+        function confirmDeletePoint(){
+          if(editIndex<0) return;
+          document.getElementById("delete-point-number").textContent = editIndex;
+          document.getElementById("delete-dialog").showModal();
+        }
+        function closeDeleteDialog(){
+          document.getElementById("delete-dialog").close();
+        }
+        function deletePointConfirmed(){
+          if(editIndex<0) {closeDeleteDialog(); return;}
+          saveState();
+          points.splice(editIndex,1);
+          editIndex=-1;
+          numPoints=points.length;
+          closeDeleteDialog();
+          anchorBottomLeft();
+          draw();
+        }
 
       function saveShape() {
         var name = document.getElementById('shape-name').value.trim();
@@ -1391,6 +1425,12 @@
       window.onload = init;
   </script>
   </div>
+<nav class="navbar navbar-light bg-light fixed-bottom">
+  <ul class="nav nav-tabs nav-justified w-100">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#draw-tab">Draw</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tables-tab">Tables</a></li>
+  </ul>
+</nav>
 {% endblock %}
 
 {% block scripts %}

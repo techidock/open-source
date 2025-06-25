@@ -40,6 +40,7 @@ blue marker. Double‑click a marker to drag it to a new location; it turns blac
 while being edited. Choose the units (m, cm, or mm) from the drop‑down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate the minimum and maximum points of the current shape. Table numbers use three decimal places for metres, one for centimetres and none for millimetres.
 
 The sidebar includes an **Edit Tools** section. At the top is the **Edit Mode** checkbox that enables moving points with the mouse or table. This menu also offers an **Add Points** toggle plus **Undo** and **Redo** buttons for stepping through previous edits. Shape files are saved as SVG under `channel_area/shapes` and managed from the **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use the **New Channel** dialog to choose a shape type when starting a drawing. The canvas size is configured from the **Setup** dialog, while display units are selected in the **Display Settings** panel.
+This menu also includes a **Delete Point** button that confirms before removing the selected vertex.
 The last design is automatically saved and restored the next time you open the page. When a saved shape is loaded, its canvas dimensions are also restored so the drawing matches the real-world scale it was saved with.
 
 Double clicking when **Add Points** is active inserts a new vertex on the nearest edge. With the option off, a double click selects a point for editing instead.
@@ -51,6 +52,7 @@ panel lists **Show Bounding Box** and measurement options alongside the other di
 The top of the page features a Bootstrap navbar so the **New Channel**, **Manage
 Shapes** and **Setup** options collapse into a mobile-friendly menu on small
 screens.
+A bottom navigation bar provides tabs for **Draw** and **Tables**. The Tables tab lists your measurements and the polygon's vertices.
 
 Shapes are always positioned with their left edge along the bottom of the canvas.
 
