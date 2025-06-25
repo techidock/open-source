@@ -7,19 +7,22 @@
 {% block content %}
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
     <div class="container-fluid">
+      <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
       <a class="navbar-brand" href="#">Channel Area</a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav" aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="topNav">
-        <ul class="navbar-nav me-auto mb-2 mb-md-0">
-          <li class="nav-item"><a class="nav-link" href="#" onclick="openNewChannelDialog()">New Channel</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" onclick="openShapeDialog()">Manage Shapes</a></li>
-          <li class="nav-item"><a class="nav-link" href="#" onclick="openSetupDialog()">Setup</a></li>
-        </ul>
-      </div>
     </div>
   </nav>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="side-menu">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Menu</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openNewChannelDialog()">New Channel</button>
+      <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openShapeDialog()">Manage Shapes</button>
+      <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openSetupDialog()">Setup</button>
+    </div>
+  </div>
   <div class="container-fluid mt-3">
     <dialog id="new-channel-dialog">
       <form method="dialog" onsubmit="return false;">
@@ -97,7 +100,7 @@
       </aside>
       <aside id="edit-tools" class="col-md-4 col-lg-2">
         <h3>Edit Tools</h3>
-        <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
+        <label><input type="checkbox" id="edit-toggle"> Edit Mode</label><br>
         <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
         <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
@@ -203,7 +206,7 @@
       var hoverIndex = -1;
       var editShape = '';
       var shapePts = [];
-      var editEnabled = true;
+      var editEnabled = false;
       var addPointEnabled = false;
       var vectorsVisible = true;
       var bboxVisible = true;
@@ -230,6 +233,14 @@
       var activeMeasure = -1;
       var measuring = false;
       var measureDrag = null;
+
+      function resizeCanvas() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.width * 0.75;
+        mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+        updateGridInfo();
+        draw();
+      }
 
       function unitFactor() {
         var u = document.getElementById('units').value;
@@ -402,6 +413,8 @@
       function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
         canvas.addEventListener('mousedown', startDrag);
         canvas.addEventListener('mousemove', drag);
         canvas.addEventListener('mousemove', showCursorPos);
@@ -629,7 +642,7 @@
           }
         }
 
-        if (vectorsVisible) {
+        if (vectorsVisible && editEnabled) {
           for (var i = 0; i < pts.length; i++) {
             var color = (i === editIndex && editShape === shape && editEnabled) ? '#000' : '#0000ff';
             ctx.fillStyle = color;
@@ -1091,7 +1104,7 @@
       }
 
       function snapToPoint(x, y) {
-        if (!vectorsVisible) return {x: x, y: y, index: -1};
+        if (!vectorsVisible || !editEnabled) return {x: x, y: y, index: -1};
         var pts = getShapePoints(document.getElementById('shape').value);
         for (var i = 0; i < pts.length; i++) {
           if (Math.hypot(pts[i].x - x, pts[i].y - y) < 6) {

@@ -9,6 +9,8 @@ canvas {
   border: 1px solid #000;
   margin-top: 10px;
   background: #fafafa;
+  width: 100%;
+  height: auto;
 }
 
 #layout {
@@ -39,5 +41,12 @@ table {
 #measure-table {
   margin-top: 4px;
   width: 100%;
+}
+
+.offcanvas-body .btn-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
 }
 

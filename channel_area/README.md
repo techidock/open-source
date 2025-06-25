@@ -49,12 +49,14 @@ The markers themselves can be hidden or shown with the **Show Vectors**
 checkbox found in the **Display Settings** section of the sidebar. This
 panel lists **Show Bounding Box** and measurement options alongside the other display toggles.
 
-The top of the page features a Bootstrap navbar so the **New Channel**, **Manage
-Shapes** and **Setup** options collapse into a mobile-friendly menu on small
-screens.
+A button at the top left reveals a slide-out menu containing **New Channel**,
+**Manage Shapes** and **Setup**. The menu automatically closes once you choose
+an option.
 A bottom navigation bar provides tabs for **Draw** and **Tables**. The Tables tab lists your measurements and the polygon's vertices.
 
 Shapes are always positioned with their left edge along the bottom of the canvas.
+The canvas resizes automatically to fit your screen, whether on desktop or mobile.
+Edit Mode is off by default so the point markers remain hidden until enabled.
 
 Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape. The resulting water area is listed in the **Channel Properties** panel.
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area; this value is also displayed in **Channel Properties**.
