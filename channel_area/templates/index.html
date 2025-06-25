@@ -88,19 +88,19 @@
         </select><br>
         <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
         <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label><br>
+        <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
         <label for="canvas-width">Canvas Width:</label>
         <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
         <label for="canvas-height">Canvas Height:</label>
         <input type="number" id="canvas-height" value="4000" oninput="updateCanvasSize()">
         <span id="draw-unit"></span><br>
-        <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
-        <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
-        <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
       </aside>
       <aside id="edit-tools" class="col-md-4 col-lg-2">
         <h3>Edit Tools</h3>
         <label><input type="checkbox" id="edit-toggle" checked> Edit Mode</label><br>
         <label><input type="checkbox" id="add-point-toggle"> Add Points</label><br>
+        <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
+        <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
         <button type="button" onclick="undoEdit()">Undo</button>
         <button type="button" onclick="redoEdit()">Redo</button>
         <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
@@ -415,6 +415,11 @@
         };
         document.getElementById('add-point-toggle').onchange = function(){
           addPointEnabled = this.checked;
+          if (this.checked) {
+            var mt = document.getElementById('measure-toggle');
+            mt.checked = false;
+            mt.dispatchEvent(new Event('change'));
+          }
         };
         document.getElementById('vectors-toggle').onchange = function(){
           vectorsVisible = this.checked;
@@ -431,6 +436,10 @@
         };
         document.getElementById('measure-toggle').onchange = function(){
           measureMode = this.checked;
+          if (this.checked) {
+            document.getElementById('add-point-toggle').checked = false;
+            addPointEnabled = false;
+          }
           measuring = false;
           measureDrag = null;
           activeMeasure = -1;
@@ -494,12 +503,12 @@
         if (!editEnabled) return;
         var shape = document.getElementById('shape').value;
         if (editIndex >= 0) {
+          saveState();
           dragging = true;
           movePoint(e);
           return;
         }
         dragging = true;
-        updateFromMouse(e);
       }
 
       function drag(e) {
@@ -513,8 +522,6 @@
         if (!dragging) return;
         if (editIndex >= 0) {
           movePoint(e);
-        } else {
-          updateFromMouse(e);
         }
       }
 
@@ -534,14 +541,6 @@
         draw();
         showCursorPos(e);
         updateRowHighlights();
-      }
-
-      function updateFromMouse(e) {
-        if (!editEnabled) return;
-        var rect = canvas.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
-        saveState();
       }
 
       function draw() {
@@ -859,7 +858,6 @@
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
-        saveState();
         points[editIndex] = {x: x, y: y};
         draw();
       }
