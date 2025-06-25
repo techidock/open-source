@@ -5,7 +5,7 @@ This is a simple Flask-based web application for calculating the cross-sectional
 Each dimension field lets you choose units in metres, centimetres or millimetres.
 All channel data is stored internally in millimetres so switching units only changes the way values are displayed.
 Areas are reported in the selected units squared.
-The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. An additional **Water Height** box sits beneath the canvas where you can specify how full the channel is, from 0 up to the maximum height of the selected shape. The height inputs show the current units next to the edit boxes. The shape is coloured grey above the water line and blue below it. Both the overall shape area and the water-filled area are displayed beneath the canvas. A **Silt Height** box lets you define how much sediment fills the bottom of the channel; this region is shown in brown and its area is also reported.
+The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. A **Water Height** input on the **Channel Properties** tab lets you specify how full the channel is, from 0 up to the maximum height of the selected shape. The height inputs show the current units next to the edit boxes. The shape is coloured grey above the water line and blue below it. The **Channel Properties** tab lists the overall shape area, the water-filled area and the silt area. A **Silt Height** box on the same tab defines how much sediment fills the bottom of the channel; this region is shown in brown.
 
 ## Requirements
 
@@ -54,10 +54,10 @@ A **Properties** button on the right opens another panel with tabs for display a
 A bottom navigation bar provides tabs for **Draw** and **Tables**. The Tables tab lists your measurements and the polygon's vertices.
 
 Shapes are always positioned with their left edge along the bottom of the canvas.
-The canvas resizes automatically to fit your screen, whether on desktop or mobile.
+The canvas resizes automatically to fit your screen in either landscape or portrait orientation, adjusting when the Properties menu is pinned or hidden.
 Edit Mode is off by default so the point markers remain hidden until enabled.
 
-Use the **Water Height** box below the canvas to draw a blue line at the chosen level and see the water area. The line spans only the width of the current shape. The resulting water area is listed in the **Channel Properties** panel.
+Use the **Water Height** box on the **Channel Properties** tab to draw a blue line at the chosen level. The line spans only the width of the current shape. The resulting water area appears along with the overall area in that panel.
 Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area; this value is also displayed in **Channel Properties**.
 A **Height Units** dropdown lets you show these heights in metres, centimetres or millimetres independently of the shape units.
 The **Manage Shapes** dialog stores the water and silt heights along with the points when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.

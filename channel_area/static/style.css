@@ -53,6 +53,19 @@ table {
   width: 100%;
 }
 
+@media (orientation: portrait) {
+  #layout.with-properties {
+    margin-right: 0;
+    margin-bottom: 260px;
+    flex-direction: column;
+  }
+  #properties-menu.pinned {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #ccc;
+  }
+}
+
 .offcanvas-body .btn-link {
   display: block;
   width: 100%;

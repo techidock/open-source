@@ -73,6 +73,18 @@
           <p id="area-display" title="Maximum Area in the Channel"></p>
           <p id="water-area-display"></p>
           <p id="silt-area-display"></p>
+          <label for="water-height">Water Height:</label>
+          <input type="number" step="any" id="water-height" min="0" oninput="draw()">
+          <span id="water-unit"></span><br>
+          <label for="silt-height">Silt Height:</label>
+          <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
+          <span id="silt-unit"></span><br>
+          <label for="height-units">Height Units:</label>
+          <select id="height-units" onchange="updateHeightUnitDisplay()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select>
         </div>
         <div class="tab-pane fade" id="edit-panel" role="tabpanel">
           <h3>Edit Tools</h3>
@@ -167,24 +179,6 @@
           <button type="button" onclick="closeDeleteDialog()">Cancel</button>
         </form>
       </dialog>
-    <div id="water-controls" style="margin-top:5px;">
-      <label for="water-height">Water Height:</label>
-      <input type="number" step="any" id="water-height" min="0" oninput="draw()">
-      <span id="water-unit"></span>
-      <label for="silt-height">Silt Height:</label>
-      <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
-      <span id="silt-unit"></span>
-      <label for="height-units">Height Units:</label>
-      <select id="height-units" onchange="updateHeightUnitDisplay()">
-        <option value="m">m</option>
-        <option value="cm">cm</option>
-        <option value="mm">mm</option>
-      </select>
-      <button onclick="calculateArea()">Calculate</button>
-    </div>
-    {% if area is not none %}
-      <h2>Area of {{ shape }}: {{ area }} {{ units }}²</h2>
-    {% endif %}
   </div>
   <div class="tab-pane fade" id="tables-tab">
     <h3>Measurements</h3>
@@ -721,9 +715,6 @@
         autoSave();
       }
 
-      function calculateArea() {
-        draw();
-      }
 
       function polygonArea(pts) {
         if (pts.length < 3) return 0;
@@ -1430,9 +1421,11 @@
           propertiesOffcanvas.show();
           oc.classList.add('pinned');
           layout.classList.add('with-properties');
+          resizeCanvas();
         } else {
           oc.classList.remove('pinned');
           layout.classList.remove('with-properties');
+          resizeCanvas();
         }
       }
 
