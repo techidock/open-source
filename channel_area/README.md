@@ -50,6 +50,10 @@ checkbox found on the **Display** tab of the Properties menu. This tab also list
 A button at the top left reveals a slide-out menu containing **New Channel**,
 **Manage Shapes** and **Setup**. The menu automatically closes once you choose
 an option.
+A small vertical toolbar appears on the left side of the canvas, similar to
+the Canva editor. Its first icon is a pencil labelled **Tools**. Clicking it
+opens a floating tools panel over the canvas with a close button in the
+corner.
 A **Properties** button on the right opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas.
 A bottom navigation bar provides tabs for **Draw** and **Tables**, but it is hidden by default. Click the arrow button at the bottom of the page to reveal or hide the bar. The Tables tab lists your measurements and the polygon's vertices.
 

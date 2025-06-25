@@ -158,6 +158,9 @@
   <div class="tab-pane fade show active" id="draw-tab">
     <div id="layout" class="row">
       <div id="drawing-area" class="col">
+        <div id="toolbar">
+          <button id="tools-btn" class="tool-btn" onclick="toggleToolsPanel()"><i class="bi bi-pencil"></i></button>
+        </div>
         <div id="canvas-panel" class="border p-2">
           <div id="canvas-container">
             <canvas id="canvas" width="500" height="500"></canvas>
@@ -165,6 +168,10 @@
               <button type="button" onclick="zoomIn()">+</button>
               <button type="button" onclick="zoomOut()">-</button>
             </div>
+          </div>
+          <div id="tools-panel" class="floating-menu">
+            <button type="button" class="btn-close" onclick="toggleToolsPanel()"></button>
+            <p>Tools menu</p>
           </div>
         </div>
       </div>
@@ -280,6 +287,7 @@
       var bgY = 0;
       var imageDragging = false;
       var imageDragOffset = {x:0, y:0};
+      var lastAddTime = 0;
 
       function applyZoom() {
         canvas.style.transformOrigin = 'bottom left';
@@ -984,6 +992,9 @@
       }
 
       function handleDoubleClick(e) {
+        var now = Date.now();
+        if (now - lastAddTime < 150) return;
+        lastAddTime = now;
         if (addPointEnabled) {
           addPoint(e);
         } else {
@@ -1614,6 +1625,15 @@
         nav.style.display = show ? 'block' : 'none';
         btn.innerHTML = show ? '&#9660;' : '&#9650;';
         resizeCanvas();
+      }
+
+      function toggleToolsPanel() {
+        var panel = document.getElementById('tools-panel');
+        if (panel.classList.contains('show')) {
+          panel.classList.remove('show');
+        } else {
+          panel.classList.add('show');
+        }
       }
 
       window.onload = init;
