@@ -24,6 +24,7 @@ canvas {
   width: 100%;
   height: auto;
   display: block;
+  user-select: none;
 }
 
 #toolbar {
@@ -60,6 +61,25 @@ canvas {
 }
 
 #tools-panel.show {
+  display: block;
+}
+
+#projects-panel {
+  position: fixed;
+  left: 50px;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  display: none;
+  overflow-y: auto;
+  z-index: 1020;
+}
+
+#projects-panel.show {
   display: block;
 }
 

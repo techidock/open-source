@@ -159,6 +159,7 @@
     <div id="layout" class="row">
       <div id="drawing-area" class="col">
         <div id="toolbar">
+          <button id="projects-btn" class="tool-btn" onclick="toggleProjectsPanel()"><i class="bi bi-folder"></i></button>
           <button id="tools-btn" class="tool-btn" onclick="toggleToolsPanel()"><i class="bi bi-pencil"></i></button>
         </div>
         <div id="canvas-panel" class="border p-2">
@@ -171,7 +172,11 @@
           </div>
           <div id="tools-panel" class="floating-menu">
             <button type="button" class="btn-close" onclick="toggleToolsPanel()"></button>
-            <p>Tools menu</p>
+            <button type="button" class="btn btn-light w-100" onclick="activateSelectTool()"><i class="bi bi-cursor"></i> Select</button>
+          </div>
+          <div id="projects-panel" class="floating-menu">
+            <button type="button" class="btn-close" onclick="toggleProjectsPanel()"></button>
+            <p>Projects</p>
           </div>
         </div>
       </div>
@@ -612,6 +617,7 @@
       }
 
       function startDrag(e) {
+        e.preventDefault();
         if (measureMode) {
           if (measuring) {
             startMeasurement(e);
@@ -1634,6 +1640,23 @@
         } else {
           panel.classList.add('show');
         }
+      }
+
+      function toggleProjectsPanel() {
+        var panel = document.getElementById('projects-panel');
+        if (panel.classList.contains('show')) {
+          panel.classList.remove('show');
+        } else {
+          panel.classList.add('show');
+        }
+      }
+
+      function activateSelectTool() {
+        document.getElementById('edit-toggle').checked = true;
+        editEnabled = true;
+        document.getElementById('add-point-toggle').checked = false;
+        addPointEnabled = false;
+        toggleToolsPanel();
       }
 
       window.onload = init;
