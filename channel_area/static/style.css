@@ -52,7 +52,8 @@ table {
   background-color: #ffcccc;
 }
 
-#measure-info {
+#measure-table {
   margin-top: 4px;
+  width: 100%;
 }
 

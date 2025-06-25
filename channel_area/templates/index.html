@@ -84,7 +84,12 @@
         <span id="draw-unit"></span><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
         <button type="button" onclick="clearMeasurement()">Clear</button>
-        <p id="measure-info"></p>
+        <table id="measure-table" border="1" style="border-collapse:collapse">
+          <thead>
+            <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </aside>
       <aside id="edit-tools">
         <h3>Edit Tools</h3>
@@ -194,10 +199,8 @@
       var eggDiam2MM = 800;
       var eggDistMM = 600;
       var measureMode = false;
-      var measureStart = null;
-      var measureEnd = null;
-      var measureStartIndex = -1;
-      var measureEndIndex = -1;
+      var measurements = [];
+      var activeMeasure = -1;
       var measuring = false;
       var measureDrag = null;
 
@@ -229,7 +232,8 @@
         document.getElementById('draw-unit').textContent = document.getElementById('units').value;
         updateHeightUnitDisplay();
         updateGridInfo();
-        anchorBottomLeft();
+       anchorBottomLeft();
+        updateMeasurementTable();
         draw();
       }
 
@@ -304,15 +308,40 @@
         document.getElementById('grid-info').textContent = 'Grid: ' + (gridSpacingMM / unitFactor()).toFixed(1) + ' ' + units;
       }
 
-      function updateMeasurementInfo(dist, units) {
-        var text = '';
-        if (measureStart && measureEnd) {
-          text = 'Distance: ' + formatMeasurement(dist, units) + ' ' + units;
-          if (measureStartIndex >= 0 && measureEndIndex >= 0) {
-            text += ' (points ' + measureStartIndex + '–' + measureEndIndex + ')';
+      function updateMeasurementTable() {
+        var tbody = document.getElementById('measure-table').querySelector('tbody');
+        tbody.innerHTML = '';
+        var units = document.getElementById('units').value;
+        for (var i = 0; i < measurements.length; i++) {
+          var m = measurements[i];
+          var distPx = Math.hypot(m.end.x - m.start.x, m.end.y - m.start.y);
+          var dist = (distPx * mmScale) / unitFactor();
+          var tr = document.createElement('tr');
+          var tdIdx = document.createElement('td');
+          tdIdx.textContent = i + 1;
+          var tdD = document.createElement('td');
+          tdD.textContent = formatMeasurement(dist, units) + ' ' + units;
+          var tdS = document.createElement('td');
+          tdS.textContent =
+            formatMeasurement(pxToUnitX(m.start.x), units) + ', ' +
+            formatMeasurement(pxToUnitY(m.start.y), units);
+          var tdE = document.createElement('td');
+          tdE.textContent =
+            formatMeasurement(pxToUnitX(m.end.x), units) + ', ' +
+            formatMeasurement(pxToUnitY(m.end.y), units);
+          var tdV = document.createElement('td');
+          if (m.start.index >= 0 && m.end.index >= 0) {
+            tdV.textContent = m.start.index + '–' + m.end.index;
+          } else {
+            tdV.textContent = '';
           }
+          tr.appendChild(tdIdx);
+          tr.appendChild(tdD);
+          tr.appendChild(tdS);
+          tr.appendChild(tdE);
+          tr.appendChild(tdV);
+          tbody.appendChild(tr);
         }
-        document.getElementById('measure-info').textContent = text;
       }
 
       function init() {
@@ -377,13 +406,16 @@
           var rect = canvas.getBoundingClientRect();
           var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
           var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
-          if (!measuring && measureStart && measureEnd) {
-            if (Math.hypot(x - measureStart.x, y - measureStart.y) < 6) {
+          for (var i = 0; i < measurements.length; i++) {
+            var m = measurements[i];
+            if (Math.hypot(x - m.start.x, y - m.start.y) < 6) {
               measureDrag = 'start';
+              activeMeasure = i;
               return;
             }
-            if (Math.hypot(x - measureEnd.x, y - measureEnd.y) < 6) {
+            if (Math.hypot(x - m.end.x, y - m.end.y) < 6) {
               measureDrag = 'end';
+              activeMeasure = i;
               return;
             }
           }
@@ -403,22 +435,10 @@
 
       function drag(e) {
         if (measureMode) {
-          if (measureDrag) {
-            var rect = canvas.getBoundingClientRect();
-            var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
-            var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
-            var snap = snapToPoint(x, y);
-            if (measureDrag === 'start') {
-              measureStart = {x: snap.x, y: snap.y};
-              measureStartIndex = snap.index;
-            } else {
-              measureEnd = {x: snap.x, y: snap.y};
-              measureEndIndex = snap.index;
-            }
-            draw();
+          if (measureDrag || measuring) {
+            measureMove(e);
             return;
           }
-          if (measuring) { measureMove(e); }
           return;
         }
         if (!dragging) return;
@@ -433,6 +453,7 @@
         if (measureMode) {
           measureDrag = null;
           if (measuring) measureMove(e);
+          updateMeasurementTable();
           draw();
           return;
         }
@@ -676,22 +697,27 @@
       }
 
       function drawMeasurement() {
-        if (!measureStart || !measureEnd) return;
-        ctx.strokeStyle = '#ff0000';
-        ctx.beginPath();
-        ctx.moveTo(measureStart.x, measureStart.y);
-        ctx.lineTo(measureEnd.x, measureEnd.y);
-        ctx.stroke();
-        drawArrowHead(measureStart, measureEnd, measureDrag === 'start' ? '#000' : '#ff0000');
-        drawArrowHead(measureEnd, measureStart, measureDrag === 'end' ? '#000' : '#ff0000');
-        var distPx = Math.hypot(measureEnd.x - measureStart.x, measureEnd.y - measureStart.y);
-        var dist = (distPx * mmScale) / unitFactor();
+        if (measurements.length === 0) return;
         var units = document.getElementById('units').value;
-        ctx.fillStyle = '#ff0000';
-        ctx.fillText(formatMeasurement(dist, units) + ' ' + units,
-                     (measureStart.x + measureEnd.x) / 2 + 5,
-                     (measureStart.y + measureEnd.y) / 2 - 5);
-        updateMeasurementInfo(dist, units);
+        measurements.forEach(function(m, i){
+          ctx.strokeStyle = '#ff0000';
+          ctx.beginPath();
+          ctx.moveTo(m.start.x, m.start.y);
+          ctx.lineTo(m.end.x, m.end.y);
+          ctx.stroke();
+          var startColor = (measureDrag === 'start' && activeMeasure === i) ? '#000' : '#ff0000';
+          var endColor = (measureDrag === 'end' && activeMeasure === i) ? '#000' : '#ff0000';
+          drawArrowHead(m.start, m.end, startColor);
+          drawArrowHead(m.end, m.start, endColor);
+          var distPx = Math.hypot(m.end.x - m.start.x, m.end.y - m.start.y);
+          var dist = (distPx * mmScale) / unitFactor();
+          ctx.fillStyle = '#ff0000';
+          ctx.fillText(
+            formatMeasurement(dist, units) + ' ' + units,
+            (m.start.x + m.end.x) / 2 + 5,
+            (m.start.y + m.end.y) / 2 - 5
+          );
+        });
       }
 
       function drawArrowHead(a, b, color) {
@@ -1017,41 +1043,48 @@
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
-        if (!measureStart || (!measuring && measureEnd)) {
-          var snap = snapToPoint(x, y);
-          measureStart = {x: snap.x, y: snap.y};
-          measureStartIndex = snap.index;
-          measureEnd = {x: snap.x, y: snap.y};
-          measureEndIndex = snap.index;
+        var snap = snapToPoint(x, y);
+        if (!measuring) {
+          measurements.push({start: {x: snap.x, y: snap.y, index: snap.index},
+                             end: {x: snap.x, y: snap.y, index: snap.index}});
+          activeMeasure = measurements.length - 1;
           measuring = true;
-        } else if (measuring) {
-          var snap2 = snapToPoint(x, y);
-          measureEnd = {x: snap2.x, y: snap2.y};
-          measureEndIndex = snap2.index;
+        } else {
+          var m = measurements[activeMeasure];
+          m.end = {x: snap.x, y: snap.y, index: snap.index};
           measuring = false;
+          activeMeasure = -1;
+          updateMeasurementTable();
         }
         draw();
       }
 
       function measureMove(e) {
-        if (!measuring) return;
+        if (!measuring && !measureDrag) return;
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         var snap = snapToPoint(x, y);
-        measureEnd = {x: snap.x, y: snap.y};
-        measureEndIndex = snap.index;
+        if (measureDrag && activeMeasure >= 0) {
+          var m = measurements[activeMeasure];
+          if (measureDrag === 'start') {
+            m.start = {x: snap.x, y: snap.y, index: snap.index};
+          } else {
+            m.end = {x: snap.x, y: snap.y, index: snap.index};
+          }
+        } else if (measuring && activeMeasure >= 0) {
+          measurements[activeMeasure].end = {x: snap.x, y: snap.y, index: snap.index};
+        }
+        updateMeasurementTable();
         draw();
       }
 
       function clearMeasurement() {
-        measureStart = null;
-        measureEnd = null;
-        measureStartIndex = -1;
-        measureEndIndex = -1;
+        measurements = [];
         measuring = false;
         measureDrag = null;
-        updateMeasurementInfo(0, document.getElementById('units').value);
+        activeMeasure = -1;
+        updateMeasurementTable();
         draw();
       }
 
@@ -1092,9 +1125,13 @@
         hoverIndex = over;
         updateRowHighlights();
         var overArrow = false;
-        if (measureMode && measureStart && measureEnd && !measuring) {
-          if (Math.hypot(measureStart.x - x, measureStart.y - py) < 6 || Math.hypot(measureEnd.x - x, measureEnd.y - py) < 6) {
-            overArrow = true;
+        if (measureMode && !measuring) {
+          for (var i = 0; i < measurements.length; i++) {
+            var m = measurements[i];
+            if (Math.hypot(m.start.x - x, m.start.y - py) < 6 || Math.hypot(m.end.x - x, m.end.y - py) < 6) {
+              overArrow = true;
+              break;
+            }
           }
         }
         if (over >= 0 || editIndex >= 0 || overArrow || measureDrag) {
