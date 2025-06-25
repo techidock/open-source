@@ -96,3 +96,14 @@ table {
   margin: 4px 0;
 }
 
+#dock-panel {
+  margin-top: 10px;
+}
+
+@media (orientation: landscape) {
+  #dock-panel {
+    margin-top: 0;
+    margin-left: 10px;
+  }
+}
+

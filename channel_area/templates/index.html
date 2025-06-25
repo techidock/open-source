@@ -95,6 +95,7 @@
           <button type="button" onclick="undoEdit()">Undo</button>
           <button type="button" onclick="redoEdit()">Redo</button>
           <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
+          <button type="button" onclick="copyCanvas()">Copy Image</button>
         </div>
       </div>
     </div>
@@ -159,6 +160,9 @@
             <button type="button" onclick="zoomOut()">-</button>
           </div>
         </div>
+      </div>
+      <div id="dock-panel" class="col-12 col-md-3">
+        <div class="border p-2">Dock Panel</div>
       </div>
       <!-- properties menu moved to offcanvas -->
     </div>
@@ -279,9 +283,17 @@
       }
 
       function resizeCanvas() {
+        var ptsMM = points.map(function(p){
+          return {x: pxToMMX(p.x), y: pxToMMY(p.y)};
+        });
         canvas.width = canvas.clientWidth;
         canvas.height = canvas.width;
-        mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+        mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin),
+                           canvasHeightMM / (canvas.height - axisMargin));
+        points = ptsMM.map(function(p){
+          return {x: mmToPxX(p.x), y: mmToPxY(p.y)};
+        });
+        anchorBottomLeft();
         updateGridInfo();
         draw();
       }
@@ -1436,6 +1448,17 @@
 
       function closeSetupDialog() {
         document.getElementById('setup-dialog').close();
+      }
+
+      function copyCanvas() {
+        canvas.toBlob(function(blob){
+          if (navigator.clipboard && window.ClipboardItem) {
+            var item = new ClipboardItem({'image/png': blob});
+            navigator.clipboard.write([item]);
+          } else {
+            alert('Clipboard copy not supported');
+          }
+        });
       }
 
       function togglePinProperties() {
