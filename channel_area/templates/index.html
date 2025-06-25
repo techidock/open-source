@@ -82,11 +82,12 @@
         <label for="canvas-height">Canvas Height:</label>
         <input type="number" id="canvas-height" value="4000" oninput="updateCanvasSize()">
         <span id="draw-unit"></span><br>
+        <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
         <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
-        <button type="button" onclick="clearMeasurement()">Clear</button>
+        <button type="button" onclick="clearMeasurement()">Clear All</button>
         <table id="measure-table" border="1" style="border-collapse:collapse">
           <thead>
-            <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th></tr>
+            <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
           </thead>
           <tbody></tbody>
         </table>
@@ -199,6 +200,7 @@
       var eggDiam2MM = 800;
       var eggDistMM = 600;
       var measureMode = false;
+      var measureVisible = true;
       var measurements = [];
       var activeMeasure = -1;
       var measuring = false;
@@ -309,9 +311,12 @@
       }
 
       function updateMeasurementTable() {
-        var tbody = document.getElementById('measure-table').querySelector('tbody');
+        var table = document.getElementById('measure-table');
+        var tbody = table.querySelector('tbody');
         tbody.innerHTML = '';
         var units = document.getElementById('units').value;
+        table.style.display = measureVisible ? 'table' : 'none';
+        if (!measureVisible) return;
         for (var i = 0; i < measurements.length; i++) {
           var m = measurements[i];
           var distPx = Math.hypot(m.end.x - m.start.x, m.end.y - m.start.y);
@@ -335,11 +340,33 @@
           } else {
             tdV.textContent = '';
           }
+          var tdC = document.createElement('td');
+          var colorInput = document.createElement('input');
+          colorInput.type = 'color';
+          colorInput.value = m.color;
+          colorInput.dataset.index = i;
+          colorInput.oninput = function(){
+            measurements[this.dataset.index].color = this.value;
+            draw();
+          };
+          tdC.appendChild(colorInput);
+          var tdR = document.createElement('td');
+          var rem = document.createElement('button');
+          rem.textContent = 'Remove';
+          rem.dataset.index = i;
+          rem.onclick = function(){
+            measurements.splice(parseInt(this.dataset.index), 1);
+            updateMeasurementTable();
+            draw();
+          };
+          tdR.appendChild(rem);
           tr.appendChild(tdIdx);
           tr.appendChild(tdD);
           tr.appendChild(tdS);
           tr.appendChild(tdE);
           tr.appendChild(tdV);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
           tbody.appendChild(tr);
         }
       }
@@ -369,6 +396,11 @@
           bboxVisible = this.checked;
           draw();
         };
+        document.getElementById('measure-visible').onchange = function(){
+          measureVisible = this.checked;
+          updateMeasurementTable();
+          draw();
+        };
         document.getElementById('measure-toggle').onchange = function(){
           measureMode = this.checked;
           if (!measureMode) clearMeasurement();
@@ -380,6 +412,8 @@
         updateHeightUnitDisplay();
         mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
         updateGridInfo();
+        measureVisible = document.getElementById('measure-visible').checked;
+        updateMeasurementTable();
         waterHeightMM = parseFloat(document.getElementById('water-height').value) * heightUnitFactor() || 0;
         siltHeightMM = parseFloat(document.getElementById('silt-height').value) * heightUnitFactor() || 0;
         fetch('/load_shape/_last').then(r => {
@@ -701,26 +735,27 @@
       }
 
       function drawMeasurement() {
-        if (measurements.length === 0) return;
+        if (!measureVisible || measurements.length === 0) return;
         var units = document.getElementById('units').value;
         measurements.forEach(function(m, i){
-          ctx.strokeStyle = '#ff0000';
+          ctx.strokeStyle = m.color;
           ctx.beginPath();
           ctx.moveTo(m.start.x, m.start.y);
           ctx.lineTo(m.end.x, m.end.y);
           ctx.stroke();
-          var startColor = (measureDrag === 'start' && activeMeasure === i) ? '#000' : '#ff0000';
-          var endColor = (measureDrag === 'end' && activeMeasure === i) ? '#000' : '#ff0000';
+          var startColor = (measureDrag === 'start' && activeMeasure === i) ? '#000' : m.color;
+          var endColor = (measureDrag === 'end' && activeMeasure === i) ? '#000' : m.color;
           drawArrowHead(m.start, m.end, startColor);
           drawArrowHead(m.end, m.start, endColor);
           var distPx = Math.hypot(m.end.x - m.start.x, m.end.y - m.start.y);
           var dist = (distPx * mmScale) / unitFactor();
-          ctx.fillStyle = '#ff0000';
+          ctx.fillStyle = m.color;
           ctx.fillText(
             formatMeasurement(dist, units) + ' ' + units,
             (m.start.x + m.end.x) / 2 + 5,
             (m.start.y + m.end.y) / 2 - 5
           );
+          ctx.fillText(i + 1, (m.start.x + m.end.x) / 2 - 15, (m.start.y + m.end.y) / 2 + 12);
         });
       }
 
@@ -1044,13 +1079,15 @@
       }
 
       function startMeasurement(e) {
+        if (measurements.length >= 10 && !measuring) return;
         var rect = canvas.getBoundingClientRect();
         var x = clamp(e.clientX - rect.left, axisMargin, canvas.width);
         var y = clamp(e.clientY - rect.top, 0, canvas.height - axisMargin);
         var snap = snapToPoint(x, y);
         if (!measuring) {
           measurements.push({start: {x: snap.x, y: snap.y, index: snap.index},
-                             end: {x: snap.x, y: snap.y, index: snap.index}});
+                             end: {x: snap.x, y: snap.y, index: snap.index},
+                             color: '#ff0000'});
           activeMeasure = measurements.length - 1;
           measuring = true;
         } else {
