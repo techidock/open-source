@@ -9,7 +9,7 @@ html, body {
 
 body {
   padding-left: 40px;  /* leave room for tool bar */
-  padding-bottom: 0;   /* bottom bar handled in JS */
+  padding-bottom: 40px; /* reserve space for bottom bar */
   padding-top: 48px;   /* room for top nav */
   margin: 0;
 }

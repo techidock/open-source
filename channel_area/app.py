@@ -25,7 +25,7 @@ def save_shape():
     water_height = data.get('waterHeight', 0)
     silt_height = data.get('siltHeight', 0)
     canvas_width = data.get('canvasWidth', 4000)
-    canvas_height = data.get('canvasHeight', 4000)
+    canvas_height = data.get('canvasHeight', 5000)
     if not name or not points:
         return jsonify({'status': 'error', 'message': 'invalid data'}), 400
     svg_path = os.path.join(SHAPE_DIR, f'{name}.svg')

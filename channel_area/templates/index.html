@@ -84,7 +84,7 @@
           <label for="canvas-width">Canvas Width:</label>
           <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
           <label for="canvas-height">Canvas Height:</label>
-          <input type="number" id="canvas-height" value="4000" oninput="updateCanvasSize()">
+          <input type="number" id="canvas-height" value="5000" oninput="updateCanvasSize()">
           <span id="draw-unit"></span><br>
         </div>
         <div class="tab-pane fade" id="channel-panel" role="tabpanel">
@@ -212,6 +212,24 @@
       </div>
       <!-- properties menu moved to offcanvas -->
     </div>
+    <div id="bottom-bar">
+      <div class="bottom-cell" data-index="0"></div>
+      <div class="bottom-cell" data-index="1"></div>
+      <div class="bottom-cell" data-index="2"></div>
+      <div class="bottom-cell" data-index="3"></div>
+      <div class="bottom-cell" data-index="4"></div>
+      <div class="bottom-cell" data-index="5" id="zoom-cell">
+        <input type="range" id="zoom-slider" title="Zoom" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
+      </div>
+      <div class="bottom-cell" data-index="6"></div>
+      <div class="bottom-cell" data-index="7"></div>
+      <div class="bottom-cell" data-index="8"></div>
+      <div class="bottom-cell" data-index="9">
+        <button id="properties-btn" class="btn btn-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#properties-menu" aria-controls="properties-menu">
+          <i class="bi bi-gear"></i>
+        </button>
+      </div>
+    </div>
       <dialog id="shape-dialog">
         <form method="dialog" onsubmit="return false;">
           <label>Name: <input type="text" id="shape-name"></label>
@@ -275,7 +293,7 @@
       var waterHeightMM = 0;
       var siltHeightMM = 0;
       var canvasWidthMM = 4000;
-      var canvasHeightMM = 4000;
+      var canvasHeightMM = 5000;
       var mmScale = 1;
       var axisMargin = 10;
       var gridSpacingMM = 500;
@@ -453,7 +471,7 @@
       function updateCanvasSize() {
         var f = unitFactor();
         var newW = clamp(parseFloat(document.getElementById('canvas-width').value) * f || 4000, 1000, 20000);
-        var newH = clamp(parseFloat(document.getElementById('canvas-height').value) * f || 4000, 1000, 20000);
+        var newH = clamp(parseFloat(document.getElementById('canvas-height').value) * f || 5000, 1000, 20000);
         var oldScale = mmScale;
         canvasWidthMM = newW;
         canvasHeightMM = newH;
@@ -808,7 +826,7 @@
           var belowSilt = clipBelow(pts, ySilt);
           var above = clipAbove(pts, yLine);
           if (above.length > 0) {
-            ctx.fillStyle = '#cccccc';
+            ctx.fillStyle = 'rgba(128,128,128,0.4)';
             ctx.beginPath();
             ctx.moveTo(above[0].x, above[0].y);
             for (var i = 1; i < above.length; i++) ctx.lineTo(above[i].x, above[i].y);
@@ -1685,24 +1703,6 @@
       window.onload = init;
   </script>
   </div>
-<div id="bottom-bar">
-  <div class="bottom-cell" data-index="0"></div>
-  <div class="bottom-cell" data-index="1"></div>
-  <div class="bottom-cell" data-index="2"></div>
-  <div class="bottom-cell" data-index="3"></div>
-  <div class="bottom-cell" data-index="4"></div>
-  <div class="bottom-cell" data-index="5" id="zoom-cell">
-    <input type="range" id="zoom-slider" title="Zoom" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
-  </div>
-  <div class="bottom-cell" data-index="6"></div>
-  <div class="bottom-cell" data-index="7"></div>
-  <div class="bottom-cell" data-index="8"></div>
-  <div class="bottom-cell" data-index="9">
-    <button id="properties-btn" class="btn btn-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#properties-menu" aria-controls="properties-menu">
-      <i class="bi bi-gear"></i>
-    </button>
-  </div>
-</div>
 
 {% endblock %}
 
