@@ -9,13 +9,13 @@ html, body {
 
 body {
   padding-left: 40px;  /* leave room for tool bar */
-  padding-bottom: 40px; /* leave room for bottom bar */
-  padding-top: 48px;    /* room for top nav */
+  padding-bottom: 0;   /* bottom bar handled in JS */
+  padding-top: 48px;   /* room for top nav */
   margin: 0;
 }
 
 /* container for the main drawing layout */
-.container-fluid.mt-3 {
+#main-container {
   height: 100%;
 }
 
