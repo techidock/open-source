@@ -32,8 +32,7 @@ def save_shape():
     json_path = os.path.join(SHAPE_DIR, f'{name}.json')
     pts = ' '.join(f"{p['x']},{p['y']}" for p in points)
     svg = (
-        '<svg xmlns="http://www.w3.org/2000/svg" '
-        'width="500" height="375">'
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {canvas_width} {canvas_height}">' 
         f'<polygon points="{pts}" fill="#99ccff" stroke="#000" />'
         '</svg>'
     )

@@ -62,6 +62,8 @@ A **Properties** button sits in section **9** of the bottom toolbar. It opens an
 The page shows light grey borders along the left and bottom edges. The left bar is split into numbered tool sections, and the bottom bar is divided into ten segments with the zoom slider placed in the centre and the Properties button in the last cell.
 
 Shapes are always positioned with their left edge along the bottom of the canvas. The canvas now fills the browser window and scroll bars are removed so the entire drawing stays visible. The available height is calculated between the top navigation bar and bottom toolbar so the drawing area makes full use of the space. Portrait mode shows the Properties panel below the canvas, while landscape mode allows the panel to be pinned on the right.
+The canvas has no fixed width or height attributes, so it automatically grows or
+shrinks to fit whatever space is available in the drawing area.
 Edit Mode is off by default so the point markers remain hidden until enabled.
 
 Use the **Water Height** box on the **Channel Properties** tab to draw a blue line at the chosen level. The line spans only the width of the current shape. The resulting water area appears along with the overall area in that panel.
