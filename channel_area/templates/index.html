@@ -372,9 +372,8 @@
         var topNav = document.querySelector('nav.navbar');
         var bottomBar = document.getElementById('bottom-bar');
         var navH = topNav ? topNav.offsetHeight : 0;
-        var bottomH = 0;
         var barH = bottomBar ? bottomBar.offsetHeight : 0;
-        var avail = window.innerHeight - navH - bottomH - barH - 20;
+        var avail = window.innerHeight - navH - barH;
         panel.style.height = avail + 'px';
         document.getElementById('canvas-container').style.height = avail + 'px';
         var width = panel.clientWidth;
