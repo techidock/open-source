@@ -10,7 +10,9 @@
       <button id="projects-btn" class="tool-btn" onclick="toggleProjectsPanel()"><i class="bi bi-folder"></i></button>
     </div>
     <div class="tool-cell" data-index="1"></div>
-    <div class="tool-cell" data-index="2"></div>
+    <div class="tool-cell" data-index="2">
+      <button id="measure-btn" class="tool-btn" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button>
+    </div>
     <div class="tool-cell" data-index="3"></div>
     <div class="tool-cell" data-index="4">
       <button id="tools-btn" class="tool-btn" onclick="toggleToolsPanel()"><i class="bi bi-pencil"></i></button>
@@ -295,7 +297,8 @@
       var canvasWidthMM = 4000;
       var canvasHeightMM = 3000;
       var mmScale = 1;
-      var axisMargin = 20;
+      var axisMargin = 20; // top and side margin
+      var bottomMargin = 40;
       var gridSpacingMM = 500;
       var polygonScale = 1;
       var circleDiameterMM = 300;
@@ -379,7 +382,7 @@
         var rect = canvas.getBoundingClientRect();
         var x = (e.clientX - rect.left) / zoomLevel;
         var y = (e.clientY - rect.top) / zoomLevel;
-        return {x: clamp(x, axisMargin, canvas.width - axisMargin), y: clamp(y, axisMargin, canvas.height - axisMargin)};
+        return {x: clamp(x, axisMargin, canvas.width - axisMargin), y: clamp(y, axisMargin, canvas.height - bottomMargin)};
       }
 
       function resizeCanvas() {
@@ -399,7 +402,7 @@
         canvas.width = width;
         canvas.height = height;
         canvasWidthMM = mmScale * (canvas.width - 2*axisMargin);
-        canvasHeightMM = mmScale * (canvas.height - 2*axisMargin);
+        canvasHeightMM = mmScale * (canvas.height - axisMargin - bottomMargin);
         document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
         document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
         points = ptsMM.map(function(p){
@@ -475,7 +478,7 @@
         var oldScale = mmScale;
         canvasWidthMM = newW;
         canvasHeightMM = newH;
-        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
+        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
         var factor = oldScale / mmScale;
         if (factor !== 1) {
           for (var i = 0; i < points.length; i++) {
@@ -489,13 +492,13 @@
       }
 
       function unitToPxX(v) { return axisMargin + v * unitFactor() / mmScale; }
-      function unitToPxY(v) { return canvas.height - axisMargin - v * unitFactor() / mmScale; }
+      function unitToPxY(v) { return canvas.height - bottomMargin - v * unitFactor() / mmScale; }
       function pxToUnitX(px) { return (px - axisMargin) * mmScale / unitFactor(); }
-      function pxToUnitY(py) { return (canvas.height - axisMargin - py) * mmScale / unitFactor(); }
+      function pxToUnitY(py) { return (canvas.height - bottomMargin - py) * mmScale / unitFactor(); }
       function mmToPxX(mm) { return axisMargin + mm / mmScale; }
-      function mmToPxY(mm) { return canvas.height - axisMargin - mm / mmScale; }
+      function mmToPxY(mm) { return canvas.height - bottomMargin - mm / mmScale; }
       function pxToMMX(px) { return (px - axisMargin) * mmScale; }
-      function pxToMMY(py) { return (canvas.height - axisMargin - py) * mmScale; }
+      function pxToMMY(py) { return (canvas.height - bottomMargin - py) * mmScale; }
 
       function formatMeasurement(v, units) {
         if (units === 'm') return v.toFixed(3);
@@ -624,6 +627,9 @@
           if (this.checked) {
             document.getElementById('add-point-toggle').checked = false;
             addPointEnabled = false;
+            document.getElementById('measure-btn').classList.add('active');
+          } else {
+            document.getElementById('measure-btn').classList.remove('active');
           }
           measuring = false;
           measureDrag = null;
@@ -635,7 +641,7 @@
         updateUnitDisplay();
         updateShapeUnitDisplay();
         updateHeightUnitDisplay();
-        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
+        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
         updateGridInfo();
         measureVisible = document.getElementById('measure-visible').checked;
         updateMeasurementTable();
@@ -647,7 +653,7 @@
           if (data && data.points) {
             if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
             if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
-            mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
+            mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
             document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
             document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
@@ -1108,7 +1114,7 @@
       function defaultPolygon(n) {
         var r = 60;
         var cx = canvas.width / 2;
-        var cy = canvas.height - axisMargin - r;
+        var cy = canvas.height - bottomMargin - r;
         var pts = [];
         for (var i = 0; i < n; i++) {
           var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
@@ -1298,7 +1304,7 @@
           maxY = Math.max(maxY, p.y);
         }
         var dx = axisMargin - minX;
-        var dy = canvas.height - axisMargin - maxY;
+        var dy = canvas.height - bottomMargin - maxY;
         for (var i = 0; i < points.length; i++) {
           points[i] = {x: points[i].x + dx, y: points[i].y + dy};
         }
@@ -1401,7 +1407,7 @@
         var x = unitToPxX(parseFloat(row.children[1].firstChild.value));
         var y = unitToPxY(parseFloat(row.children[2].firstChild.value));
         x = clamp(x, axisMargin, canvas.width - axisMargin);
-        y = clamp(y, axisMargin, canvas.height - axisMargin);
+        y = clamp(y, axisMargin, canvas.height - bottomMargin);
         var dec = decimalsForUnits(document.getElementById('units').value);
         row.children[1].firstChild.value = pxToUnitX(x).toFixed(dec);
         row.children[2].firstChild.value = pxToUnitY(y).toFixed(dec);
@@ -1480,7 +1486,7 @@
           needUpdate = true;
         }
         if (needUpdate) {
-          mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
+          mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
           document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
           document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
         }
@@ -1567,7 +1573,7 @@
             saveState();
             if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
             if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
-            mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
+          mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
             document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
             document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
@@ -1642,10 +1648,10 @@
         for (var x = axisMargin; x <= canvas.width - axisMargin; x += stepX) {
           ctx.beginPath();
           ctx.moveTo(x, axisMargin);
-          ctx.lineTo(x, canvas.height - axisMargin);
+          ctx.lineTo(x, canvas.height - bottomMargin);
           ctx.stroke();
         }
-        for (var y = axisMargin; y <= canvas.height - axisMargin; y += stepY) {
+        for (var y = axisMargin; y <= canvas.height - bottomMargin; y += stepY) {
           var gy = canvas.height - y;
           ctx.beginPath();
           ctx.moveTo(axisMargin, gy);
@@ -1654,9 +1660,9 @@
         }
         ctx.strokeStyle = '#000';
         ctx.beginPath();
-        ctx.moveTo(axisMargin, canvas.height - axisMargin);
-        ctx.lineTo(canvas.width - axisMargin, canvas.height - axisMargin);
-        ctx.moveTo(axisMargin, canvas.height - axisMargin);
+        ctx.moveTo(axisMargin, canvas.height - bottomMargin);
+        ctx.lineTo(canvas.width - axisMargin, canvas.height - bottomMargin);
+        ctx.moveTo(axisMargin, canvas.height - bottomMargin);
         ctx.lineTo(axisMargin, axisMargin);
         ctx.stroke();
         var spacingXMM = gridSpacingMM;
@@ -1664,13 +1670,13 @@
         var units = document.getElementById('units').value;
         for (var i = 0, x = axisMargin; x <= canvas.width - axisMargin; x += stepX, i++) {
           var val = (i * spacingXMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, x + 2, canvas.height - axisMargin + 12);
+          ctx.fillText(val, x + 2, canvas.height - bottomMargin + 12);
         }
-        for (var i = 0, y = axisMargin; y <= canvas.height - axisMargin; y += stepY, i++) {
+        for (var i = 0, y = axisMargin; y <= canvas.height - bottomMargin; y += stepY, i++) {
           var val = (i * spacingYMM / unitFactor()).toFixed(1);
           ctx.fillText(val, axisMargin - 18, canvas.height - y - 2);
         }
-        ctx.fillText('x', canvas.width - axisMargin + 8, canvas.height - axisMargin + 12);
+        ctx.fillText('x', canvas.width - axisMargin + 8, canvas.height - bottomMargin + 12);
         ctx.fillText('y', axisMargin - 12, axisMargin - 4);
       }
 
@@ -1680,6 +1686,12 @@
         if (panel.classList.contains('show')) {
           panel.classList.remove('show');
         } else {
+          var mt = document.getElementById('measure-toggle');
+          if (mt.checked) {
+            mt.checked = false;
+            mt.dispatchEvent(new Event('change'));
+            document.getElementById('measure-btn').classList.remove('active');
+          }
           panel.classList.add('show');
         }
       }
@@ -1689,11 +1701,38 @@
         if (panel.classList.contains('show')) {
           panel.classList.remove('show');
         } else {
+          var mt = document.getElementById('measure-toggle');
+          if (mt.checked) {
+            mt.checked = false;
+            mt.dispatchEvent(new Event('change'));
+            document.getElementById('measure-btn').classList.remove('active');
+          }
           panel.classList.add('show');
         }
       }
 
+      function activateMeasureTool() {
+        var mt = document.getElementById('measure-toggle');
+        var btn = document.getElementById('measure-btn');
+        if (mt.checked) {
+          mt.checked = false;
+          btn.classList.remove('active');
+        } else {
+          mt.checked = true;
+          btn.classList.add('active');
+          var panel = document.getElementById('tools-panel');
+          panel.classList.remove('show');
+        }
+        mt.dispatchEvent(new Event('change'));
+      }
+
       function activateSelectTool() {
+        var mt = document.getElementById('measure-toggle');
+        if (mt.checked) {
+          mt.checked = false;
+          mt.dispatchEvent(new Event('change'));
+          document.getElementById('measure-btn').classList.remove('active');
+        }
         document.getElementById('edit-toggle').checked = true;
         editEnabled = true;
         document.getElementById('add-point-toggle').checked = false;

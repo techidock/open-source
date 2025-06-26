@@ -60,6 +60,9 @@ canvas {
   border: none;
   padding: 6px;
 }
+.tool-btn.active {
+  background: #ddd;
+}
 
 #tools-panel {
   position: absolute;
