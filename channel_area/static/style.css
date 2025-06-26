@@ -32,19 +32,6 @@ canvas {
   user-select: none;
 }
 
-#toolbar {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,0.8);
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 4px;
-  z-index: 1010;
-  display: flex;
-  flex-direction: column;
-}
 
 .tool-btn {
   background: none;
@@ -166,6 +153,10 @@ table {
   z-index: 1000;
 }
 
+#top-nav {
+  background: #000;
+}
+
 #left-bar {
   position: fixed;
   top: 0;
@@ -174,7 +165,31 @@ table {
   width: 40px;
   background: #eee;
   border-right: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
   z-index: 1030;
+}
+
+.tool-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #ccc;
+  position: relative;
+}
+
+.tool-cell:last-child {
+  border-bottom: none;
+}
+
+.tool-cell::after {
+  content: attr(data-index);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 10px;
+  color: #666;
 }
 
 #bottom-bar {
@@ -186,14 +201,24 @@ table {
   background: #eee;
   border-top: 1px solid #ccc;
   display: flex;
-  align-items: center;
-  padding: 0 8px;
+  padding: 0;
   z-index: 1030;
 }
 
+.bottom-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid #ccc;
+}
+
+.bottom-cell:first-child {
+  border-left: none;
+}
+
 #zoom-slider {
-  width: 200px;
-  margin-left: auto;
+  width: 100%;
 }
 
 

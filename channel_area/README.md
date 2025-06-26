@@ -51,16 +51,17 @@ Uploaded reference images appear with a dashed black outline so you can see thei
 A button at the top left reveals a slide-out menu containing **New Channel**,
 **Manage Shapes** and **Setup**. The menu automatically closes once you choose
 an option.
-A small vertical toolbar appears on the left side of the canvas, similar to
-the Canva editor. The top icon opens a **Projects** panel for managing your
-files, while the next icon is a pencil labelled **Tools**. Clicking **Tools**
- opens a floating tools menu with a close button. This menu now contains a
-**Select** option with a cursor icon that switches back to normal editing
- mode so you can select and move existing points.
+The top navigation bar now stretches across the entire page and is coloured
+black for clarity.
+Along the left border runs a solid grey strip divided into ten equal squares
+numbered **0** at the top down to **9**. This serves as the tool menu. The first
+section (0) opens the **Projects** panel and section 4 shows a pencil icon for
+the **Edit Tools** menu. Clicking it reveals the floating tools panel where the
+**Select** button switches back to normal editing mode.
 A **Properties** button on the right opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas.
 A bottom navigation bar provides tabs for **Draw** and **Tables**, but it is hidden by default. Click the arrow button at the bottom of the page to reveal or hide the bar. The Tables tab lists your measurements and the polygon's vertices.
 
-The page shows light grey borders along the left and bottom edges. The left bar holds the menu button, while the bottom bar contains a zoom slider for changing magnification.
+The page shows light grey borders along the left and bottom edges. The left bar is split into numbered tool sections, and the bottom bar is divided into ten segments with the zoom slider placed in the centre.
 
 Shapes are always positioned with their left edge along the bottom of the canvas. The canvas now fills the browser window and scroll bars are removed so the entire drawing stays visible. Portrait mode shows the Properties panel below the canvas, while landscape mode allows the panel to be pinned on the right.
 Edit Mode is off by default so the point markers remain hidden until enabled.
