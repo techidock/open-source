@@ -57,8 +57,7 @@ numbered **0** at the top down to **9**. This serves as the tool menu. The first
 section (0) opens the **Projects** panel and section 4 shows a pencil icon for
 the **Edit Tools** menu. Clicking it reveals the floating tools panel where the
 **Select** button switches back to normal editing mode.
-A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas.
-A bottom navigation bar provides tabs for **Draw** and **Tables**, but it is hidden by default. Click the arrow button at the bottom of the page to reveal or hide the bar. The Tables tab lists your measurements and the polygon's vertices.
+A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
 
 The page shows light grey borders along the left and bottom edges. The left bar is split into numbered tool sections, and the bottom bar is divided into ten segments with the zoom slider placed in the centre and the Properties button in the last cell.
 

@@ -22,9 +22,9 @@
     <div class="tool-cell" data-index="9"></div>
   </div>
   <nav id="top-nav" class="navbar navbar-dark">
-    <div class="container-fluid p-0">
-      <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
-      <a class="navbar-brand" href="#">Channel Area</a>
+    <div class="container-fluid p-0 d-flex align-items-center">
+      <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
+      <a class="navbar-brand ms-2" href="#">Channel Area</a>
     </div>
   </nav>
 
@@ -58,6 +58,12 @@
         </li>
         <li class="nav-item" role="presentation">
           <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit-panel" type="button" role="tab">Edit Tools</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="vectors-tab" data-bs-toggle="tab" data-bs-target="#vectors-panel" type="button" role="tab">Vectors</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="measure-tab" data-bs-toggle="tab" data-bs-target="#measure-panel" type="button" role="tab">Measurements</button>
         </li>
       </ul>
       <div class="tab-content mt-2">
@@ -117,6 +123,24 @@
           <label for="image-scale">Image Scale:</label>
           <input type="number" id="image-scale" value="1" step="0.1" min="0.1" oninput="updateImageScale(this.value)">
         </div>
+        <div class="tab-pane fade" id="vectors-panel" role="tabpanel">
+          <h3>Points</h3>
+          <table id="points-table" border="1" style="border-collapse:collapse">
+            <thead>
+              <tr><th>Index</th><th>x</th><th>y</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="tab-pane fade" id="measure-panel" role="tabpanel">
+          <h3>Measurements</h3>
+          <table id="measure-table" border="1" style="border-collapse:collapse">
+            <thead>
+              <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -169,8 +193,7 @@
         <button type="button" onclick="closeNewChannelDialog()">Close</button>
       </form>
     </dialog>
-  <div class="tab-content">
-  <div class="tab-pane fade show active" id="draw-tab">
+  <div id="draw-section">
     <div id="layout" class="row">
       <div id="drawing-area" class="col">
         <div id="canvas-panel" class="border p-2">
@@ -213,23 +236,6 @@
         </form>
       </dialog>
   </div>
-  <div class="tab-pane fade" id="tables-tab">
-    <h3>Measurements</h3>
-    <table id="measure-table" border="1" style="border-collapse:collapse">
-      <thead>
-        <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-    <h3>Points</h3>
-    <table id="points-table" border="1" style="border-collapse:collapse">
-      <thead>
-        <tr><th>Index</th><th>x</th><th>y</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
 
   <script>
       function showFields() {
@@ -364,10 +370,9 @@
         });
         var panel = document.getElementById('canvas-panel');
         var topNav = document.querySelector('nav.navbar');
-        var bottomNav = document.getElementById('bottom-nav');
         var bottomBar = document.getElementById('bottom-bar');
         var navH = topNav ? topNav.offsetHeight : 0;
-        var bottomH = (bottomNav && bottomNav.style.display !== 'none') ? bottomNav.offsetHeight : 0;
+        var bottomH = 0;
         var barH = bottomBar ? bottomBar.offsetHeight : 0;
         var avail = window.innerHeight - navH - bottomH - barH - 20;
         panel.style.height = avail + 'px';
@@ -1649,14 +1654,6 @@
         ctx.fillText('y', axisMargin - 10, 10);
       }
 
-      function toggleBottomNav() {
-        var nav = document.getElementById('bottom-nav');
-        var btn = document.getElementById('nav-toggle');
-        var show = nav.style.display === 'none';
-        nav.style.display = show ? 'block' : 'none';
-        btn.innerHTML = show ? '&#9660;' : '&#9650;';
-        resizeCanvas();
-      }
 
       function toggleToolsPanel() {
         var panel = document.getElementById('tools-panel');
@@ -1705,13 +1702,7 @@
     </button>
   </div>
 </div>
-<button id="nav-toggle" type="button" onclick="toggleBottomNav()">&#9650;</button>
-<nav id="bottom-nav" class="navbar navbar-light bg-light fixed-bottom" style="display:none;">
-  <ul class="nav nav-tabs nav-justified w-100">
-    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#draw-tab">Draw</a></li>
-    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tables-tab">Tables</a></li>
-  </ul>
-</nav>
+
 {% endblock %}
 
 {% block scripts %}
