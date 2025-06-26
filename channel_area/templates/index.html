@@ -19,13 +19,12 @@
     <div class="tool-cell" data-index="6"></div>
     <div class="tool-cell" data-index="7"></div>
     <div class="tool-cell" data-index="8"></div>
-    <div class="tool-cell" data-index="9">
-      <button class="btn btn-outline-dark m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
-    </div>
+    <div class="tool-cell" data-index="9"></div>
   </div>
   <nav id="top-nav" class="navbar navbar-expand-md navbar-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">Channel Area</a>
+      <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
       <button class="btn btn-outline-light ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#properties-menu" aria-controls="properties-menu">Properties</button>
     </div>
   </nav>
@@ -1696,8 +1695,7 @@
   <div class="bottom-cell" data-index="3"></div>
   <div class="bottom-cell" data-index="4"></div>
   <div class="bottom-cell" data-index="5" id="zoom-cell">
-    <label for="zoom-slider" class="me-1">Zoom</label>
-    <input type="range" id="zoom-slider" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
+    <input type="range" id="zoom-slider" title="Zoom" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
   </div>
   <div class="bottom-cell" data-index="6"></div>
   <div class="bottom-cell" data-index="7"></div>
