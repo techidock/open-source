@@ -277,7 +277,7 @@
       var canvasWidthMM = 4000;
       var canvasHeightMM = 4000;
       var mmScale = 1;
-      var axisMargin = 20;
+      var axisMargin = 0;
       var gridSpacingMM = 500;
       var polygonScale = 1;
       var circleDiameterMM = 1000;
@@ -1643,14 +1643,14 @@
         var units = document.getElementById('units').value;
         for (var i = 0, x = axisMargin; x <= canvas.width; x += stepX, i++) {
           var val = (i * spacingXMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, x + 2, canvas.height - axisMargin + 12);
+          ctx.fillText(val, x + 2, canvas.height - 2);
         }
         for (var i = 0, y = axisMargin; y <= canvas.height; y += stepY, i++) {
           var val = (i * spacingYMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, axisMargin - 18, canvas.height - y - 2);
+          ctx.fillText(val, 2, canvas.height - y - 2);
         }
-        ctx.fillText('x', canvas.width - 10, canvas.height - axisMargin + 12);
-        ctx.fillText('y', axisMargin - 10, 10);
+        ctx.fillText('x', canvas.width - 10, canvas.height - 2);
+        ctx.fillText('y', 2, 10);
       }
 
 
