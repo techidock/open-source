@@ -718,6 +718,11 @@
           var w = bgImage.width * bgBaseScale * bgUserScale;
           var h = bgImage.height * bgBaseScale * bgUserScale;
           ctx.drawImage(bgImage, bgX, bgY, w, h);
+          ctx.save();
+          ctx.setLineDash([4, 2]);
+          ctx.strokeStyle = '#000';
+          ctx.strokeRect(bgX, bgY, w, h);
+          ctx.restore();
         }
         drawGrid();
         var shape = document.getElementById('shape').value;

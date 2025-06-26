@@ -46,6 +46,7 @@ Double clicking when **Add Points** is active inserts a new vertex on the neares
 
 The markers themselves can be hidden or shown with the **Show Vectors**
 checkbox found on the **Display** tab of the Properties menu. This tab also lists **Show Bounding Box** and measurement options alongside the other display toggles.
+Uploaded reference images appear with a dashed black outline so you can see their boundaries while positioning them.
 
 A button at the top left reveals a slide-out menu containing **New Channel**,
 **Manage Shapes** and **Setup**. The menu automatically closes once you choose
@@ -53,13 +54,13 @@ an option.
 A small vertical toolbar appears on the left side of the canvas, similar to
 the Canva editor. The top icon opens a **Projects** panel for managing your
 files, while the next icon is a pencil labelled **Tools**. Clicking **Tools**
-opens a floating tools menu with a close button. This menu now contains a
+ opens a floating tools menu with a close button. This menu now contains a
 **Select** option with a cursor icon that switches back to normal editing
-mode.
+ mode so you can select and move existing points.
 A **Properties** button on the right opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas.
 A bottom navigation bar provides tabs for **Draw** and **Tables**, but it is hidden by default. Click the arrow button at the bottom of the page to reveal or hide the bar. The Tables tab lists your measurements and the polygon's vertices.
 
-Shapes are always positioned with their left edge along the bottom of the canvas. The canvas now expands to fill the browser window so the entire drawing is visible without scrolling. Portrait mode shows the Properties panel below the canvas, while landscape mode allows the panel to be pinned on the right.
+Shapes are always positioned with their left edge along the bottom of the canvas. The canvas now fills the browser window and scroll bars are removed so the entire drawing stays visible. Portrait mode shows the Properties panel below the canvas, while landscape mode allows the panel to be pinned on the right.
 Edit Mode is off by default so the point markers remain hidden until enabled.
 
 Use the **Water Height** box on the **Channel Properties** tab to draw a blue line at the chosen level. The line spans only the width of the current shape. The resulting water area appears along with the overall area in that panel.
