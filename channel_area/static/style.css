@@ -13,6 +13,17 @@ body {
   padding-top: 48px;    /* room for top nav */
 }
 
+/* container for the main drawing layout */
+.container-fluid.mt-3 {
+  height: 100%;
+}
+
+#draw-section,
+#layout,
+#drawing-area {
+  height: 100%;
+}
+
 
 #canvas-container {
   position: relative;
