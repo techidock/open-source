@@ -277,7 +277,7 @@
       var canvasWidthMM = 4000;
       var canvasHeightMM = 4000;
       var mmScale = 1;
-      var axisMargin = 0;
+      var axisMargin = 10;
       var gridSpacingMM = 500;
       var polygonScale = 1;
       var circleDiameterMM = 1000;
@@ -380,8 +380,10 @@
         var height = avail;
         canvas.width = width;
         canvas.height = height;
-        mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin),
-                           canvasHeightMM / (canvas.height - axisMargin));
+        canvasWidthMM = mmScale * (canvas.width - axisMargin);
+        canvasHeightMM = mmScale * (canvas.height - axisMargin);
+        document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+        document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
         points = ptsMM.map(function(p){
           return {x: mmToPxX(p.x), y: mmToPxY(p.y)};
         });
