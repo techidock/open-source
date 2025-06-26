@@ -4,6 +4,7 @@ html, body {
   padding: 0;
   overflow-x: hidden;
   height: 100%;
+  box-sizing: border-box;
 }
 
 
@@ -22,7 +23,7 @@ html, body {
 }
 
 canvas {
-  border: 1px solid #000;
+  border: 1px solid #ccc;
   margin-top: 10px;
   background: #fafafa;
   width: 100%;
@@ -87,22 +88,6 @@ canvas {
   display: block;
 }
 
-#zoom-controls {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 2px;
-}
-
-#zoom-controls button {
-  margin: 0 2px;
-  width: 30px;
-  height: 30px;
-  line-height: 1;
-}
 
 #layout {
   display: flex;
@@ -167,7 +152,7 @@ table {
 
 #nav-toggle {
   position: fixed;
-  bottom: 5px;
+  bottom: 45px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1001;
@@ -179,6 +164,36 @@ table {
 
 #bottom-nav {
   z-index: 1000;
+}
+
+#left-bar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40px;
+  background: #eee;
+  border-right: 1px solid #ccc;
+  z-index: 1030;
+}
+
+#bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40px;
+  background: #eee;
+  border-top: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  z-index: 1030;
+}
+
+#zoom-slider {
+  width: 200px;
+  margin-left: auto;
 }
 
 

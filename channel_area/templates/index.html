@@ -5,9 +5,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 {% endblock %}
 {% block content %}
+  <div id="left-bar">
+    <button class="btn btn-outline-dark m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
+  </div>
   <nav class="navbar navbar-expand-md navbar-dark bg-dark">
     <div class="container-fluid">
-      <button class="btn btn-outline-light me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
       <a class="navbar-brand" href="#">Channel Area</a>
       <button class="btn btn-outline-light ms-auto" type="button" data-bs-toggle="offcanvas" data-bs-target="#properties-menu" aria-controls="properties-menu">Properties</button>
     </div>
@@ -165,10 +167,6 @@
         <div id="canvas-panel" class="border p-2">
           <div id="canvas-container">
             <canvas id="canvas" width="500" height="500"></canvas>
-            <div id="zoom-controls">
-              <button type="button" onclick="zoomIn()">+</button>
-              <button type="button" onclick="zoomOut()">-</button>
-            </div>
           </div>
           <div id="tools-panel" class="floating-menu">
             <button type="button" class="btn-close" onclick="toggleToolsPanel()"></button>
@@ -294,10 +292,23 @@
       function applyZoom() {
         canvas.style.transformOrigin = 'bottom left';
         canvas.style.transform = 'scale(' + zoomLevel + ')';
+        document.getElementById('zoom-slider').value = zoomLevel;
       }
 
-      function zoomIn() { zoomLevel *= 1.25; applyZoom(); }
-      function zoomOut() { zoomLevel = Math.max(0.5, zoomLevel / 1.25); applyZoom(); }
+      function setZoom(val) {
+        zoomLevel = parseFloat(val);
+        applyZoom();
+      }
+
+      function zoomIn() {
+        zoomLevel *= 1.25;
+        applyZoom();
+      }
+
+      function zoomOut() {
+        zoomLevel = Math.max(0.5, zoomLevel / 1.25);
+        applyZoom();
+      }
 
       function openImageUpload() {
         document.getElementById('image-upload').click();
@@ -345,9 +356,11 @@
         var panel = document.getElementById('canvas-panel');
         var topNav = document.querySelector('nav.navbar');
         var bottomNav = document.getElementById('bottom-nav');
+        var bottomBar = document.getElementById('bottom-bar');
         var navH = topNav ? topNav.offsetHeight : 0;
         var bottomH = (bottomNav && bottomNav.style.display !== 'none') ? bottomNav.offsetHeight : 0;
-        var avail = window.innerHeight - navH - bottomH - 20;
+        var barH = bottomBar ? bottomBar.offsetHeight : 0;
+        var avail = window.innerHeight - navH - bottomH - barH - 20;
         panel.style.height = avail + 'px';
         document.getElementById('canvas-container').style.height = avail + 'px';
         var width = panel.clientWidth;
@@ -1665,6 +1678,10 @@
       window.onload = init;
   </script>
   </div>
+<div id="bottom-bar">
+  <label for="zoom-slider" class="me-2">Zoom</label>
+  <input type="range" id="zoom-slider" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
+</div>
 <button id="nav-toggle" type="button" onclick="toggleBottomNav()">&#9650;</button>
 <nav id="bottom-nav" class="navbar navbar-light bg-light fixed-bottom" style="display:none;">
   <ul class="nav nav-tabs nav-justified w-100">
