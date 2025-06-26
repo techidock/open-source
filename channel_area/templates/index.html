@@ -84,7 +84,7 @@
           <label for="canvas-width">Canvas Width:</label>
           <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
           <label for="canvas-height">Canvas Height:</label>
-          <input type="number" id="canvas-height" value="5000" oninput="updateCanvasSize()">
+          <input type="number" id="canvas-height" value="3000" oninput="updateCanvasSize()">
           <span id="draw-unit"></span><br>
         </div>
         <div class="tab-pane fade" id="channel-panel" role="tabpanel">
@@ -150,7 +150,7 @@
         <label for="shape">Shape:</label>
         <select name="shape" id="shape" onchange="showFields(); draw()">
           <option value="polygon">Polygon Channel</option>
-          <option value="circle">Circular Channel</option>
+          <option value="circle" selected>Circular Channel</option>
           <option value="rectangle">Rectangle Channel</option>
           <option value="egg">Egg Shape Channel</option>
         </select>
@@ -162,7 +162,7 @@
         </select>
         <div id="circular-fields" class="fields" style="display:none">
           <label for="circle-diameter">Diameter:</label>
-          <input type="number" id="circle-diameter" value="1000" oninput="resetCircle()">
+          <input type="number" id="circle-diameter" value="300" oninput="resetCircle()">
           <span id="circle-unit"></span>
           <label for="circle-points">Points:</label>
           <input type="number" id="circle-points" min="3" value="36" onchange="resetCircle()">
@@ -293,12 +293,12 @@
       var waterHeightMM = 0;
       var siltHeightMM = 0;
       var canvasWidthMM = 4000;
-      var canvasHeightMM = 5000;
+      var canvasHeightMM = 3000;
       var mmScale = 1;
-      var axisMargin = 10;
+      var axisMargin = 20;
       var gridSpacingMM = 500;
       var polygonScale = 1;
-      var circleDiameterMM = 1000;
+      var circleDiameterMM = 300;
       var rectWidthMM = 1000;
       var rectHeightMM = 1000;
       var rectRadiusMM = 0;
@@ -379,7 +379,7 @@
         var rect = canvas.getBoundingClientRect();
         var x = (e.clientX - rect.left) / zoomLevel;
         var y = (e.clientY - rect.top) / zoomLevel;
-        return {x: clamp(x, axisMargin, canvas.width), y: clamp(y, 0, canvas.height - axisMargin)};
+        return {x: clamp(x, axisMargin, canvas.width - axisMargin), y: clamp(y, axisMargin, canvas.height - axisMargin)};
       }
 
       function resizeCanvas() {
@@ -398,8 +398,8 @@
         var height = avail;
         canvas.width = width;
         canvas.height = height;
-        canvasWidthMM = mmScale * (canvas.width - axisMargin);
-        canvasHeightMM = mmScale * (canvas.height - axisMargin);
+        canvasWidthMM = mmScale * (canvas.width - 2*axisMargin);
+        canvasHeightMM = mmScale * (canvas.height - 2*axisMargin);
         document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
         document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
         points = ptsMM.map(function(p){
@@ -471,11 +471,11 @@
       function updateCanvasSize() {
         var f = unitFactor();
         var newW = clamp(parseFloat(document.getElementById('canvas-width').value) * f || 4000, 1000, 20000);
-        var newH = clamp(parseFloat(document.getElementById('canvas-height').value) * f || 5000, 1000, 20000);
+        var newH = clamp(parseFloat(document.getElementById('canvas-height').value) * f || 3000, 1000, 20000);
         var oldScale = mmScale;
         canvasWidthMM = newW;
         canvasHeightMM = newH;
-        mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
         var factor = oldScale / mmScale;
         if (factor !== 1) {
           for (var i = 0; i < points.length; i++) {
@@ -592,6 +592,7 @@
         canvas.addEventListener('mouseleave', clearCursorPos);
         canvas.addEventListener('mouseup', endDrag);
         canvas.addEventListener('dblclick', handleDoubleClick);
+        canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
         document.getElementById('edit-toggle').onchange = function(){
           editEnabled = this.checked;
           if (!editEnabled) editIndex = -1;
@@ -634,7 +635,7 @@
         updateUnitDisplay();
         updateShapeUnitDisplay();
         updateHeightUnitDisplay();
-        mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
         updateGridInfo();
         measureVisible = document.getElementById('measure-visible').checked;
         updateMeasurementTable();
@@ -646,7 +647,7 @@
           if (data && data.points) {
             if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
             if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
-            mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+            mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
             document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
             document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
@@ -1119,7 +1120,7 @@
       function resetCircle() {
         saveState();
         var n = parseInt(document.getElementById('circle-points').value) || 36;
-        circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * shapeUnitFactor() || 1000;
+        circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * shapeUnitFactor() || 300;
         points = defaultCircle(n, circleDiameterMM);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
@@ -1399,8 +1400,8 @@
         var row = e.target.parentElement.parentElement;
         var x = unitToPxX(parseFloat(row.children[1].firstChild.value));
         var y = unitToPxY(parseFloat(row.children[2].firstChild.value));
-        x = clamp(x, axisMargin, canvas.width);
-        y = clamp(y, 0, canvas.height - axisMargin);
+        x = clamp(x, axisMargin, canvas.width - axisMargin);
+        y = clamp(y, axisMargin, canvas.height - axisMargin);
         var dec = decimalsForUnits(document.getElementById('units').value);
         row.children[1].firstChild.value = pxToUnitX(x).toFixed(dec);
         row.children[2].firstChild.value = pxToUnitY(y).toFixed(dec);
@@ -1479,7 +1480,7 @@
           needUpdate = true;
         }
         if (needUpdate) {
-          mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+          mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
           document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
           document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
         }
@@ -1566,7 +1567,7 @@
             saveState();
             if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
             if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
-            mmScale = Math.max(canvasWidthMM / (canvas.width - axisMargin), canvasHeightMM / (canvas.height - axisMargin));
+            mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - 2*axisMargin));
             document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
             document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
             points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
@@ -1638,39 +1639,39 @@
         ctx.lineWidth = 1;
         var stepX = gridSpacingMM / mmScale;
         var stepY = gridSpacingMM / mmScale;
-        for (var x = axisMargin; x <= canvas.width; x += stepX) {
+        for (var x = axisMargin; x <= canvas.width - axisMargin; x += stepX) {
           ctx.beginPath();
-          ctx.moveTo(x, 0);
+          ctx.moveTo(x, axisMargin);
           ctx.lineTo(x, canvas.height - axisMargin);
           ctx.stroke();
         }
-        for (var y = axisMargin; y <= canvas.height; y += stepY) {
+        for (var y = axisMargin; y <= canvas.height - axisMargin; y += stepY) {
           var gy = canvas.height - y;
           ctx.beginPath();
           ctx.moveTo(axisMargin, gy);
-          ctx.lineTo(canvas.width, gy);
+          ctx.lineTo(canvas.width - axisMargin, gy);
           ctx.stroke();
         }
         ctx.strokeStyle = '#000';
         ctx.beginPath();
         ctx.moveTo(axisMargin, canvas.height - axisMargin);
-        ctx.lineTo(canvas.width, canvas.height - axisMargin);
+        ctx.lineTo(canvas.width - axisMargin, canvas.height - axisMargin);
         ctx.moveTo(axisMargin, canvas.height - axisMargin);
-        ctx.lineTo(axisMargin, 0);
+        ctx.lineTo(axisMargin, axisMargin);
         ctx.stroke();
         var spacingXMM = gridSpacingMM;
         var spacingYMM = gridSpacingMM;
         var units = document.getElementById('units').value;
-        for (var i = 0, x = axisMargin; x <= canvas.width; x += stepX, i++) {
+        for (var i = 0, x = axisMargin; x <= canvas.width - axisMargin; x += stepX, i++) {
           var val = (i * spacingXMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, x + 2, canvas.height - 2);
+          ctx.fillText(val, x + 2, canvas.height - axisMargin + 12);
         }
-        for (var i = 0, y = axisMargin; y <= canvas.height; y += stepY, i++) {
+        for (var i = 0, y = axisMargin; y <= canvas.height - axisMargin; y += stepY, i++) {
           var val = (i * spacingYMM / unitFactor()).toFixed(1);
-          ctx.fillText(val, 2, canvas.height - y - 2);
+          ctx.fillText(val, axisMargin - 18, canvas.height - y - 2);
         }
-        ctx.fillText('x', canvas.width - 10, canvas.height - 2);
-        ctx.fillText('y', 2, 10);
+        ctx.fillText('x', canvas.width - axisMargin + 8, canvas.height - axisMargin + 12);
+        ctx.fillText('y', axisMargin - 12, axisMargin - 4);
       }
 
 
