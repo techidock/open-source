@@ -5,7 +5,7 @@ This is a simple Flask-based web application for calculating the cross-sectional
 Each dimension field lets you choose units in metres, centimetres or millimetres.
 All channel data is stored internally in millimetres so switching units only changes the way values are displayed.
 Areas are reported in the selected units squared.
-The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. A **Water Height** input on the **Channel Properties** tab lets you specify how full the channel is, from 0 up to the maximum height of the selected shape. The height inputs show the current units next to the edit boxes. The shape is coloured transparent grey (40% opacity) above the water line and blue below it. The **Channel Properties** tab lists the overall shape area, the water-filled area and the silt area. A **Silt Height** box on the same tab defines how much sediment fills the bottom of the channel; this region is shown in brown.
+The **New Channel** button opens a dialog containing all the options for creating a shape and adjusting its dimensions. A **Water Height** input on the **Channel Properties** tab lets you specify how full the channel is, from 0 up to the maximum height of the selected shape. The height inputs show the current units next to the edit boxes. The shape is coloured transparent grey (40% opacity) above the water line and transparent blue below it. The **Channel Properties** tab lists the overall shape area, the water-filled area and the silt area. A **Silt Height** box on the same tab defines how much sediment fills the bottom of the channel; this region is shown in transparent brown.
 
 ## Requirements
 
@@ -39,7 +39,7 @@ The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Click and drag a marker to move it—the point turns black while being edited.
 Double-clicking when **Add Points** is active inserts a new vertex on the nearest edge; otherwise a double click simply selects the point, though dragging works without pre-selecting. Choose the units (m, cm, or mm) from the drop-down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate the minimum and maximum points of the current shape. Table numbers use three decimal places for metres, one for centimetres and none for millimetres.
 
-The right-hand **Properties** menu groups information into **Display**, **Channel** and **Edit Tools** tabs. The **Edit Tools** tab starts with an **Edit Mode** checkbox that enables moving points. It also offers an **Add Points** toggle, **Undo** and **Redo** buttons and a **Delete Point** option that confirms before removing the vertex. Shape files are saved as SVG under `channel_area/shapes` and managed from the **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use the **New Channel** dialog to choose a shape type when starting a drawing. The canvas size is configured from the **Setup** dialog, while units are selected on the **Display** tab.
+The right-hand **Properties** menu groups information into **Display**, **Channel** and **Edit Tools** tabs. The **Edit Tools** tab starts with an **Edit Mode** checkbox that enables moving points. It also offers a **Move Image** option, an **Add Points** toggle, **Undo** and **Redo** buttons and a **Delete Point** option that confirms before removing the vertex. Shape files are saved as SVG under `channel_area/shapes` and managed from the **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use the **New Channel** dialog to choose a shape type when starting a drawing. The canvas size is configured from the **Setup** dialog, while units are selected on the **Display** tab.
 The last design is automatically saved and restored the next time you open the page. When a saved shape is loaded, its canvas dimensions are also restored so the drawing matches the real-world scale it was saved with.
 
 Double clicking when **Add Points** is active inserts a new vertex on the nearest edge. With the option off, a double click selects a point for editing instead.
@@ -61,8 +61,9 @@ chooser so you can upload a reference picture. Selecting any of these tools
 disables the previously active one.
 The pencil button reveals a floating tools panel, matching the menu's grey
 colour and width. It slides 10 px to the right when opened and holds a
-cursor icon for **Select Points** at position 0 and a tape‑measure icon in
-position 3. When either tool is chosen the icon receives a blue outline and the
+cursor icon for **Select Points** at position 0, a move icon at position 1 for
+dragging uploaded images, an **Add Points** tool at position 2 and a tape‑measure icon in
+position 3. When any tool is chosen the icon receives a blue outline and the
 Pencil button in the left menu shows the same highlight. A small circular **X**
 button appears just above the panel to close it whenever a tool is active.
 A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
@@ -75,7 +76,7 @@ shrinks to fit whatever space is available in the drawing area.
 Edit Mode is off by default so the point markers remain hidden until enabled.
 
 Use the **Water Height** box on the **Channel Properties** tab to draw a blue line at the chosen level. The line spans only the width of the current shape. The resulting water area appears along with the overall area in that panel.
-Use the **Silt Height** box to show sediment build-up. The brown region up to this line is counted separately so you can see the silt area alongside the water area; this value is also displayed in **Channel Properties**.
+Use the **Silt Height** box to show sediment build-up. The transparent brown region up to this line is counted separately so you can see the silt area alongside the water area; this value is also displayed in **Channel Properties**.
 A **Height Units** dropdown lets you show these heights in metres, centimetres or millimetres independently of the shape units.
 The **Manage Shapes** dialog stores the water and silt heights along with the points when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
 These levels are automatically restored when a shape is loaded.
