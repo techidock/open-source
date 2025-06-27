@@ -68,17 +68,20 @@ canvas {
   position: absolute;
   left: 40px; /* next to tool bar */
   top: 50%;
-  transform: translateY(-50%);
+  transform: translate(-10px, -50%);
   width: 40px; /* match tool bar width */
   background: #eee;
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 4px 4px 0 4px;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
   z-index: 1020;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 #tools-panel .btn-close {
@@ -87,7 +90,10 @@ canvas {
 }
 
 #tools-panel.show {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(0, -50%);
 }
 
 #projects-panel {
@@ -190,29 +196,35 @@ table {
   bottom: 40px; /* above the bottom bar */
   left: 0;
   width: 40px;
-  background: #eee;
+  background: linear-gradient(to right, #eee calc(100% - 8px), #fff calc(100% - 8px));
   border-right: 1px solid #ccc;
   display: flex;
   flex-direction: column;
   overflow-y: auto; /* allow scrolling when window is short */
   overflow-x: hidden; /* hide horizontal bar */
   z-index: 1030;
+  box-sizing: content-box;
+  padding-right: 8px; /* white space for scrollbar */
+  scrollbar-width: none; /* hidden by default */
+  scrollbar-gutter: stable;
+  transition: background-color 0.3s;
 }
 
-/* place scrollbar on the right without covering the tools */
-#left-bar {
-  box-sizing: content-box;
-  padding-right: 8px;
-  scrollbar-width: thin;
-  scrollbar-color: #ccc #eee;
+#left-bar:hover {
+  scrollbar-width: thin; /* firefox */
 }
 
 #left-bar::-webkit-scrollbar {
+  width: 0;
+  transition: width 0.3s;
+}
+
+#left-bar:hover::-webkit-scrollbar {
   width: 8px;
 }
 
 #left-bar::-webkit-scrollbar-track {
-  background: #eee;
+  background: #fff;
 }
 
 #left-bar::-webkit-scrollbar-thumb {

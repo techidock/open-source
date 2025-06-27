@@ -15,7 +15,7 @@
     </div>
     <div class="tool-cell" data-index="3"></div>
     <div class="tool-cell" data-index="4">
-      <button id="tools-btn" class="tool-btn" onclick="toggleToolsPanel()"><i class="bi bi-pencil"></i></button>
+      <button id="tools-btn" class="tool-btn"><i class="bi bi-pencil"></i></button>
     </div>
     <div class="tool-cell" data-index="5"></div>
     <div class="tool-cell" data-index="6"></div>
@@ -204,7 +204,9 @@
           </div>
           <div id="tools-panel" class="floating-menu">
             <button type="button" class="btn-close" onclick="toggleToolsPanel()"></button>
-            <div class="tool-cell" data-index="0"></div>
+            <div class="tool-cell" data-index="0">
+              <button class="tool-btn" title="Select Points" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
+            </div>
             <div class="tool-cell" data-index="1"></div>
             <div class="tool-cell" data-index="2"></div>
             <div class="tool-cell" data-index="3"></div>
@@ -318,6 +320,7 @@
       var activeMeasure = -1;
       var measuring = false;
       var measureDrag = null;
+      var toolsPanelLocked = false;
       var propertiesOffcanvas;
       var zoomLevel = 1;
       var bgImage = null;
@@ -669,6 +672,13 @@
           draw();
         }).catch(() => draw());
         togglePinProperties();
+
+        var toolsBtn = document.getElementById('tools-btn');
+        var toolsPanel = document.getElementById('tools-panel');
+        toolsBtn.addEventListener('mouseenter', function(){ if(!toolsPanelLocked) showToolsPanel(); });
+        toolsBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!toolsPanelLocked && !toolsPanel.matches(':hover')) hideToolsPanel(); }, 150); });
+        toolsBtn.addEventListener('click', function(){ toggleToolsPanel(true); });
+        toolsPanel.addEventListener('mouseleave', function(){ if(!toolsPanelLocked && !toolsBtn.matches(':hover')) hideToolsPanel(); });
       }
 
       function startDrag(e) {
@@ -1701,18 +1711,30 @@
       }
 
 
-      function toggleToolsPanel() {
+      function showToolsPanel(lock) {
+        var panel = document.getElementById('tools-panel');
+        var mt = document.getElementById('measure-toggle');
+        if (mt.checked) {
+          mt.checked = false;
+          mt.dispatchEvent(new Event('change'));
+          document.getElementById('measure-btn').classList.remove('active');
+        }
+        panel.classList.add('show');
+        if (lock) toolsPanelLocked = true;
+      }
+
+      function hideToolsPanel() {
+        var panel = document.getElementById('tools-panel');
+        panel.classList.remove('show');
+        toolsPanelLocked = false;
+      }
+
+      function toggleToolsPanel(lock) {
         var panel = document.getElementById('tools-panel');
         if (panel.classList.contains('show')) {
-          panel.classList.remove('show');
+          hideToolsPanel();
         } else {
-          var mt = document.getElementById('measure-toggle');
-          if (mt.checked) {
-            mt.checked = false;
-            mt.dispatchEvent(new Event('change'));
-            document.getElementById('measure-btn').classList.remove('active');
-          }
-          panel.classList.add('show');
+          showToolsPanel(lock);
         }
       }
 
@@ -1740,8 +1762,6 @@
         } else {
           mt.checked = true;
           btn.classList.add('active');
-          var panel = document.getElementById('tools-panel');
-          panel.classList.remove('show');
         }
         mt.dispatchEvent(new Event('change'));
       }
@@ -1757,7 +1777,12 @@
         editEnabled = true;
         document.getElementById('add-point-toggle').checked = false;
         addPointEnabled = false;
-        toggleToolsPanel();
+        draw();
+      }
+
+      function lockAndSelect() {
+        showToolsPanel(true);
+        activateSelectTool();
       }
 
       window.onload = init;
