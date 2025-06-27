@@ -53,12 +53,14 @@ A button at the top left reveals a slide-out menu containing **New Channel**,
 an option.
 The top navigation bar stretches across the entire page in black. A menu button appears in the left corner so you can open the slide out menu.
 Along the left border runs a solid grey strip divided into ten equal squares
-numbered **0** at the top down to **9**. This serves as the tool menu. The first
-section (0) opens the **Projects** panel, section 2 has a tape-measure icon that
+numbered **0** at the top down to **9**. This serves as the tool menu. The bar
+can scroll if the window is short so every square remains accessible. The first
+section (0) opens the **Projects** panel, section 2 has a tape‑measure icon that
 turns on Measurement mode, and section 4 shows a pencil icon for the **Edit
 Tools** menu. Selecting any of these tools disables the previously active one.
-The pencil button reveals the floating tools panel where the **Select** button
-switches back to normal editing mode.
+The pencil button reveals a floating tools panel, matching the menu's grey
+colour and width. It sits next to the bar and contains a single icon button with
+a tooltip "Select Points" for returning to normal editing.
 A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
 
 The page shows light grey borders along the left and bottom edges. The left bar is split into numbered tool sections, and the bottom bar is divided into ten segments with the zoom slider placed in the centre and the Properties button in the last cell.
