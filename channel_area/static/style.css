@@ -89,6 +89,56 @@ canvas {
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+#image-panel {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translate(-10px, -50%);
+  width: 40px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 4px 0 4px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1020;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#image-panel .btn-close {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  display: none;
+  padding: 0;
+}
+
+#image-panel.locked .btn-close {
+  display: block;
+}
+
+#image-panel.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(10px, -50%);
+}
+
+#image-panel input {
+  width: 34px;
+  margin-top: 2px;
+}
+
 #tools-panel .btn-close {
   position: absolute;
   top: -32px;

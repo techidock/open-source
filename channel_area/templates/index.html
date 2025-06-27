@@ -16,7 +16,7 @@
       <button id="tools-btn" class="tool-btn"><i class="bi bi-pencil"></i></button>
     </div>
     <div class="tool-cell" data-index="5">
-      <button id="image-btn" class="tool-btn" title="Upload Image" onclick="openImageUpload()"><i class="bi bi-image"></i></button>
+      <button id="image-btn" class="tool-btn" title="Image Tools"><i class="bi bi-image"></i></button>
     </div>
     <div class="tool-cell" data-index="6"></div>
     <div class="tool-cell" data-index="7"></div>
@@ -119,9 +119,6 @@
           <button type="button" onclick="redoEdit()">Redo</button>
           <button type="button" onclick="confirmDeletePoint()">Delete Point</button>
           <button type="button" onclick="copyCanvas()">Copy Image</button>
-          <label><input type="checkbox" id="move-image-toggle"> Move Image</label><br>
-          <label for="image-scale">Image Scale:</label>
-          <input type="number" id="image-scale" value="1" step="0.1" min="0.1" oninput="updateImageScale(this.value)">
         </div>
         <div class="tab-pane fade" id="vectors-panel" role="tabpanel">
           <h3>Points</h3>
@@ -206,12 +203,9 @@
               <button id="select-tool-btn" class="tool-btn" title="Select Points" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
             </div>
             <div class="tool-cell" data-index="1">
-              <button id="move-image-tool-btn" class="tool-btn" title="Move Image" onclick="activateMoveImageTool()"><i class="bi bi-arrows-move"></i></button>
-            </div>
-            <div class="tool-cell" data-index="2">
               <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()"><i class="bi bi-vector-pen"></i></button>
             </div>
-            <div class="tool-cell" data-index="3">
+            <div class="tool-cell" data-index="2">
               <button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button>
             </div>
             <div class="tool-cell" data-index="4"></div>
@@ -219,6 +213,19 @@
           <div id="projects-panel" class="floating-menu">
             <button type="button" class="btn-close" onclick="toggleProjectsPanel()"></button>
             <p>Projects</p>
+          </div>
+          <div id="image-panel" class="floating-menu">
+            <button id="image-close-btn" type="button" class="btn-close" onclick="closeImagePanel()"></button>
+            <div class="tool-cell" data-index="0">
+              <button id="upload-image-btn" class="tool-btn" title="Upload Image" onclick="openImageUpload()"><i class="bi bi-upload"></i></button>
+            </div>
+            <div class="tool-cell" data-index="1">
+              <button id="move-image-tool-btn" class="tool-btn" title="Move Image" onclick="activateMoveImageTool()"><i class="bi bi-arrows-move"></i></button>
+            </div>
+            <div class="tool-cell" data-index="2">
+              <i class="bi bi-arrows-angle-expand"></i>
+              <input id="image-scale" type="number" value="1" step="0.1" min="0.1" oninput="updateImageScale(this.value)">
+            </div>
           </div>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
@@ -326,6 +333,7 @@
       var measuring = false;
       var measureDrag = null;
       var toolsPanelLocked = false;
+      var imagePanelLocked = false;
       var propertiesOffcanvas;
       var zoomLevel = 1;
       var bgImage = null;
@@ -624,8 +632,9 @@
             im.checked = false;
             im.dispatchEvent(new Event('change'));
           }
-          updateToolHighlight();
-        };
+         updateImageToolHighlight();
+         updateToolHighlight();
+      };
         document.getElementById('vectors-toggle').onchange = function(){
           vectorsVisible = this.checked;
           draw();
@@ -700,7 +709,16 @@
         toolsBtn.addEventListener('click', function(){ toggleToolsPanel(true); });
         toolsPanel.addEventListener('mouseleave', function(){ if(!toolsPanelLocked && !toolsBtn.matches(':hover')) hideToolsPanel(); });
         document.getElementById('measure-tool-btn').addEventListener('click', activateMeasureTool);
+
+        var imageBtn = document.getElementById('image-btn');
+        var imagePanel = document.getElementById('image-panel');
+        imageBtn.addEventListener('mouseenter', function(){ if(!imagePanelLocked) showImagePanel(); });
+        imageBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!imagePanelLocked && !imagePanel.matches(':hover')) hideImagePanel(); }, 150); });
+        imageBtn.addEventListener('click', function(){ toggleImagePanel(true); });
+        imagePanel.addEventListener('mouseleave', function(){ if(!imagePanelLocked && !imageBtn.matches(':hover')) hideImagePanel(); });
+
         updateToolHighlight();
+        updateImageToolHighlight();
       }
 
       function startDrag(e) {
@@ -1763,6 +1781,31 @@
         }
       }
 
+      function showImagePanel(lock) {
+        var panel = document.getElementById('image-panel');
+        panel.classList.add('show');
+        if (lock) {
+          imagePanelLocked = true;
+          panel.classList.add('locked');
+        }
+      }
+
+      function hideImagePanel() {
+        var panel = document.getElementById('image-panel');
+        panel.classList.remove('show');
+        panel.classList.remove('locked');
+        imagePanelLocked = false;
+      }
+
+      function toggleImagePanel(lock) {
+        var panel = document.getElementById('image-panel');
+        if (panel.classList.contains('show')) {
+          hideImagePanel();
+        } else {
+          showImagePanel(lock);
+        }
+      }
+
       function toggleProjectsPanel() {
         var panel = document.getElementById('projects-panel');
         if (panel.classList.contains('show')) {
@@ -1785,7 +1828,7 @@
       }
 
       function activateMoveImageTool() {
-        showToolsPanel(true);
+        showImagePanel(true);
         var im = document.getElementById('move-image-toggle');
         im.checked = !im.checked;
         im.dispatchEvent(new Event('change'));
@@ -1824,26 +1867,28 @@
       function closeToolsPanel() {
         var mt = document.getElementById('measure-toggle');
         var et = document.getElementById('edit-toggle');
-        var im = document.getElementById('move-image-toggle');
         var ap = document.getElementById('add-point-toggle');
         mt.checked = false;
         et.checked = false;
-        im.checked = false;
         ap.checked = false;
         mt.dispatchEvent(new Event('change'));
         et.dispatchEvent(new Event('change'));
-        im.dispatchEvent(new Event('change'));
         ap.dispatchEvent(new Event('change'));
         hideToolsPanel();
+      }
+
+      function closeImagePanel() {
+        document.getElementById('move-image-toggle').checked = false;
+        document.getElementById('move-image-toggle').dispatchEvent(new Event('change'));
+        hideImagePanel();
       }
 
       function updateToolHighlight() {
         document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
         document.getElementById('measure-tool-btn').classList.toggle('active', measureMode);
-        document.getElementById('move-image-tool-btn').classList.toggle('active', document.getElementById('move-image-toggle').checked);
         document.getElementById('add-point-tool-btn').classList.toggle('active', addPointEnabled);
         var toolsBtn = document.getElementById('tools-btn');
-        var active = editEnabled || measureMode || document.getElementById('move-image-toggle').checked || addPointEnabled;
+        var active = editEnabled || measureMode || addPointEnabled;
         toolsBtn.classList.toggle('active', active);
         var closeBtn = document.getElementById('tools-close-btn');
         if (active) {
@@ -1851,6 +1896,21 @@
           closeBtn.style.display = 'block';
         } else {
           document.getElementById('tools-panel').classList.remove('locked');
+          closeBtn.style.display = 'none';
+        }
+      }
+
+      function updateImageToolHighlight() {
+        document.getElementById('move-image-tool-btn').classList.toggle('active', document.getElementById('move-image-toggle').checked);
+        var btn = document.getElementById('image-btn');
+        var active = document.getElementById('move-image-toggle').checked;
+        btn.classList.toggle('active', active);
+        var closeBtn = document.getElementById('image-close-btn');
+        if (active) {
+          document.getElementById('image-panel').classList.add('locked');
+          closeBtn.style.display = 'block';
+        } else {
+          document.getElementById('image-panel').classList.remove('locked');
           closeBtn.style.display = 'none';
         }
       }
