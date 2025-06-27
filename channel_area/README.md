@@ -39,7 +39,7 @@ The area updates automatically as you change the shape. Each point is shown as a
 blue marker. Click and drag a marker to move it—the point turns black while being edited.
 Double-clicking when **Add Points** is active inserts a new vertex on the nearest edge; otherwise a double click simply selects the point, though dragging works without pre-selecting. Choose the units (m, cm, or mm) from the drop-down to have results shown in the chosen units squared. All shapes are treated as polygons. A table beneath the canvas lists each vertex. Editing the table keeps the coordinates inside the canvas and immediately redraws the shape. Small red markers indicate the minimum and maximum points of the current shape. Table numbers use three decimal places for metres, one for centimetres and none for millimetres.
 
-The right-hand **Properties** menu groups information into **Display**, **Channel** and **Edit Tools** tabs. Edit Mode and Add Points are toggled from the floating **Edit Tools** menu opened by the pencil icon in section 4 of the left toolbar. That floating panel also holds **Undo**, **Redo** and a **Delete Point** button which confirms before removing the selected vertex. Shape files are saved as SVG under `channel_area/shapes` and managed from the **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use the **New Channel** dialog to choose a shape type when starting a drawing. The canvas size is configured from the **Setup** dialog, while units are selected on the **Display** tab.
+The right-hand **Properties** menu groups information into **Display**, **Channel** and **Edit Tools** tabs. Edit Mode and Add Points are toggled from the floating **Edit Tools** menu opened by the pencil icon in section 4 of the left toolbar. That floating panel also holds a **Delete Point** button, while **Undo** and **Redo** controls appear in section 1 of the bottom bar whenever the edit tool is active. Shape files are saved as SVG under `channel_area/shapes` and managed from the **Manage Shapes** dialog which lets you name, save and reload saved shapes. Use the **New Channel** dialog to choose a shape type when starting a drawing. The canvas size is configured from the **Setup** dialog, while units are selected on the **Display** tab.
 The last design is automatically saved and restored the next time you open the page. When a saved shape is loaded, its canvas dimensions are also restored so the drawing matches the real-world scale it was saved with.
 
 Double clicking when **Add Points** is active inserts a new vertex on the nearest edge. With the option off, a double click selects a point for editing instead.
@@ -47,7 +47,7 @@ Double clicking when **Add Points** is active inserts a new vertex on the neares
 The markers themselves can be hidden or shown with the **Show Vectors**
 checkbox found on the **Display** tab of the Properties menu. This tab also lists **Show Bounding Box** and measurement options alongside the other display toggles.
 Uploaded reference images appear with a dashed black outline so you can see their boundaries while positioning them. Use the image icon in section 5 of the left toolbar to open the **Image Tools** panel. The first button there uploads a file and additional controls let you move and scale the picture.
-Section 6 hosts a canvas icon that opens the **Canvas Tools** panel. This floating menu contains five tool slots for future features and behaves like the other panels.
+Section 6 hosts a canvas icon that opens the **Canvas Tools** panel. This floating menu matches the left bar width and now includes a **Copy Image** button along with five placeholder tool slots.
 
 A button at the top left reveals a slide-out menu containing **New Channel**,
 **Manage Shapes** and **Setup**. The menu automatically closes once you choose
@@ -67,7 +67,7 @@ The page shows light grey borders along the left and bottom edges. The left bar 
 Shapes are always positioned with their left edge along the bottom of the canvas. The canvas now fills the browser window and scroll bars are removed so the entire drawing stays visible. The available height is calculated between the top navigation bar and bottom toolbar so the drawing area makes full use of the space. Portrait mode shows the Properties panel below the canvas, while landscape mode allows the panel to be pinned on the right.
 The canvas has no fixed width or height attributes, so it automatically grows or
 shrinks to fit whatever space is available in the drawing area.
-Edit Mode is off by default so the point markers remain hidden until enabled.
+Edit Mode is off by default so the point markers remain hidden. When the edit tool is active the markers are forced visible even if the **Show Vectors** checkbox is off.
 
 Use the **Water Height** box on the **Channel Properties** tab to draw a blue line at the chosen level. The line spans only the width of the current shape. The resulting water area appears along with the overall area in that panel.
 Use the **Silt Height** box to show sediment build-up. The transparent brown region up to this line is counted separately so you can see the silt area alongside the water area; this value is also displayed in **Channel Properties**.

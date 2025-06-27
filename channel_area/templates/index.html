@@ -118,7 +118,6 @@
           <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
           <button type="button" onclick="undoEdit()">Undo</button>
           <button type="button" onclick="redoEdit()">Redo</button>
-          <button type="button" onclick="copyCanvas()">Copy Image</button>
         </div>
         <div class="tab-pane fade" id="vectors-panel" role="tabpanel">
           <h3>Points</h3>
@@ -237,6 +236,7 @@
             <div class="tool-cell" data-index="2"><button class="tool-btn"><i class="bi bi-triangle"></i></button></div>
             <div class="tool-cell" data-index="3"><button class="tool-btn"><i class="bi bi-star"></i></button></div>
             <div class="tool-cell" data-index="4"><button class="tool-btn"><i class="bi bi-hexagon"></i></button></div>
+            <div class="tool-cell" data-index="5"><button class="tool-btn" title="Copy Image" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
           </div>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
@@ -245,7 +245,10 @@
     </div>
   <div id="bottom-bar">
       <div class="bottom-cell" data-index="0"></div>
-      <div class="bottom-cell" data-index="1"></div>
+      <div class="bottom-cell" data-index="1" id="undo-redo-cell" style="display:none">
+        <button class="btn btn-light btn-sm me-1" onclick="undoEdit()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+        <button class="btn btn-light btn-sm" onclick="redoEdit()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
       <div class="bottom-cell" data-index="2" id="image-scale-cell" style="display:none">
         <input type="range" id="image-scale-slider" title="Image Scale" min="0.1" max="3" step="0.1" value="1" oninput="updateImageScale(this.value)">
       </div>
@@ -966,7 +969,7 @@
           }
         }
 
-        if (vectorsVisible && editEnabled) {
+        if (editEnabled || vectorsVisible) {
           for (var i = 0; i < pts.length; i++) {
             var color = (i === editIndex && editShape === shape && editEnabled) ? '#000' : '#0000ff';
             ctx.fillStyle = color;
@@ -1432,7 +1435,7 @@
       }
 
       function snapToPoint(x, y) {
-        if (!vectorsVisible || !editEnabled) return {x: x, y: y, index: -1};
+        if (!(vectorsVisible || editEnabled)) return {x: x, y: y, index: -1};
         var pts = getShapePoints(document.getElementById('shape').value);
         for (var i = 0; i < pts.length; i++) {
           if (Math.hypot(pts[i].x - x, pts[i].y - y) < 6) {
@@ -1988,6 +1991,8 @@
           document.getElementById('tools-panel').classList.remove('locked');
           closeBtn.style.display = 'none';
         }
+        var undoCell = document.getElementById('undo-redo-cell');
+        if (undoCell) undoCell.style.display = editEnabled ? 'flex' : 'none';
       }
 
       function updateImageToolHighlight() {
