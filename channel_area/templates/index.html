@@ -201,7 +201,7 @@
             <canvas id="canvas"></canvas>
           </div>
           <div id="tools-panel" class="floating-menu">
-            <button type="button" class="btn-close" onclick="toggleToolsPanel()"></button>
+            <button id="tools-close-btn" type="button" class="btn-close" onclick="closeToolsPanel()"></button>
             <div class="tool-cell" data-index="0">
               <button id="select-tool-btn" class="tool-btn" title="Select Points" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
             </div>
@@ -603,14 +603,12 @@
         canvas.addEventListener('mouseup', endDrag);
         canvas.addEventListener('dblclick', handleDoubleClick);
         canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-        document.getElementById('edit-toggle').onchange = function(){
-          editEnabled = this.checked;
-          if (!editEnabled) editIndex = -1;
-          if (!editEnabled) {
-            document.getElementById('select-tool-btn').classList.remove('active');
-          }
+       document.getElementById('edit-toggle').onchange = function(){
+         editEnabled = this.checked;
+         if (!editEnabled) editIndex = -1;
+          updateToolHighlight();
           draw();
-        };
+       };
         document.getElementById('add-point-toggle').onchange = function(){
           addPointEnabled = this.checked;
           if (this.checked) {
@@ -632,21 +630,18 @@
           updateMeasurementTable();
           draw();
         };
-        document.getElementById('measure-toggle').onchange = function(){
-          measureMode = this.checked;
+       document.getElementById('measure-toggle').onchange = function(){
+         measureMode = this.checked;
           if (this.checked) {
             document.getElementById('add-point-toggle').checked = false;
             addPointEnabled = false;
-            document.getElementById('measure-tool-btn').classList.add('active');
-            document.getElementById('select-tool-btn').classList.remove('active');
-          } else {
-            document.getElementById('measure-tool-btn').classList.remove('active');
           }
+          updateToolHighlight();
           measuring = false;
           measureDrag = null;
           activeMeasure = -1;
           draw();
-        };
+       };
         updateShapeList();
         showFields();
         updateUnitDisplay();
@@ -684,6 +679,7 @@
         toolsBtn.addEventListener('click', function(){ toggleToolsPanel(true); });
         toolsPanel.addEventListener('mouseleave', function(){ if(!toolsPanelLocked && !toolsBtn.matches(':hover')) hideToolsPanel(); });
         document.getElementById('measure-tool-btn').addEventListener('click', activateMeasureTool);
+        updateToolHighlight();
       }
 
       function startDrag(e) {
@@ -1724,12 +1720,16 @@
           mt.dispatchEvent(new Event('change'));
         }
         panel.classList.add('show');
-        if (lock) toolsPanelLocked = true;
+        if (lock) {
+          toolsPanelLocked = true;
+          panel.classList.add('locked');
+        }
       }
 
       function hideToolsPanel() {
         var panel = document.getElementById('tools-panel');
         panel.classList.remove('show');
+        panel.classList.remove('locked');
         toolsPanelLocked = false;
       }
 
@@ -1757,12 +1757,9 @@
       }
 
       function activateMeasureTool() {
+        showToolsPanel(true);
         var mt = document.getElementById('measure-toggle');
-        if (mt.checked) {
-          mt.checked = false;
-        } else {
-          mt.checked = true;
-        }
+        mt.checked = !mt.checked;
         mt.dispatchEvent(new Event('change'));
       }
 
@@ -1771,19 +1768,43 @@
         if (mt.checked) {
           mt.checked = false;
           mt.dispatchEvent(new Event('change'));
-          document.getElementById('measure-tool-btn').classList.remove('active');
         }
         document.getElementById('edit-toggle').checked = true;
         editEnabled = true;
         document.getElementById('add-point-toggle').checked = false;
         addPointEnabled = false;
-        document.getElementById('select-tool-btn').classList.add('active');
+        updateToolHighlight();
         draw();
       }
 
       function lockAndSelect() {
         showToolsPanel(true);
         activateSelectTool();
+      }
+
+      function closeToolsPanel() {
+        var mt = document.getElementById('measure-toggle');
+        var et = document.getElementById('edit-toggle');
+        mt.checked = false;
+        et.checked = false;
+        mt.dispatchEvent(new Event('change'));
+        et.dispatchEvent(new Event('change'));
+        hideToolsPanel();
+      }
+
+      function updateToolHighlight() {
+        document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
+        document.getElementById('measure-tool-btn').classList.toggle('active', measureMode);
+        var toolsBtn = document.getElementById('tools-btn');
+        toolsBtn.classList.toggle('active', editEnabled || measureMode);
+        var closeBtn = document.getElementById('tools-close-btn');
+        if (editEnabled || measureMode) {
+          document.getElementById('tools-panel').classList.add('locked');
+          closeBtn.style.display = 'block';
+        } else {
+          document.getElementById('tools-panel').classList.remove('locked');
+          closeBtn.style.display = 'none';
+        }
       }
 
       window.onload = init;

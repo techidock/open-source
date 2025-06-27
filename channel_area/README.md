@@ -59,10 +59,11 @@ section (0) opens the **Projects** panel and section 4 shows a pencil icon for
 the **Edit Tools** menu. Selecting any of these tools disables the previously
 active one.
 The pencil button reveals a floating tools panel, matching the menu's grey
-colour and width. It slides 10 px to the right when opened and now holds two
-icons: a cursor for **Select Points** in position 0 and a tape‑measure icon in
-position 3 for quick access to the measurement tool. The active tool is outlined
-in blue so you always know which one is in use.
+colour and width. It slides 10 px to the right when opened and holds a
+cursor icon for **Select Points** at position 0 and a tape‑measure icon in
+position 3. When either tool is chosen the icon receives a blue outline and the
+Pencil button in the left menu shows the same highlight. A small circular **X**
+button appears just above the panel to close it whenever a tool is active.
 A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
 
 The page shows light grey borders along the left and bottom edges. The left bar is split into numbered tool sections, and the bottom bar is divided into ten segments with the zoom slider placed in the centre and the Properties button in the last cell.

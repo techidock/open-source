@@ -29,6 +29,7 @@ body {
   padding-left: 0;
   padding-right: 0;
   margin-left: 40px;
+  margin-top: -20px; /* move canvas up slightly */
   width: calc(100% - 40px);
 }
 
@@ -89,8 +90,21 @@ canvas {
 }
 
 #tools-panel .btn-close {
-  align-self: center;
-  margin-bottom: 4px;
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  display: none;
+  padding: 0;
+}
+
+#tools-panel.locked .btn-close {
+  display: block;
 }
 
 #tools-panel.show {
