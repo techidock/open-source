@@ -205,12 +205,8 @@
               <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()"><i class="bi bi-vector-pen"></i></button>
             </div>
             <div class="tool-cell" data-index="2">
-              <button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button>
-            </div>
-            <div class="tool-cell" data-index="3">
               <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="confirmDeletePoint()"><i class="bi bi-x-lg"></i></button>
             </div>
-            <div class="tool-cell" data-index="4"></div>
           </div>
           <div id="projects-panel" class="floating-menu">
             <button type="button" class="btn-close" onclick="toggleProjectsPanel()"></button>
@@ -231,12 +227,14 @@
           </div>
           <div id="canvas-tools-panel" class="floating-menu">
             <button id="canvas-tools-close-btn" type="button" class="btn-close" onclick="closeCanvasToolsPanel()"></button>
-            <div class="tool-cell" data-index="0"><button class="tool-btn"><i class="bi bi-square"></i></button></div>
-            <div class="tool-cell" data-index="1"><button class="tool-btn"><i class="bi bi-circle"></i></button></div>
-            <div class="tool-cell" data-index="2"><button class="tool-btn"><i class="bi bi-triangle"></i></button></div>
-            <div class="tool-cell" data-index="3"><button class="tool-btn"><i class="bi bi-star"></i></button></div>
-            <div class="tool-cell" data-index="4"><button class="tool-btn"><i class="bi bi-hexagon"></i></button></div>
-            <div class="tool-cell" data-index="5"><button class="tool-btn" title="Copy Image" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
+            <div class="tool-cell" data-index="0">
+              <input id="canvas-color-picker" type="color" value="#fafafa" title="Canvas Colour" oninput="updateCanvasColor(this.value)">
+            </div>
+            <div class="tool-cell" data-index="1"><button class="tool-btn"><i class="bi bi-square"></i></button></div>
+            <div class="tool-cell" data-index="2"><button class="tool-btn"><i class="bi bi-circle"></i></button></div>
+            <div class="tool-cell" data-index="3"><button class="tool-btn"><i class="bi bi-triangle"></i></button></div>
+            <div class="tool-cell" data-index="4"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
+            <div class="tool-cell" data-index="5"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
           </div>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
@@ -335,6 +333,7 @@
       var canvasWidthMM = 4000;
       var canvasHeightMM = 3000;
       var mmScale = 1;
+      var canvasColor = '#fafafa';
       var axisMargin = 20; // top and side margin
       var bottomMargin = 40;
       var gridSpacingMM = 500;
@@ -417,6 +416,11 @@
         if (!isFinite(f) || f <= 0) return;
         bgUserScale = f;
         draw();
+      }
+
+      function updateCanvasColor(val) {
+        canvasColor = val;
+        canvas.style.background = canvasColor;
       }
 
       function getCanvasPos(e) {
@@ -625,6 +629,9 @@
       function init() {
         canvas = document.getElementById('canvas');
         ctx = canvas.getContext('2d');
+        canvas.style.background = canvasColor;
+        var cp = document.getElementById('canvas-color-picker');
+        if (cp) cp.value = canvasColor;
         applyZoom();
         propertiesOffcanvas = new bootstrap.Offcanvas(document.getElementById('properties-menu'));
         resizeCanvas();
@@ -677,6 +684,7 @@
             document.getElementById('move-image-toggle').checked = false;
           }
           updateToolHighlight();
+          updateCanvasToolHighlight();
           measuring = false;
           measureDrag = null;
           activeMeasure = -1;
@@ -1905,8 +1913,8 @@
       }
 
       function activateMeasureTool() {
-        closeAllPanels('tools');
-        showToolsPanel(true);
+        closeAllPanels('canvas');
+        showCanvasToolsPanel(true);
         var mt = document.getElementById('measure-toggle');
         mt.checked = !mt.checked;
         mt.dispatchEvent(new Event('change'));
@@ -1978,10 +1986,9 @@
 
       function updateToolHighlight() {
         document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
-        document.getElementById('measure-tool-btn').classList.toggle('active', measureMode);
         document.getElementById('add-point-tool-btn').classList.toggle('active', addPointEnabled);
         var toolsBtn = document.getElementById('tools-btn');
-        var active = editEnabled || measureMode || addPointEnabled;
+        var active = editEnabled || addPointEnabled;
         toolsBtn.classList.toggle('active', active);
         var closeBtn = document.getElementById('tools-close-btn');
         if (active) {
@@ -2013,10 +2020,12 @@
       function updateCanvasToolHighlight() {
         var btn = document.getElementById('canvas-tools-btn');
         var panel = document.getElementById('canvas-tools-panel');
-        var active = panel.classList.contains('locked');
+        var active = panel.classList.contains('locked') || measureMode;
         btn.classList.toggle('active', active);
         var closeBtn = document.getElementById('canvas-tools-close-btn');
-        closeBtn.style.display = active ? 'block' : 'none';
+        closeBtn.style.display = panel.classList.contains('locked') ? 'block' : 'none';
+        var mb = document.getElementById('measure-tool-btn');
+        if (mb) mb.classList.toggle('active', measureMode);
       }
 
       window.onload = init;

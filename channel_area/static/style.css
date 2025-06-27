@@ -139,6 +139,14 @@ canvas {
   margin-top: 2px;
 }
 
+#canvas-tools-panel input[type="color"] {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
 #canvas-tools-panel {
   position: absolute;
   left: 40px;
