@@ -707,7 +707,14 @@
         var toolsPanel = document.getElementById('tools-panel');
         toolsBtn.addEventListener('mouseenter', function(){ if(!toolsPanelLocked) showToolsPanel(); });
         toolsBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!toolsPanelLocked && !toolsPanel.matches(':hover')) hideToolsPanel(); }, 150); });
-        toolsBtn.addEventListener('click', function(){ toggleToolsPanel(true); });
+        toolsBtn.addEventListener('click', function(){
+          if (toolsPanelLocked) {
+            closeToolsPanel();
+          } else {
+            closeAllPanels('tools');
+            showToolsPanel(true);
+          }
+        });
         toolsPanel.addEventListener('mouseleave', function(){ if(!toolsPanelLocked && !toolsBtn.matches(':hover')) hideToolsPanel(); });
         document.getElementById('measure-tool-btn').addEventListener('click', activateMeasureTool);
 
@@ -715,7 +722,14 @@
         var imagePanel = document.getElementById('image-panel');
         imageBtn.addEventListener('mouseenter', function(){ if(!imagePanelLocked) showImagePanel(); });
         imageBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!imagePanelLocked && !imagePanel.matches(':hover')) hideImagePanel(); }, 150); });
-        imageBtn.addEventListener('click', function(){ toggleImagePanel(true); });
+        imageBtn.addEventListener('click', function(){
+          if (imagePanelLocked) {
+            closeImagePanel();
+          } else {
+            closeAllPanels('image');
+            showImagePanel(true);
+          }
+        });
         imagePanel.addEventListener('mouseleave', function(){ if(!imagePanelLocked && !imageBtn.matches(':hover')) hideImagePanel(); });
 
         updateToolHighlight();
@@ -1751,6 +1765,10 @@
         ctx.fillText('y', axisMargin - 12, axisMargin - 4);
       }
 
+      function closeAllPanels(except) {
+        if (except !== 'tools') hideToolsPanel();
+        if (except !== 'image') hideImagePanel();
+      }
 
       function showToolsPanel(lock) {
         var panel = document.getElementById('tools-panel');
@@ -1822,6 +1840,7 @@
       }
 
       function activateMeasureTool() {
+        closeAllPanels('tools');
         showToolsPanel(true);
         var mt = document.getElementById('measure-toggle');
         mt.checked = !mt.checked;
@@ -1829,6 +1848,7 @@
       }
 
       function activateMoveImageTool() {
+        closeAllPanels('image');
         showImagePanel(true);
         var im = document.getElementById('move-image-toggle');
         im.checked = !im.checked;
@@ -1836,6 +1856,7 @@
       }
 
       function activateAddPointTool() {
+        closeAllPanels('tools');
         showToolsPanel(true);
         var ap = document.getElementById('add-point-toggle');
         ap.checked = !ap.checked;
@@ -1861,6 +1882,7 @@
       }
 
       function lockAndSelect() {
+        closeAllPanels('tools');
         showToolsPanel(true);
         activateSelectTool();
       }

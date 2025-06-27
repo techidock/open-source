@@ -56,12 +56,9 @@ Along the left border runs a solid grey strip divided into ten equal squares
 numbered **0** at the top down to **9**. This serves as the tool menu. The bar
 can scroll if the window is short so every square remains accessible. The first
 section (0) opens the **Projects** panel, section 4 shows a pencil icon for the
-**Edit Tools** menu and section 5 opens the **Image Tools** panel. Selecting any of these tools disables the previously active one.
-The pencil button reveals a floating **Edit Tools** panel, matching the menu's grey
-colour and width. It slides 10 px to the right when opened and holds a
-cursor icon for **Select Points** at position 0, an **Add Points** tool at position 1 and a tape‑measure icon in position 2. When any tool is chosen the icon receives a blue outline and the
-Pencil button in the left menu shows the same highlight. A small circular **X**
-button appears just above the panel to close it whenever a tool is active. The image icon opens another floating panel with an **Upload** button at position 0, a **Move Image** toggle at position 1 and an **Image Scale** field at position 2. This panel works the same way and also highlights its button when active.
+**Edit Tools** menu and section 5 opens the **Image Tools** panel.
+Hovering over either icon simply reveals its menu, while clicking locks the panel open and shows a circular **X**. Selecting a tool also locks the panel. Only one menu can be locked at a time, so choosing another icon closes the previous menu. The active tool’s icon and its toolbar button both receive a blue outline.
+The Edit Tools menu slides 10 px to the right when opened and holds a cursor icon for **Select Points** at position 0, an **Add Points** tool at position 1 and a tape‑measure icon in position 2. The image panel offers an **Upload** button, a **Move Image** toggle and an **Image Scale** field and follows the same behaviour.
 A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
 
 The page shows light grey borders along the left and bottom edges. The left bar is split into numbered tool sections, and the bottom bar is divided into ten segments with the zoom slider placed in the centre and the Properties button in the last cell.
