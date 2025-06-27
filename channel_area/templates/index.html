@@ -18,7 +18,9 @@
     <div class="tool-cell" data-index="5">
       <button id="image-btn" class="tool-btn" title="Image Tools"><i class="bi bi-image"></i></button>
     </div>
-    <div class="tool-cell" data-index="6"></div>
+    <div class="tool-cell" data-index="6">
+      <button id="canvas-tools-btn" class="tool-btn" title="Canvas Tools"><i class="bi bi-bounding-box"></i></button>
+    </div>
     <div class="tool-cell" data-index="7"></div>
     <div class="tool-cell" data-index="8"></div>
     <div class="tool-cell" data-index="9"></div>
@@ -228,6 +230,14 @@
               <input id="image-scale" type="number" value="1" step="0.1" min="0.1" oninput="updateImageScale(this.value)">
             </div>
           </div>
+          <div id="canvas-tools-panel" class="floating-menu">
+            <button id="canvas-tools-close-btn" type="button" class="btn-close" onclick="closeCanvasToolsPanel()"></button>
+            <div class="tool-cell" data-index="0"><button class="tool-btn"><i class="bi bi-square"></i></button></div>
+            <div class="tool-cell" data-index="1"><button class="tool-btn"><i class="bi bi-circle"></i></button></div>
+            <div class="tool-cell" data-index="2"><button class="tool-btn"><i class="bi bi-triangle"></i></button></div>
+            <div class="tool-cell" data-index="3"><button class="tool-btn"><i class="bi bi-star"></i></button></div>
+            <div class="tool-cell" data-index="4"><button class="tool-btn"><i class="bi bi-hexagon"></i></button></div>
+          </div>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
       </div>
@@ -335,6 +345,7 @@
       var measureDrag = null;
       var toolsPanelLocked = false;
       var imagePanelLocked = false;
+      var canvasToolsPanelLocked = false;
       var propertiesOffcanvas;
       var zoomLevel = 1;
       var bgImage = null;
@@ -732,8 +743,23 @@
         });
         imagePanel.addEventListener('mouseleave', function(){ if(!imagePanelLocked && !imageBtn.matches(':hover')) hideImagePanel(); });
 
+        var canvasBtn = document.getElementById('canvas-tools-btn');
+        var canvasPanel = document.getElementById('canvas-tools-panel');
+        canvasBtn.addEventListener('mouseenter', function(){ if(!canvasToolsPanelLocked) showCanvasToolsPanel(); });
+        canvasBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!canvasToolsPanelLocked && !canvasPanel.matches(':hover')) hideCanvasToolsPanel(); }, 150); });
+        canvasBtn.addEventListener('click', function(){
+          if (canvasToolsPanelLocked) {
+            closeCanvasToolsPanel();
+          } else {
+            closeAllPanels('canvas');
+            showCanvasToolsPanel(true);
+          }
+        });
+        canvasPanel.addEventListener('mouseleave', function(){ if(!canvasToolsPanelLocked && !canvasBtn.matches(':hover')) hideCanvasToolsPanel(); });
+
         updateToolHighlight();
         updateImageToolHighlight();
+        updateCanvasToolHighlight();
       }
 
       function startDrag(e) {
@@ -1768,6 +1794,7 @@
       function closeAllPanels(except) {
         if (except !== 'tools') hideToolsPanel();
         if (except !== 'image') hideImagePanel();
+        if (except !== 'canvas') hideCanvasToolsPanel();
       }
 
       function showToolsPanel(lock) {
@@ -1822,6 +1849,33 @@
           hideImagePanel();
         } else {
           showImagePanel(lock);
+        }
+      }
+
+      function showCanvasToolsPanel(lock) {
+        var panel = document.getElementById('canvas-tools-panel');
+        panel.classList.add('show');
+        if (lock) {
+          canvasToolsPanelLocked = true;
+          panel.classList.add('locked');
+        }
+        updateCanvasToolHighlight();
+      }
+
+      function hideCanvasToolsPanel() {
+        var panel = document.getElementById('canvas-tools-panel');
+        panel.classList.remove('show');
+        panel.classList.remove('locked');
+        canvasToolsPanelLocked = false;
+        updateCanvasToolHighlight();
+      }
+
+      function toggleCanvasToolsPanel(lock) {
+        var panel = document.getElementById('canvas-tools-panel');
+        if (panel.classList.contains('show')) {
+          hideCanvasToolsPanel();
+        } else {
+          showCanvasToolsPanel(lock);
         }
       }
 
@@ -1906,6 +1960,11 @@
         hideImagePanel();
       }
 
+      function closeCanvasToolsPanel() {
+        hideCanvasToolsPanel();
+        updateCanvasToolHighlight();
+      }
+
       function updateToolHighlight() {
         document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
         document.getElementById('measure-tool-btn').classList.toggle('active', measureMode);
@@ -1936,6 +1995,15 @@
           document.getElementById('image-panel').classList.remove('locked');
           closeBtn.style.display = 'none';
         }
+      }
+
+      function updateCanvasToolHighlight() {
+        var btn = document.getElementById('canvas-tools-btn');
+        var panel = document.getElementById('canvas-tools-panel');
+        var active = panel.classList.contains('locked');
+        btn.classList.toggle('active', active);
+        var closeBtn = document.getElementById('canvas-tools-close-btn');
+        closeBtn.style.display = active ? 'block' : 'none';
       }
 
       window.onload = init;

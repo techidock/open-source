@@ -47,6 +47,7 @@ Double clicking when **Add Points** is active inserts a new vertex on the neares
 The markers themselves can be hidden or shown with the **Show Vectors**
 checkbox found on the **Display** tab of the Properties menu. This tab also lists **Show Bounding Box** and measurement options alongside the other display toggles.
 Uploaded reference images appear with a dashed black outline so you can see their boundaries while positioning them. Use the image icon in section 5 of the left toolbar to open the **Image Tools** panel. The first button there uploads a file and additional controls let you move and scale the picture.
+Section 6 hosts a canvas icon that opens the **Canvas Tools** panel. This floating menu contains five tool slots for future features and behaves like the other panels.
 
 A button at the top left reveals a slide-out menu containing **New Channel**,
 **Manage Shapes** and **Setup**. The menu automatically closes once you choose
@@ -56,7 +57,7 @@ Along the left border runs a solid grey strip divided into ten equal squares
 numbered **0** at the top down to **9**. This serves as the tool menu. The bar
 can scroll if the window is short so every square remains accessible. The first
 section (0) opens the **Projects** panel, section 4 shows a pencil icon for the
-**Edit Tools** menu and section 5 opens the **Image Tools** panel.
+**Edit Tools** menu, section 5 opens the **Image Tools** panel and section 6 opens the **Canvas Tools** panel.
 Hovering over either icon simply reveals its menu, while clicking locks the panel open and shows a circular **X**. Selecting a tool also locks the panel. Only one menu can be locked at a time, so choosing another icon closes the previous menu. The active tool’s icon and its toolbar button both receive a blue outline.
 The Edit Tools menu slides 10 px to the right when opened and holds a cursor icon for **Select Points** at position 0, an **Add Points** tool at position 1 and a tape‑measure icon in position 2. The image panel offers an **Upload** button, a **Move Image** toggle and an **Image Scale** field and follows the same behaviour.
 A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
