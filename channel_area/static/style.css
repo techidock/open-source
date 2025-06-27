@@ -91,7 +91,7 @@ canvas {
 
 #tools-panel .btn-close {
   position: absolute;
-  top: -12px;
+  top: -32px;
   left: 50%;
   transform: translateX(-50%);
   width: 24px;

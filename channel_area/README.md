@@ -46,7 +46,7 @@ Double clicking when **Add Points** is active inserts a new vertex on the neares
 
 The markers themselves can be hidden or shown with the **Show Vectors**
 checkbox found on the **Display** tab of the Properties menu. This tab also lists **Show Bounding Box** and measurement options alongside the other display toggles.
-Uploaded reference images appear with a dashed black outline so you can see their boundaries while positioning them.
+Uploaded reference images appear with a dashed black outline so you can see their boundaries while positioning them. Use the image icon in section 5 of the left toolbar to choose a file; the old Upload Image button has been removed from the Properties panel.
 
 A button at the top left reveals a slide-out menu containing **New Channel**,
 **Manage Shapes** and **Setup**. The menu automatically closes once you choose
@@ -55,9 +55,10 @@ The top navigation bar stretches across the entire page in black. A menu button 
 Along the left border runs a solid grey strip divided into ten equal squares
 numbered **0** at the top down to **9**. This serves as the tool menu. The bar
 can scroll if the window is short so every square remains accessible. The first
-section (0) opens the **Projects** panel and section 4 shows a pencil icon for
-the **Edit Tools** menu. Selecting any of these tools disables the previously
-active one.
+section (0) opens the **Projects** panel, section 4 shows a pencil icon for the
+**Edit Tools** menu and section 5 contains an image icon that opens the file
+chooser so you can upload a reference picture. Selecting any of these tools
+disables the previously active one.
 The pencil button reveals a floating tools panel, matching the menu's grey
 colour and width. It slides 10 px to the right when opened and holds a
 cursor icon for **Select Points** at position 0 and a tape‑measure icon in
