@@ -205,11 +205,13 @@
           <div id="tools-panel" class="floating-menu">
             <button type="button" class="btn-close" onclick="toggleToolsPanel()"></button>
             <div class="tool-cell" data-index="0">
-              <button class="tool-btn" title="Select Points" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
+              <button id="select-tool-btn" class="tool-btn" title="Select Points" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
             </div>
             <div class="tool-cell" data-index="1"></div>
             <div class="tool-cell" data-index="2"></div>
-            <div class="tool-cell" data-index="3"></div>
+            <div class="tool-cell" data-index="3">
+              <button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button>
+            </div>
             <div class="tool-cell" data-index="4"></div>
           </div>
           <div id="projects-panel" class="floating-menu">
@@ -606,6 +608,9 @@
         document.getElementById('edit-toggle').onchange = function(){
           editEnabled = this.checked;
           if (!editEnabled) editIndex = -1;
+          if (!editEnabled) {
+            document.getElementById('select-tool-btn').classList.remove('active');
+          }
           draw();
         };
         document.getElementById('add-point-toggle').onchange = function(){
@@ -635,8 +640,11 @@
             document.getElementById('add-point-toggle').checked = false;
             addPointEnabled = false;
             document.getElementById('measure-btn').classList.add('active');
+            document.getElementById('measure-tool-btn').classList.add('active');
+            document.getElementById('select-tool-btn').classList.remove('active');
           } else {
             document.getElementById('measure-btn').classList.remove('active');
+            document.getElementById('measure-tool-btn').classList.remove('active');
           }
           measuring = false;
           measureDrag = null;
@@ -679,6 +687,7 @@
         toolsBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!toolsPanelLocked && !toolsPanel.matches(':hover')) hideToolsPanel(); }, 150); });
         toolsBtn.addEventListener('click', function(){ toggleToolsPanel(true); });
         toolsPanel.addEventListener('mouseleave', function(){ if(!toolsPanelLocked && !toolsBtn.matches(':hover')) hideToolsPanel(); });
+        document.getElementById('measure-tool-btn').addEventListener('click', activateMeasureTool);
       }
 
       function startDrag(e) {
@@ -1755,13 +1764,10 @@
 
       function activateMeasureTool() {
         var mt = document.getElementById('measure-toggle');
-        var btn = document.getElementById('measure-btn');
         if (mt.checked) {
           mt.checked = false;
-          btn.classList.remove('active');
         } else {
           mt.checked = true;
-          btn.classList.add('active');
         }
         mt.dispatchEvent(new Event('change'));
       }
@@ -1772,11 +1778,13 @@
           mt.checked = false;
           mt.dispatchEvent(new Event('change'));
           document.getElementById('measure-btn').classList.remove('active');
+          document.getElementById('measure-tool-btn').classList.remove('active');
         }
         document.getElementById('edit-toggle').checked = true;
         editEnabled = true;
         document.getElementById('add-point-toggle').checked = false;
         addPointEnabled = false;
+        document.getElementById('select-tool-btn').classList.add('active');
         draw();
       }
 
