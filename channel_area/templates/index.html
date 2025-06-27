@@ -10,9 +10,7 @@
       <button id="projects-btn" class="tool-btn" onclick="toggleProjectsPanel()"><i class="bi bi-folder"></i></button>
     </div>
     <div class="tool-cell" data-index="1"></div>
-    <div class="tool-cell" data-index="2">
-      <button id="measure-btn" class="tool-btn" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button>
-    </div>
+    <div class="tool-cell" data-index="2"></div>
     <div class="tool-cell" data-index="3"></div>
     <div class="tool-cell" data-index="4">
       <button id="tools-btn" class="tool-btn"><i class="bi bi-pencil"></i></button>
@@ -639,11 +637,9 @@
           if (this.checked) {
             document.getElementById('add-point-toggle').checked = false;
             addPointEnabled = false;
-            document.getElementById('measure-btn').classList.add('active');
             document.getElementById('measure-tool-btn').classList.add('active');
             document.getElementById('select-tool-btn').classList.remove('active');
           } else {
-            document.getElementById('measure-btn').classList.remove('active');
             document.getElementById('measure-tool-btn').classList.remove('active');
           }
           measuring = false;
@@ -1726,7 +1722,6 @@
         if (mt.checked) {
           mt.checked = false;
           mt.dispatchEvent(new Event('change'));
-          document.getElementById('measure-btn').classList.remove('active');
         }
         panel.classList.add('show');
         if (lock) toolsPanelLocked = true;
@@ -1756,7 +1751,6 @@
           if (mt.checked) {
             mt.checked = false;
             mt.dispatchEvent(new Event('change'));
-            document.getElementById('measure-btn').classList.remove('active');
           }
           panel.classList.add('show');
         }
@@ -1777,7 +1771,6 @@
         if (mt.checked) {
           mt.checked = false;
           mt.dispatchEvent(new Event('change'));
-          document.getElementById('measure-btn').classList.remove('active');
           document.getElementById('measure-tool-btn').classList.remove('active');
         }
         document.getElementById('edit-toggle').checked = true;

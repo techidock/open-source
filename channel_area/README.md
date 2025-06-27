@@ -55,9 +55,9 @@ The top navigation bar stretches across the entire page in black. A menu button 
 Along the left border runs a solid grey strip divided into ten equal squares
 numbered **0** at the top down to **9**. This serves as the tool menu. The bar
 can scroll if the window is short so every square remains accessible. The first
-section (0) opens the **Projects** panel, section 2 has a tape‑measure icon that
-turns on Measurement mode, and section 4 shows a pencil icon for the **Edit
-Tools** menu. Selecting any of these tools disables the previously active one.
+section (0) opens the **Projects** panel and section 4 shows a pencil icon for
+the **Edit Tools** menu. Selecting any of these tools disables the previously
+active one.
 The pencil button reveals a floating tools panel, matching the menu's grey
 colour and width. It slides 10 px to the right when opened and now holds two
 icons: a cursor for **Select Points** in position 0 and a tape‑measure icon in
@@ -78,7 +78,7 @@ A **Height Units** dropdown lets you show these heights in metres, centimetres o
 The **Manage Shapes** dialog stores the water and silt heights along with the points when saving a design so it reloads exactly as drawn. All point coordinates are saved in millimetres regardless of the units currently displayed.
 These levels are automatically restored when a shape is loaded.
 
- A dashed orange rectangle indicates the shape's bounding box. Labels beside the rectangle show the current width and height in the chosen units and the same numbers appear on the **Channel** tab. The **Display** tab lets you toggle **Show Vectors**, **Show Bounding Box** and **Show Measurements**. Measurement mode is activated with the tape-measure icon on the left toolbar so only one edit tool is active at a time. The **Channel** tab lists the maximum width and height along with the **Total Area**, **Water Area** and **Silt Area**.
+ A dashed orange rectangle indicates the shape's bounding box. Labels beside the rectangle show the current width and height in the chosen units and the same numbers appear on the **Channel** tab. The **Display** tab lets you toggle **Show Vectors**, **Show Bounding Box** and **Show Measurements**. Measurement mode is activated from the tape‑measure icon in the floating Tools panel so only one edit tool is active at a time. The **Channel** tab lists the maximum width and height along with the **Total Area**, **Water Area** and **Silt Area**.
 
 The grid origin is the bottom left corner. Tick marks along the axes show the distance from the origin using a fixed spacing of **0.5&nbsp;metre** (50&nbsp;cm or 500&nbsp;mm). The current spacing is listed in the **Display Properties** panel along with the cursor coordinates. When editing a point you can drag it with the left mouse button and the marker follows the cursor until the button is released. When you hover over a marker or drag a point, the cursor becomes a blue crosshair to indicate the point is editable.
 The axes rest slightly inside the canvas so the origin is about 20&nbsp;px from the top and sides and 40&nbsp;px from the bottom. This keeps the x‑axis visible above the bottom bar while still filling the drawing area.

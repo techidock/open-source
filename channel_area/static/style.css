@@ -28,6 +28,8 @@ body {
 #drawing-area {
   padding-left: 0;
   padding-right: 0;
+  margin-left: 40px;
+  width: calc(100% - 40px);
 }
 
 
@@ -207,24 +209,12 @@ table {
   z-index: 1030;
   box-sizing: content-box;
   padding-right: 8px; /* white space for scrollbar */
-  scrollbar-width: none; /* hidden by default */
-  scrollbar-gutter: stable;
+  scrollbar-width: thin; /* scrollbar always visible when needed */
   transition: background-color 0.3s;
 }
-
-#left-bar:hover {
-  scrollbar-width: thin; /* firefox */
-}
-
 #left-bar::-webkit-scrollbar {
-  width: 0;
-  transition: width 0.3s;
-}
-
-#left-bar:hover::-webkit-scrollbar {
   width: 8px;
 }
-
 #left-bar::-webkit-scrollbar-track {
   background: #fff;
 }
