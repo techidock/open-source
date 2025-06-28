@@ -7,9 +7,9 @@
 {% block content %}
   <div id="left-bar">
     <div class="tool-cell" data-index="0">
-      <button id="projects-btn" class="tool-btn" onclick="toggleProjectsPanel()"><i class="bi bi-folder"></i></button>
+      <button id="channel-btn" class="tool-btn" onclick="toggleChannelMenu()" title="Channel Menu"><i class="bi bi-kanban"></i></button>
     </div>
-    <div class="tool-cell" data-index="1"><button id="new-channel-btn" class="tool-btn" title="New Channel" onclick="openNewChannelDialog()"><i class="bi bi-kanban"></i></button></div>
+    <div class="tool-cell" data-index="1"></div>
     <div class="tool-cell" data-index="2"></div>
     <div class="tool-cell" data-index="3"></div>
     <div class="tool-cell" data-index="4">
@@ -219,9 +219,14 @@
               <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="toggleDeletePointTool()"><i class="bi bi-x-lg"></i></button>
             </div>
           </div>
-          <div id="projects-panel" class="floating-menu">
-            <button type="button" class="btn-close" onclick="toggleProjectsPanel()"></button>
-            <p>Projects</p>
+          <div id="channel-menu" class="floating-menu">
+            <button id="channel-close-btn" type="button" class="btn-close" onclick="closeChannelMenu()"></button>
+            <div class="tool-cell" data-index="0">
+              <button class="tool-btn" title="New Channel" onclick="openNewChannelDialog()"><i class="bi bi-kanban"></i></button>
+            </div>
+            <div class="tool-cell" data-index="1">
+              <button class="tool-btn" title="Save Shape" onclick="openShapeDialog()"><i class="bi bi-save"></i></button>
+            </div>
           </div>
           <div id="image-panel" class="floating-menu">
             <button id="image-close-btn" type="button" class="btn-close" onclick="closeImagePanel()"></button>
@@ -241,11 +246,8 @@
             <div class="tool-cell" data-index="0">
               <input id="canvas-color-picker" type="color" value="#fafafa" title="Canvas Colour" oninput="updateCanvasColor(this.value)">
             </div>
-            <div class="tool-cell" data-index="1"><button class="tool-btn"><i class="bi bi-square"></i></button></div>
-            <div class="tool-cell" data-index="2"><button class="tool-btn"><i class="bi bi-circle"></i></button></div>
-            <div class="tool-cell" data-index="3"><button class="tool-btn"><i class="bi bi-triangle"></i></button></div>
-            <div class="tool-cell" data-index="4"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
-            <div class="tool-cell" data-index="5"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
+            <div class="tool-cell" data-index="1"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
+            <div class="tool-cell" data-index="2"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
           </div>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
@@ -265,9 +267,9 @@
       <div class="bottom-cell" data-index="3"></div>
       <div class="bottom-cell" data-index="4"></div>
       <div class="bottom-cell" data-index="5" id="zoom-cell">
-        <button type="button" class="btn btn-light btn-sm me-1" title="Zoom Out" onclick="zoomOut()">-</button>
+        <button type="button" class="zoom-btn me-1" title="Zoom Out" onclick="zoomOut()">-</button>
         <input type="range" id="zoom-slider" title="Zoom" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
-        <button type="button" class="btn btn-light btn-sm ms-1" title="Zoom In" onclick="zoomIn()">+</button>
+        <button type="button" class="zoom-btn ms-1" title="Zoom In" onclick="zoomIn()">+</button>
       </div>
       <div class="bottom-cell" data-index="6"></div>
       <div class="bottom-cell" data-index="7"></div>
@@ -814,6 +816,18 @@
           draw();
         }).catch(() => draw());
         togglePinProperties();
+
+        var channelBtn = document.getElementById('channel-btn');
+        var channelPanel = document.getElementById('channel-menu');
+        channelBtn.addEventListener('click', function(){
+          if (channelPanel.classList.contains('show')) {
+            closeChannelMenu();
+          } else {
+            closeAllPanels('channel');
+            showChannelMenu();
+          }
+        });
+        channelPanel.addEventListener('mouseleave', function(){ if(!channelBtn.matches(':hover')) closeChannelMenu(); });
 
         var toolsBtn = document.getElementById('tools-btn');
         var toolsPanel = document.getElementById('tools-panel');
@@ -1988,6 +2002,7 @@
         if (except !== 'tools') hideToolsPanel();
         if (except !== 'image') hideImagePanel();
         if (except !== 'canvas') hideCanvasToolsPanel();
+        if (except !== 'channel') closeChannelMenu();
       }
 
       function showToolsPanel(lock) {
@@ -2080,17 +2095,28 @@
         }
       }
 
-      function toggleProjectsPanel() {
-        var panel = document.getElementById('projects-panel');
+      function showChannelMenu() {
+        var panel = document.getElementById('channel-menu');
+        panel.classList.add('show');
+      }
+
+      function closeChannelMenu() {
+        var panel = document.getElementById('channel-menu');
+        panel.classList.remove('show');
+      }
+
+      function toggleChannelMenu() {
+        var panel = document.getElementById('channel-menu');
         if (panel.classList.contains('show')) {
-          panel.classList.remove('show');
+          closeChannelMenu();
         } else {
+          closeAllPanels('channel');
           var mt = document.getElementById('measure-toggle');
           if (mt.checked) {
             mt.checked = false;
             mt.dispatchEvent(new Event('change'));
           }
-          panel.classList.add('show');
+          showChannelMenu();
         }
       }
 

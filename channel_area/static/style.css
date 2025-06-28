@@ -219,7 +219,7 @@ canvas {
   transform: translate(10px, -50%);
 }
 
-#projects-panel {
+#channel-menu {
   position: fixed;
   left: 50px;
   top: 0;
@@ -232,9 +232,7 @@ canvas {
   display: none;
   overflow-y: auto;
   z-index: 1020;
-}
-
-#projects-panel.show {
+#channel-menu.show {
   display: block;
 }
 
@@ -466,6 +464,18 @@ table {
 
 #zoom-slider {
   width: 100%;
+}
+
+.zoom-btn {
+  background: #eee;
+  border: 1px solid #ccc;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
 }
 
 #image-scale-slider {
