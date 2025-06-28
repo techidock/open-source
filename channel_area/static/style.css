@@ -399,6 +399,11 @@ table {
   color: #666;
 }
 
+#right-bar .tool-cell::after {
+  right: 2px;
+  left: auto;
+}
+
 #bottom-bar {
   position: fixed;
   left: 0;

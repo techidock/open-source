@@ -210,7 +210,7 @@
               <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()"><i class="bi bi-vector-pen"></i></button>
             </div>
             <div class="tool-cell" data-index="2">
-              <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="confirmDeletePoint()"><i class="bi bi-x-lg"></i></button>
+              <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="toggleDeletePointTool()"><i class="bi bi-x-lg"></i></button>
             </div>
           </div>
           <div id="projects-panel" class="floating-menu">
@@ -293,17 +293,11 @@
           <button type="button" onclick="closeSetupDialog()">Close</button>
         </form>
       </dialog>
-      <dialog id="delete-dialog">
-        <form method="dialog" onsubmit="return false;">
-          <p>Delete point <span id="delete-point-number"></span>?</p>
-          <button type="button" onclick="deletePointConfirmed()">Delete</button>
-          <button type="button" onclick="closeDeleteDialog()">Cancel</button>
-        </form>
-      </dialog>
   </div>
   <div id="hidden-controls" style="display:none">
     <input type="checkbox" id="edit-toggle">
     <input type="checkbox" id="add-point-toggle">
+    <input type="checkbox" id="delete-point-toggle">
   </div>
 
   <script>
@@ -327,6 +321,7 @@
 
       var canvas, ctx;
       var blueCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJibHVlIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiPjxsaW5lIHgxPSI4IiB5MT0iMCIgeDI9IjgiIHkyPSIxNiIvPjxsaW5lIHgxPSIwIiB5MT0iOCIgeDI9IjE2IiB5Mj0iOCIvPjwvc3ZnPg==") 8 8, auto';
+      var redDeleteCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJyZWQiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+PGxpbmUgeDE9IjAiIHkxPSIwIiB4Mj0iMTYiIHkyPSIxNiIvPjxsaW5lIHgxPSIxNiIgeTE9IjAiIHgyPSIwIiB5Mj0iMTYiLz48L3N2Zz4=") 8 8, auto';
       var dragging = false;
       var polygonMode = false;
       var points = [];
@@ -337,6 +332,7 @@
       var shapePts = [];
       var editEnabled = false;
       var addPointEnabled = false;
+      var deletePointEnabled = false;
       var vectorsVisible = true;
       var bboxVisible = true;
       var undoStack = [];
@@ -671,19 +667,33 @@
           updateToolHighlight();
           draw();
        };
-        document.getElementById('add-point-toggle').onchange = function(){
-          addPointEnabled = this.checked;
+       document.getElementById('add-point-toggle').onchange = function(){
+         addPointEnabled = this.checked;
+         if (this.checked) {
+           var mt = document.getElementById('measure-toggle');
+           mt.checked = false;
+           mt.dispatchEvent(new Event('change'));
+           var im = document.getElementById('move-image-toggle');
+           im.checked = false;
+           im.dispatchEvent(new Event('change'));
+           document.getElementById('delete-point-toggle').checked = false;
+           deletePointEnabled = false;
+         }
+        updateImageToolHighlight();
+        updateToolHighlight();
+     };
+       document.getElementById('delete-point-toggle').onchange = function(){
+          deletePointEnabled = this.checked;
           if (this.checked) {
             var mt = document.getElementById('measure-toggle');
             mt.checked = false;
             mt.dispatchEvent(new Event('change'));
-            var im = document.getElementById('move-image-toggle');
-            im.checked = false;
-            im.dispatchEvent(new Event('change'));
+            document.getElementById('add-point-toggle').checked = false;
+            addPointEnabled = false;
+            document.getElementById('move-image-toggle').checked = false;
           }
-         updateImageToolHighlight();
-         updateToolHighlight();
-      };
+          updateToolHighlight();
+       };
         document.getElementById('vectors-toggle').onchange = function(){
           vectorsVisible = this.checked;
           draw();
@@ -1198,7 +1208,22 @@
         var now = Date.now();
         if (now - lastAddTime < 150) return;
         lastAddTime = now;
-        if (addPointEnabled) {
+        if (deletePointEnabled) {
+          var pos = getCanvasPos(e);
+          var pts = getShapePoints(document.getElementById('shape').value);
+          for (var i = 0; i < pts.length; i++) {
+            if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
+              if (confirm('Delete point ' + i + '?')) {
+                saveState();
+                points.splice(i,1);
+                numPoints = points.length;
+                anchorBottomLeft();
+                draw();
+              }
+              break;
+            }
+          }
+        } else if (addPointEnabled) {
           addPoint(e);
         } else {
           selectPoint(e);
@@ -1592,7 +1617,9 @@
             }
           }
         }
-        if (over >= 0 || editIndex >= 0 || overArrow || measureDrag) {
+        if (deletePointEnabled) {
+          canvas.style.cursor = redDeleteCursor;
+        } else if (over >= 0 || editIndex >= 0 || overArrow || measureDrag) {
           canvas.style.cursor = blueCursor;
         } else {
           canvas.style.cursor = 'default';
@@ -1601,7 +1628,7 @@
 
       function clearCursorPos() {
         document.getElementById('cursor-pos').textContent = 'Cursor:';
-        canvas.style.cursor = 'default';
+        canvas.style.cursor = deletePointEnabled ? redDeleteCursor : 'default';
         hoverIndex = -1;
         updateRowHighlights();
       }
@@ -1664,24 +1691,6 @@
         anchorBottomLeft();
         draw();
       }
-        function confirmDeletePoint(){
-          if(editIndex<0) return;
-          document.getElementById("delete-point-number").textContent = editIndex;
-          document.getElementById("delete-dialog").showModal();
-        }
-        function closeDeleteDialog(){
-          document.getElementById("delete-dialog").close();
-        }
-        function deletePointConfirmed(){
-          if(editIndex<0) {closeDeleteDialog(); return;}
-          saveState();
-          points.splice(editIndex,1);
-          editIndex=-1;
-          numPoints=points.length;
-          closeDeleteDialog();
-          anchorBottomLeft();
-          draw();
-        }
 
       function saveShape() {
         var name = document.getElementById('shape-name').value.trim();
@@ -1961,6 +1970,18 @@
         }
       }
 
+      function toggleDeletePointTool() {
+        closeAllPanels('tools');
+        showToolsPanel(true);
+        var dp = document.getElementById('delete-point-toggle');
+        dp.checked = !dp.checked;
+        dp.dispatchEvent(new Event('change'));
+        if (dp.checked && !document.getElementById('edit-toggle').checked) {
+          document.getElementById('edit-toggle').checked = true;
+          document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
+        }
+      }
+
       function activateSelectTool() {
         var mt = document.getElementById('measure-toggle');
         if (mt.checked) {
@@ -1985,12 +2006,15 @@
         var mt = document.getElementById('measure-toggle');
         var et = document.getElementById('edit-toggle');
         var ap = document.getElementById('add-point-toggle');
+        var dp = document.getElementById('delete-point-toggle');
         mt.checked = false;
         et.checked = false;
         ap.checked = false;
+        dp.checked = false;
         mt.dispatchEvent(new Event('change'));
         et.dispatchEvent(new Event('change'));
         ap.dispatchEvent(new Event('change'));
+        dp.dispatchEvent(new Event('change'));
         hideToolsPanel();
       }
 
@@ -2008,8 +2032,9 @@
       function updateToolHighlight() {
         document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
         document.getElementById('add-point-tool-btn').classList.toggle('active', addPointEnabled);
+        document.getElementById('delete-point-tool-btn').classList.toggle('active', deletePointEnabled);
         var toolsBtn = document.getElementById('tools-btn');
-        var active = editEnabled || addPointEnabled;
+        var active = editEnabled || addPointEnabled || deletePointEnabled;
         toolsBtn.classList.toggle('active', active);
         var closeBtn = document.getElementById('tools-close-btn');
         if (active) {
