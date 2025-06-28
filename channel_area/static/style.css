@@ -338,7 +338,8 @@ table {
   bottom: 40px;
   right: 0;
   width: 40px;
-  background: linear-gradient(to left, #eee calc(100% - 8px), #fff calc(100% - 8px));
+  direction: rtl; /* place scrollbar on the left */
+  background: linear-gradient(to right, #fff 0, #fff 8px, #eee 8px);
   border-left: 1px solid #ccc;
   display: flex;
   flex-direction: column;
@@ -346,9 +347,13 @@ table {
   overflow-x: hidden;
   z-index: 1030;
   box-sizing: content-box;
-  padding-left: 8px;
+  padding-right: 8px; /* space for left scrollbar */
+  padding-left: 0;
   scrollbar-width: thin;
   transition: background-color 0.3s;
+}
+#right-bar > * {
+  direction: ltr;
 }
 #right-bar::-webkit-scrollbar {
   width: 8px;
