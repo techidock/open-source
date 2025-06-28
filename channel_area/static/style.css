@@ -425,6 +425,14 @@ table {
   border-left: 1px solid #ccc;
 }
 
+#zoom-cell {
+  gap: 4px;
+}
+
+#zoom-cell input[type="range"] {
+  flex: 1;
+}
+
 .bottom-cell:first-child {
   border-left: none;
 }
