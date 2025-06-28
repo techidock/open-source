@@ -204,7 +204,7 @@
           <div id="tools-panel" class="floating-menu">
             <button id="tools-close-btn" type="button" class="btn-close" onclick="closeToolsPanel()"></button>
             <div class="tool-cell" data-index="0">
-              <button id="select-tool-btn" class="tool-btn" title="Select Points" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
+              <button id="select-tool-btn" class="tool-btn" title="Select/Move" onclick="lockAndSelect()"><i class="bi bi-arrows-move"></i></button>
             </div>
             <div class="tool-cell" data-index="1">
               <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()"><i class="bi bi-vector-pen"></i></button>
@@ -247,7 +247,7 @@
       <!-- properties menu moved to offcanvas -->
     </div>
   <div id="bottom-bar">
-      <div class="bottom-cell" data-index="0"></div>
+      <div class="bottom-cell" data-index="0"><span id="active-tool">None</span></div>
       <div class="bottom-cell" data-index="1" id="undo-redo-cell" style="display:none">
         <button class="btn btn-light btn-sm me-1" onclick="undoEdit()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
         <button class="btn btn-light btn-sm" onclick="redoEdit()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
@@ -294,6 +294,11 @@
         </form>
       </dialog>
   </div>
+  <div id="delete-dialog" class="confirm-dialog" style="display:none;">
+    <span id="delete-msg"></span>
+    <button id="confirm-delete">Delete</button>
+    <button type="button" onclick="hideDeleteDialog()">Cancel</button>
+  </div>
   <div id="hidden-controls" style="display:none">
     <input type="checkbox" id="edit-toggle">
     <input type="checkbox" id="add-point-toggle">
@@ -322,6 +327,7 @@
       var canvas, ctx;
       var blueCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJibHVlIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiPjxsaW5lIHgxPSI4IiB5MT0iMCIgeDI9IjgiIHkyPSIxNiIvPjxsaW5lIHgxPSIwIiB5MT0iOCIgeDI9IjE2IiB5Mj0iOCIvPjwvc3ZnPg==") 8 8, auto';
       var redDeleteCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJyZWQiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+PGxpbmUgeDE9IjAiIHkxPSIwIiB4Mj0iMTYiIHkyPSIxNiIvPjxsaW5lIHgxPSIxNiIgeTE9IjAiIHgyPSIwIiB5Mj0iMTYiLz48L3N2Zz4=") 8 8, auto';
+      var greenAddCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgc3Ryb2tlPSJncmVlbiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIj48bGluZSB4MT0iMTAiIHkxPSIwIiB4Mj0iMTAiIHkyPSIyMCIvPjxsaW5lIHgxPSIwIiB5MT0iMTAiIHgyPSIyMCIgeTI9IjEwIi8+PC9zdmc+") 10 10, auto';
       var dragging = false;
       var polygonMode = false;
       var points = [];
@@ -659,6 +665,7 @@
         canvas.addEventListener('mousemove', showCursorPos);
         canvas.addEventListener('mouseleave', clearCursorPos);
         canvas.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('click', handleClick);
         canvas.addEventListener('dblclick', handleDoubleClick);
         canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
        document.getElementById('edit-toggle').onchange = function(){
@@ -1208,27 +1215,49 @@
         var now = Date.now();
         if (now - lastAddTime < 150) return;
         lastAddTime = now;
-        if (deletePointEnabled) {
-          var pos = getCanvasPos(e);
-          var pts = getShapePoints(document.getElementById('shape').value);
-          for (var i = 0; i < pts.length; i++) {
-            if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
-              if (confirm('Delete point ' + i + '?')) {
-                saveState();
-                points.splice(i,1);
-                numPoints = points.length;
-                anchorBottomLeft();
-                draw();
-              }
-              break;
-            }
-          }
-        } else if (addPointEnabled) {
+        if (addPointEnabled) {
           addPoint(e);
         } else {
           selectPoint(e);
         }
       }
+
+      var pendingDelete = -1;
+
+      function handleClick(e) {
+        if (!deletePointEnabled) return;
+        var pos = getCanvasPos(e);
+        var pts = getShapePoints(document.getElementById('shape').value);
+        for (var i = 0; i < pts.length; i++) {
+          if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
+            pendingDelete = i;
+            var dlg = document.getElementById('delete-dialog');
+            document.getElementById('delete-msg').textContent = 'Delete point ' + i + '?';
+            var rect = canvas.getBoundingClientRect();
+            dlg.style.left = (pos.x + rect.left + 10) + 'px';
+            dlg.style.top = (pos.y + rect.top + 10) + 'px';
+            dlg.style.display = 'block';
+            return;
+          }
+        }
+      }
+
+      function hideDeleteDialog() {
+        document.getElementById('delete-dialog').style.display = 'none';
+        pendingDelete = -1;
+      }
+
+      document.getElementById('confirm-delete').addEventListener('click', function(){
+        if (pendingDelete >= 0) {
+          saveState();
+          points.splice(pendingDelete,1);
+          numPoints = points.length;
+          pendingDelete = -1;
+          hideDeleteDialog();
+          anchorBottomLeft();
+          draw();
+        }
+      });
 
       function selectPoint(e) {
         if (!editEnabled) return;
@@ -1619,8 +1648,10 @@
         }
         if (deletePointEnabled) {
           canvas.style.cursor = redDeleteCursor;
-        } else if (over >= 0 || editIndex >= 0 || overArrow || measureDrag) {
-          canvas.style.cursor = blueCursor;
+        } else if (addPointEnabled) {
+          canvas.style.cursor = greenAddCursor;
+        } else if (editEnabled) {
+          canvas.style.cursor = 'move';
         } else {
           canvas.style.cursor = 'default';
         }
@@ -1628,7 +1659,10 @@
 
       function clearCursorPos() {
         document.getElementById('cursor-pos').textContent = 'Cursor:';
-        canvas.style.cursor = deletePointEnabled ? redDeleteCursor : 'default';
+        if (deletePointEnabled) canvas.style.cursor = redDeleteCursor;
+        else if (addPointEnabled) canvas.style.cursor = greenAddCursor;
+        else if (editEnabled) canvas.style.cursor = 'move';
+        else canvas.style.cursor = 'default';
         hoverIndex = -1;
         updateRowHighlights();
       }
@@ -2046,6 +2080,11 @@
         }
         var undoCell = document.getElementById('undo-redo-cell');
         if (undoCell) undoCell.style.display = editEnabled ? 'flex' : 'none';
+        var label = document.getElementById('active-tool');
+        if (deletePointEnabled) label.textContent = 'Delete';
+        else if (addPointEnabled) label.textContent = 'Add';
+        else if (editEnabled) label.textContent = 'Select/Move';
+        else label.textContent = 'None';
       }
 
       function updateImageToolHighlight() {
