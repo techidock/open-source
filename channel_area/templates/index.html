@@ -207,7 +207,13 @@
               <button id="select-tool-btn" class="tool-btn" title="Select/Move" onclick="lockAndSelect()"><i class="bi bi-arrows-move"></i></button>
             </div>
             <div class="tool-cell" data-index="1">
-              <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()"><i class="bi bi-vector-pen"></i></button>
+              <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                  <circle cx="8" cy="8" r="4" fill="black" />
+                  <line x1="8" y1="2" x2="8" y2="14" stroke="green" stroke-width="2" />
+                  <line x1="2" y1="8" x2="14" y2="8" stroke="green" stroke-width="2" />
+                </svg>
+              </button>
             </div>
             <div class="tool-cell" data-index="2">
               <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="toggleDeletePointTool()"><i class="bi bi-x-lg"></i></button>
@@ -339,6 +345,7 @@
       var editEnabled = false;
       var addPointEnabled = false;
       var deletePointEnabled = false;
+      var moveMode = false;
       var vectorsVisible = true;
       var bboxVisible = true;
       var undoStack = [];
@@ -670,37 +677,42 @@
         canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
        document.getElementById('edit-toggle').onchange = function(){
          editEnabled = this.checked;
-         if (!editEnabled) editIndex = -1;
+         if (!editEnabled) {
+           editIndex = -1;
+           moveMode = false;
+         }
           updateToolHighlight();
           draw();
        };
-       document.getElementById('add-point-toggle').onchange = function(){
-         addPointEnabled = this.checked;
+      document.getElementById('add-point-toggle').onchange = function(){
+        addPointEnabled = this.checked;
+        if (this.checked) {
+          var mt = document.getElementById('measure-toggle');
+          mt.checked = false;
+          mt.dispatchEvent(new Event('change'));
+          var im = document.getElementById('move-image-toggle');
+          im.checked = false;
+          im.dispatchEvent(new Event('change'));
+          document.getElementById('delete-point-toggle').checked = false;
+          deletePointEnabled = false;
+        }
+        moveMode = false;
+       updateImageToolHighlight();
+       updateToolHighlight();
+    };
+      document.getElementById('delete-point-toggle').onchange = function(){
+         deletePointEnabled = this.checked;
          if (this.checked) {
            var mt = document.getElementById('measure-toggle');
            mt.checked = false;
            mt.dispatchEvent(new Event('change'));
-           var im = document.getElementById('move-image-toggle');
-           im.checked = false;
-           im.dispatchEvent(new Event('change'));
-           document.getElementById('delete-point-toggle').checked = false;
-           deletePointEnabled = false;
+           document.getElementById('add-point-toggle').checked = false;
+           addPointEnabled = false;
+           document.getElementById('move-image-toggle').checked = false;
          }
-        updateImageToolHighlight();
-        updateToolHighlight();
-     };
-       document.getElementById('delete-point-toggle').onchange = function(){
-          deletePointEnabled = this.checked;
-          if (this.checked) {
-            var mt = document.getElementById('measure-toggle');
-            mt.checked = false;
-            mt.dispatchEvent(new Event('change'));
-            document.getElementById('add-point-toggle').checked = false;
-            addPointEnabled = false;
-            document.getElementById('move-image-toggle').checked = false;
-          }
-          updateToolHighlight();
-       };
+         moveMode = false;
+         updateToolHighlight();
+      };
         document.getElementById('vectors-toggle').onchange = function(){
           vectorsVisible = this.checked;
           draw();
@@ -714,31 +726,33 @@
           updateMeasurementTable();
           draw();
         };
-       document.getElementById('measure-toggle').onchange = function(){
-         measureMode = this.checked;
-          if (this.checked) {
-            document.getElementById('add-point-toggle').checked = false;
-            addPointEnabled = false;
-            document.getElementById('move-image-toggle').checked = false;
-          }
+      document.getElementById('measure-toggle').onchange = function(){
+        measureMode = this.checked;
+         if (this.checked) {
+           document.getElementById('add-point-toggle').checked = false;
+           addPointEnabled = false;
+           document.getElementById('move-image-toggle').checked = false;
+         }
+          moveMode = false;
           updateToolHighlight();
           updateCanvasToolHighlight();
           measuring = false;
           measureDrag = null;
           activeMeasure = -1;
           draw();
-       };
-       document.getElementById('move-image-toggle').onchange = function(){
-         if (this.checked) {
-           document.getElementById('measure-toggle').checked = false;
-           document.getElementById('measure-toggle').dispatchEvent(new Event('change'));
-           document.getElementById('add-point-toggle').checked = false;
-           addPointEnabled = false;
-           document.getElementById('edit-toggle').checked = false;
-           editEnabled = false;
-         }
-         updateToolHighlight();
-       };
+      };
+      document.getElementById('move-image-toggle').onchange = function(){
+        if (this.checked) {
+          document.getElementById('measure-toggle').checked = false;
+          document.getElementById('measure-toggle').dispatchEvent(new Event('change'));
+          document.getElementById('add-point-toggle').checked = false;
+          addPointEnabled = false;
+          document.getElementById('edit-toggle').checked = false;
+          editEnabled = false;
+        }
+        moveMode = false;
+        updateToolHighlight();
+      };
         updateShapeList();
         showFields();
         updateUnitDisplay();
@@ -853,7 +867,7 @@
           imageDragging = true;
           return;
         }
-        if (!editEnabled) return;
+        if (!editEnabled || !moveMode) return;
         var shape = document.getElementById('shape').value;
         var pos = getCanvasPos(e);
         var pts = getShapePoints(shape);
@@ -913,6 +927,7 @@
         if (editIndex >= 0) {
           editIndex = -1;
         }
+        moveMode = false;
         anchorBottomLeft();
         draw();
         showCursorPos(e);
@@ -1215,31 +1230,37 @@
         var now = Date.now();
         if (now - lastAddTime < 150) return;
         lastAddTime = now;
-        if (addPointEnabled) {
+        if (deletePointEnabled) {
+          var pos = getCanvasPos(e);
+          var pts = getShapePoints(document.getElementById('shape').value);
+          for (var i = 0; i < pts.length; i++) {
+            if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
+              pendingDelete = i;
+              var dlg = document.getElementById('delete-dialog');
+              document.getElementById('delete-msg').textContent = 'Delete point ' + i + '?';
+              var rect = canvas.getBoundingClientRect();
+              dlg.style.left = (pos.x + rect.left + 10) + 'px';
+              dlg.style.top = (pos.y + rect.top + 10) + 'px';
+              dlg.style.display = 'block';
+              return;
+            }
+          }
+        } else if (addPointEnabled) {
           addPoint(e);
-        } else {
+        } else if (editEnabled) {
           selectPoint(e);
+          moveMode = true;
+          canvas.style.cursor = 'move';
         }
       }
 
       var pendingDelete = -1;
 
       function handleClick(e) {
-        if (!deletePointEnabled) return;
-        var pos = getCanvasPos(e);
-        var pts = getShapePoints(document.getElementById('shape').value);
-        for (var i = 0; i < pts.length; i++) {
-          if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
-            pendingDelete = i;
-            var dlg = document.getElementById('delete-dialog');
-            document.getElementById('delete-msg').textContent = 'Delete point ' + i + '?';
-            var rect = canvas.getBoundingClientRect();
-            dlg.style.left = (pos.x + rect.left + 10) + 'px';
-            dlg.style.top = (pos.y + rect.top + 10) + 'px';
-            dlg.style.display = 'block';
-            return;
-          }
-        }
+        if (deletePointEnabled || addPointEnabled) return;
+        if (!editEnabled) return;
+        selectPoint(e);
+        moveMode = false;
       }
 
       function hideDeleteDialog() {
@@ -1650,7 +1671,7 @@
           canvas.style.cursor = redDeleteCursor;
         } else if (addPointEnabled) {
           canvas.style.cursor = greenAddCursor;
-        } else if (editEnabled) {
+        } else if (moveMode || dragging) {
           canvas.style.cursor = 'move';
         } else {
           canvas.style.cursor = 'default';
@@ -1661,7 +1682,7 @@
         document.getElementById('cursor-pos').textContent = 'Cursor:';
         if (deletePointEnabled) canvas.style.cursor = redDeleteCursor;
         else if (addPointEnabled) canvas.style.cursor = greenAddCursor;
-        else if (editEnabled) canvas.style.cursor = 'move';
+        else if (moveMode || dragging) canvas.style.cursor = 'move';
         else canvas.style.cursor = 'default';
         hoverIndex = -1;
         updateRowHighlights();
@@ -2071,7 +2092,7 @@
         var active = editEnabled || addPointEnabled || deletePointEnabled;
         toolsBtn.classList.toggle('active', active);
         var closeBtn = document.getElementById('tools-close-btn');
-        if (active) {
+        if (active || toolsPanelLocked) {
           document.getElementById('tools-panel').classList.add('locked');
           closeBtn.style.display = 'block';
         } else {
@@ -2093,7 +2114,7 @@
         var active = document.getElementById('move-image-toggle').checked;
         btn.classList.toggle('active', active);
         var closeBtn = document.getElementById('image-close-btn');
-        if (active) {
+        if (active || imagePanelLocked) {
           document.getElementById('image-panel').classList.add('locked');
           closeBtn.style.display = 'block';
         } else {
