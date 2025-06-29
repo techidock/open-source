@@ -7,7 +7,7 @@
 {% block content %}
   <div id="left-bar">
     <div class="tool-cell" data-index="0">
-      <button id="channel-btn" class="tool-btn" onclick="toggleChannelMenu()" title="Channel Menu"><i class="bi bi-kanban"></i></button>
+      <button id="projects-btn" class="tool-btn" onclick="toggleProjectsMenu()" title="Projects"><i class="bi bi-kanban"></i></button>
     </div>
     <div class="tool-cell" data-index="1"></div>
     <div class="tool-cell" data-index="2"></div>
@@ -219,8 +219,8 @@
               <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="toggleDeletePointTool()"><i class="bi bi-x-lg"></i></button>
             </div>
           </div>
-          <div id="channel-menu" class="floating-menu">
-            <button id="channel-close-btn" type="button" class="btn-close" onclick="closeChannelMenu()"></button>
+          <div id="projects-menu" class="floating-menu">
+            <button id="projects-close-btn" type="button" class="btn-close" onclick="closeProjectsMenu()"></button>
             <div class="tool-cell" data-index="0">
               <button class="tool-btn" title="New Channel" onclick="openNewChannelDialog()"><i class="bi bi-kanban"></i></button>
             </div>
@@ -248,6 +248,8 @@
             </div>
             <div class="tool-cell" data-index="1"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
             <div class="tool-cell" data-index="2"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
+            <div class="tool-cell" data-index="3"></div>
+            <div class="tool-cell" data-index="4"></div>
           </div>
           <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
         </div>
@@ -817,17 +819,17 @@
         }).catch(() => draw());
         togglePinProperties();
 
-        var channelBtn = document.getElementById('channel-btn');
-        var channelPanel = document.getElementById('channel-menu');
-        channelBtn.addEventListener('click', function(){
-          if (channelPanel.classList.contains('show')) {
-            closeChannelMenu();
+        var projectsBtn = document.getElementById('projects-btn');
+        var projectsPanel = document.getElementById('projects-menu');
+        projectsBtn.addEventListener('click', function(){
+          if (projectsPanel.classList.contains('show')) {
+            closeProjectsMenu();
           } else {
-            closeAllPanels('channel');
-            showChannelMenu();
+            closeAllPanels('projects');
+            showProjectsMenu();
           }
         });
-        channelPanel.addEventListener('mouseleave', function(){ if(!channelBtn.matches(':hover')) closeChannelMenu(); });
+        projectsPanel.addEventListener('mouseleave', function(){ if(!projectsBtn.matches(':hover')) closeProjectsMenu(); });
 
         var toolsBtn = document.getElementById('tools-btn');
         var toolsPanel = document.getElementById('tools-panel');
@@ -2002,7 +2004,7 @@
         if (except !== 'tools') hideToolsPanel();
         if (except !== 'image') hideImagePanel();
         if (except !== 'canvas') hideCanvasToolsPanel();
-        if (except !== 'channel') closeChannelMenu();
+        if (except !== 'projects') closeProjectsMenu();
       }
 
       function showToolsPanel(lock) {
@@ -2095,28 +2097,28 @@
         }
       }
 
-      function showChannelMenu() {
-        var panel = document.getElementById('channel-menu');
+      function showProjectsMenu() {
+        var panel = document.getElementById('projects-menu');
         panel.classList.add('show');
       }
 
-      function closeChannelMenu() {
-        var panel = document.getElementById('channel-menu');
+      function closeProjectsMenu() {
+        var panel = document.getElementById('projects-menu');
         panel.classList.remove('show');
       }
 
-      function toggleChannelMenu() {
-        var panel = document.getElementById('channel-menu');
+      function toggleProjectsMenu() {
+        var panel = document.getElementById('projects-menu');
         if (panel.classList.contains('show')) {
-          closeChannelMenu();
+          closeProjectsMenu();
         } else {
-          closeAllPanels('channel');
+          closeAllPanels('projects');
           var mt = document.getElementById('measure-toggle');
           if (mt.checked) {
             mt.checked = false;
             mt.dispatchEvent(new Event('change'));
           }
-          showChannelMenu();
+          showProjectsMenu();
         }
       }
 

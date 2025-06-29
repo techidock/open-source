@@ -219,7 +219,7 @@ canvas {
   transform: translate(10px, -50%);
 }
 
-#channel-menu {
+#projects-menu {
   position: fixed;
   left: 50px;
   top: 0;
@@ -232,7 +232,7 @@ canvas {
   display: none;
   overflow-y: auto;
   z-index: 1020;
-#channel-menu.show {
+#projects-menu.show {
   display: block;
 }
 
