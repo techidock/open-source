@@ -699,9 +699,9 @@
            shapeSlider.style.display = 'block';
            document.getElementById('image-scale-slider').style.display = 'none';
          }
-         if (this.checked) hideToolsPanel();
-         updateToolHighlight();
-         draw();
+        /* keep panel open so user can switch tools */
+        updateToolHighlight();
+        draw();
       };
       document.getElementById('add-point-toggle').onchange = function(){
         addPointEnabled = this.checked;
@@ -716,9 +716,8 @@
           deletePointEnabled = false;
         }
         moveMode = false;
-       if (this.checked) hideToolsPanel();
-       updateImageToolHighlight();
-       updateToolHighlight();
+        updateImageToolHighlight();
+        updateToolHighlight();
     };
       document.getElementById('delete-point-toggle').onchange = function(){
          deletePointEnabled = this.checked;
@@ -730,9 +729,8 @@
            addPointEnabled = false;
            document.getElementById('move-image-toggle').checked = false;
          }
-         moveMode = false;
-         if (this.checked) hideToolsPanel();
-         updateToolHighlight();
+        moveMode = false;
+        updateToolHighlight();
       };
         document.getElementById('vectors-toggle').onchange = function(){
           vectorsVisible = this.checked;
@@ -2127,7 +2125,6 @@
           document.getElementById('edit-toggle').checked = true;
           document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
         }
-        hideToolsPanel();
       }
 
       function toggleDeletePointTool() {
@@ -2139,7 +2136,6 @@
           document.getElementById('edit-toggle').checked = true;
           document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
         }
-        hideToolsPanel();
       }
 
       function activateSelectTool() {
@@ -2159,7 +2155,6 @@
       function lockAndSelect() {
         closeAllPanels('tools');
         activateSelectTool();
-        hideToolsPanel();
       }
 
       function closeToolsPanel() {
@@ -2240,9 +2235,12 @@
       }
 
       function updateImageToolHighlight() {
-        document.getElementById('move-image-tool-btn').classList.toggle('active', document.getElementById('move-image-toggle').checked);
+        var moveActive = document.getElementById('move-image-toggle').checked;
+        var moveBtn = document.getElementById('move-image-tool-btn');
+        moveBtn.classList.toggle('active', moveActive);
+        moveBtn.parentElement.classList.toggle('selected', moveActive);
         var btn = document.getElementById('image-btn');
-        var active = document.getElementById('move-image-toggle').checked;
+        var active = moveActive;
         btn.classList.toggle('active', active);
         var closeBtn = document.getElementById('image-close-btn');
         if (active || imagePanelLocked) {
@@ -2263,7 +2261,10 @@
         var closeBtn = document.getElementById('canvas-tools-close-btn');
         closeBtn.style.display = panel.classList.contains('locked') ? 'block' : 'none';
         var mb = document.getElementById('measure-tool-btn');
-        if (mb) mb.classList.toggle('active', measureMode);
+        if (mb) {
+          mb.classList.toggle('active', measureMode);
+          mb.parentElement.classList.toggle('selected', measureMode);
+        }
         updateActiveToolLabel();
       }
 
