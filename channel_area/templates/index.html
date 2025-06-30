@@ -265,6 +265,7 @@
           </thead>
           <tbody></tbody>
         </table>
+        <button id="copy-calc-table" class="btn btn-sm btn-secondary mt-2" onclick="copyCalcTable()">Copy Table</button>
       </div>
       <div id="calc-properties" class="p-3"></div>
     </div>
@@ -699,6 +700,8 @@
         var depthUnits = document.getElementById('height-units').value;
         var unitSq = unitFactor() * unitFactor();
         var mm2perpx2 = mmScale * mmScale;
+        var depthDec = decimalsForUnits(depthUnits) + 3;
+        var areaDec = decimalsForUnits(units) + 3;
         for (var i = 0; i < count; i++) {
           var depthMM = maxDepth * i / (count - 1);
           var levelMM = siltHeightMM + depthMM;
@@ -708,13 +711,27 @@
           var areaMM2 = (polygonArea(waterPts) - polygonArea(siltPts)) * mm2perpx2;
           var tr = document.createElement('tr');
           var tdL = document.createElement('td');
-          tdL.textContent = (depthMM / heightUnitFactor()).toFixed(1) + ' ' + depthUnits;
+          tdL.textContent = (depthMM / heightUnitFactor()).toFixed(depthDec) + ' ' + depthUnits;
           var tdA = document.createElement('td');
-          tdA.textContent = (areaMM2 / unitSq).toFixed(2) + ' ' + units + '^2';
+          tdA.textContent = (areaMM2 / unitSq).toFixed(areaDec) + ' ' + units + '^2';
           tr.appendChild(tdL);
           tr.appendChild(tdA);
           tbody.appendChild(tr);
         }
+      }
+
+      function copyCalcTable() {
+        var table = document.getElementById('calc-table');
+        if (!table) return;
+        var rows = table.querySelectorAll('tr');
+        var lines = [];
+        rows.forEach(function(row){
+          var cells = row.querySelectorAll('th,td');
+          var vals = [];
+          cells.forEach(function(c){ vals.push(c.textContent.trim()); });
+          lines.push(vals.join('\t'));
+        });
+        navigator.clipboard.writeText(lines.join('\n'));
       }
 
       function init() {
