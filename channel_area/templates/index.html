@@ -98,6 +98,7 @@
           <input type="number" id="canvas-height" value="3000" oninput="updateCanvasSize()">
           <span id="draw-unit"></span><br>
         </div>
+        <div id="channel-panel-container">
         <div class="tab-pane fade" id="channel-panel" role="tabpanel">
           <h3>Channel Properties</h3>
           <p id="width-label"></p>
@@ -117,6 +118,7 @@
             <option value="cm">cm</option>
             <option value="mm">mm</option>
           </select>
+        </div>
         </div>
         <div class="tab-pane fade" id="edit-panel" role="tabpanel">
           <h3>Edit Tools</h3>
@@ -252,8 +254,11 @@
         <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
       </div>
     </div>
-    <div id="calc-section" class="col" style="display:none">
-      <h3>Channel Calculations</h3>
+    <div id="calc-section" class="d-flex" style="display:none">
+      <div id="calc-content" class="flex-grow-1 p-3">
+        <h3>Channel Calculations</h3>
+      </div>
+      <div id="calc-properties" class="p-3"></div>
     </div>
     <!-- properties menu moved to offcanvas -->
   </div>
@@ -392,6 +397,7 @@
       var imagePanelLocked = false;
       var canvasToolsPanelLocked = false;
       var propertiesOffcanvas;
+      var channelPanelHome;
       var zoomLevel = 1;
       var bgImage = null;
       var bgBaseScale = 1;
@@ -679,6 +685,7 @@
         if (cp) cp.value = canvasColor;
         applyZoom();
         propertiesOffcanvas = new bootstrap.Offcanvas(document.getElementById('properties-menu'));
+        channelPanelHome = document.getElementById('channel-panel-container');
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('resize', togglePinProperties);
@@ -2108,12 +2115,17 @@
       function toggleCalcSection() {
         var calc = document.getElementById('calc-section');
         var draw = document.getElementById('drawing-area');
-        if (calc.style.display === 'block') {
+        var panel = document.getElementById('channel-panel');
+        if (calc.style.display !== 'none') {
           calc.style.display = 'none';
           draw.style.display = 'block';
+          if (panel && channelPanelHome) channelPanelHome.appendChild(panel);
         } else {
-          calc.style.display = 'block';
+          calc.style.display = 'flex';
           draw.style.display = 'none';
+          if (propertiesOffcanvas) propertiesOffcanvas.hide();
+          var target = document.getElementById('calc-properties');
+          if (panel && target) target.appendChild(panel);
         }
       }
 

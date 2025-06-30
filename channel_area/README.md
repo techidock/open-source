@@ -65,8 +65,9 @@ Along the left border runs a solid grey strip divided into ten equal squares
 numbered **0** at the top down to **9**. This serves as the tool menu. The bar
 can scroll if the window is short so every square remains accessible. The first
 section (0) opens the **Projects** panel, section 4 shows a pencil icon for the
-**Edit Tools** menu, section 5 opens the **Image Tools** panel and section 6 opens the **Canvas Tools** panel.
+**Edit Tools** menu, section 5 opens the **Image Tools** panel, section 6 opens the **Canvas Tools** panel and section 8 toggles the **Channel Calculations** view.
 Hovering over either icon simply reveals its menu, while clicking locks the panel open and shows a circular **X**. Selecting a tool also locks the panel. Only one menu can be locked at a time, so choosing another icon closes the previous menu. The active tool’s icon and its toolbar button both receive a blue outline.
+Selecting the calculator icon switches to the Channel Calculations page. This view hides the canvas and shows the **Channel Properties** panel fixed on the right side so you can review dimensions while working through calculations.
 The Edit Tools menu slides 10 px to the right when opened. Position 0 offers **Select** with a cursor icon. Position 1 enables **Add Points** with an icon shaped like a green cross on a black circle the same size as the vector markers, and position 2 activates **Delete Point**. Double‑click a marker in delete mode to confirm via a small dialog near the cursor. The image panel provides an **Upload** button and a **Move Image** toggle. When this tool is active a slider titled **Image Scale** appears in section 2 of the bottom bar so you can resize the picture. The tape‑measure tool now resides in the **Canvas Tools** panel at position 4.
 A **Properties** button sits in section **9** of the bottom toolbar. It opens another panel with tabs for display and channel information. Pinning is only available in landscape orientation so the panel stays beside the canvas. The Properties panel now includes separate **Vectors** and **Measurements** tabs where the vertex list and measurement table are shown.
 
