@@ -204,7 +204,7 @@
           <div id="tools-panel" class="floating-menu">
             <button id="tools-close-btn" type="button" class="btn-close" onclick="closeToolsPanel()"></button>
             <div class="tool-cell" data-index="0">
-              <button id="select-tool-btn" class="tool-btn" title="Select/Move" onclick="lockAndSelect()"><i class="bi bi-arrows-move"></i></button>
+              <button id="select-tool-btn" class="tool-btn" title="Select" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
             </div>
             <div class="tool-cell" data-index="1">
               <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()">
@@ -685,8 +685,8 @@
         canvas.addEventListener('click', handleClick);
         canvas.addEventListener('dblclick', handleDoubleClick);
         canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-       document.getElementById('edit-toggle').onchange = function(){
-         editEnabled = this.checked;
+      document.getElementById('edit-toggle').onchange = function(){
+        editEnabled = this.checked;
          var cell = document.getElementById('scale-cell');
          var shapeSlider = document.getElementById('shape-scale-slider');
          if (!editEnabled) {
@@ -699,9 +699,10 @@
            shapeSlider.style.display = 'block';
            document.getElementById('image-scale-slider').style.display = 'none';
          }
-          updateToolHighlight();
-          draw();
-       };
+         if (this.checked) hideToolsPanel();
+         updateToolHighlight();
+         draw();
+      };
       document.getElementById('add-point-toggle').onchange = function(){
         addPointEnabled = this.checked;
         if (this.checked) {
@@ -715,6 +716,7 @@
           deletePointEnabled = false;
         }
         moveMode = false;
+       if (this.checked) hideToolsPanel();
        updateImageToolHighlight();
        updateToolHighlight();
     };
@@ -729,6 +731,7 @@
            document.getElementById('move-image-toggle').checked = false;
          }
          moveMode = false;
+         if (this.checked) hideToolsPanel();
          updateToolHighlight();
       };
         document.getElementById('vectors-toggle').onchange = function(){
@@ -2117,7 +2120,6 @@
 
       function activateAddPointTool() {
         closeAllPanels('tools');
-        showToolsPanel(true);
         var ap = document.getElementById('add-point-toggle');
         ap.checked = !ap.checked;
         ap.dispatchEvent(new Event('change'));
@@ -2125,11 +2127,11 @@
           document.getElementById('edit-toggle').checked = true;
           document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
         }
+        hideToolsPanel();
       }
 
       function toggleDeletePointTool() {
         closeAllPanels('tools');
-        showToolsPanel(true);
         var dp = document.getElementById('delete-point-toggle');
         dp.checked = !dp.checked;
         dp.dispatchEvent(new Event('change'));
@@ -2137,6 +2139,7 @@
           document.getElementById('edit-toggle').checked = true;
           document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
         }
+        hideToolsPanel();
       }
 
       function activateSelectTool() {
@@ -2155,8 +2158,8 @@
 
       function lockAndSelect() {
         closeAllPanels('tools');
-        showToolsPanel(true);
         activateSelectTool();
+        hideToolsPanel();
       }
 
       function closeToolsPanel() {
@@ -2202,8 +2205,8 @@
           label.textContent = 'Measure';
           action.textContent = '';
         } else if (editEnabled) {
-          label.textContent = 'Select/Move';
-          action.textContent = '(double click to select and move)';
+          label.textContent = 'Select';
+          action.textContent = '(double click to move)';
         } else {
           label.textContent = 'None';
           action.textContent = '';
@@ -2211,9 +2214,15 @@
       }
 
       function updateToolHighlight() {
-        document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
-        document.getElementById('add-point-tool-btn').classList.toggle('active', addPointEnabled);
-        document.getElementById('delete-point-tool-btn').classList.toggle('active', deletePointEnabled);
+        var selectBtn = document.getElementById('select-tool-btn');
+        var addBtn = document.getElementById('add-point-tool-btn');
+        var delBtn = document.getElementById('delete-point-tool-btn');
+        selectBtn.classList.toggle('active', editEnabled);
+        addBtn.classList.toggle('active', addPointEnabled);
+        delBtn.classList.toggle('active', deletePointEnabled);
+        selectBtn.parentElement.classList.toggle('selected', editEnabled);
+        addBtn.parentElement.classList.toggle('selected', addPointEnabled);
+        delBtn.parentElement.classList.toggle('selected', deletePointEnabled);
         var toolsBtn = document.getElementById('tools-btn');
         var active = editEnabled || addPointEnabled || deletePointEnabled;
         toolsBtn.classList.toggle('active', active);
