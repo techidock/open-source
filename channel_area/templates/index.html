@@ -257,6 +257,14 @@
     <div id="calc-section" class="d-flex" style="display:none">
       <div id="calc-content" class="flex-grow-1 p-3">
         <h3>Channel Calculations</h3>
+        <label for="calc-points">Levels:</label>
+        <input type="number" id="calc-points" min="2" value="5" onchange="updateCalcTable()">
+        <table id="calc-table" border="1" style="border-collapse:collapse" class="mt-2">
+          <thead>
+            <tr><th>Water Level</th><th>Area</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
       </div>
       <div id="calc-properties" class="p-3"></div>
     </div>
@@ -673,6 +681,36 @@
           tr.appendChild(tdV);
           tr.appendChild(tdC);
           tr.appendChild(tdR);
+        tbody.appendChild(tr);
+      }
+
+      function updateCalcTable() {
+        var table = document.getElementById('calc-table');
+        if (!table) return;
+        var tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+        var count = parseInt(document.getElementById('calc-points').value) || 2;
+        if (count < 2) count = 2;
+        var maxH = shapeHeightMM(shapePts);
+        var maxDepth = Math.max(0, maxH - siltHeightMM);
+        var units = document.getElementById('units').value;
+        var depthUnits = document.getElementById('height-units').value;
+        var unitSq = unitFactor() * unitFactor();
+        var mm2perpx2 = mmScale * mmScale;
+        for (var i = 0; i < count; i++) {
+          var depthMM = maxDepth * i / (count - 1);
+          var levelMM = siltHeightMM + depthMM;
+          var yLine = mmToPxY(levelMM);
+          var waterPts = clipBelow(shapePts, yLine);
+          var siltPts = clipBelow(shapePts, mmToPxY(siltHeightMM));
+          var areaMM2 = (polygonArea(waterPts) - polygonArea(siltPts)) * mm2perpx2;
+          var tr = document.createElement('tr');
+          var tdL = document.createElement('td');
+          tdL.textContent = (depthMM / heightUnitFactor()).toFixed(1) + ' ' + depthUnits;
+          var tdA = document.createElement('td');
+          tdA.textContent = (areaMM2 / unitSq).toFixed(2) + ' ' + units + '^2';
+          tr.appendChild(tdL);
+          tr.appendChild(tdA);
           tbody.appendChild(tr);
         }
       }
@@ -1154,6 +1192,9 @@
         document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         document.getElementById('silt-area-display').textContent = 'Silt Area: ' + (siltArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
         drawMeasurement();
+        if (document.getElementById('calc-section').style.display !== 'none') {
+          updateCalcTable();
+        }
         autoSave();
       }
 
@@ -2126,6 +2167,7 @@
           if (propertiesOffcanvas) propertiesOffcanvas.hide();
           var target = document.getElementById('calc-properties');
           if (panel && target) target.appendChild(panel);
+          updateCalcTable();
         }
       }
 
