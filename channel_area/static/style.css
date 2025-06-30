@@ -1,0 +1,489 @@
+html, body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden; /* remove scrollbars */
+  height: 100%;
+  box-sizing: border-box;
+}
+
+body {
+  padding-left: 48px;  /* leave room for tool bar and scrollbar */
+  padding-right: 48px; /* room for right bar */
+  padding-bottom: 40px; /* reserve space for bottom bar */
+  padding-top: 48px;   /* room for top nav */
+  margin: 0;
+}
+
+/* container for the main drawing layout */
+#main-container {
+  height: 100%;
+}
+
+#draw-section,
+#layout,
+#drawing-area {
+  height: 100%;
+}
+
+#drawing-area {
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-top: -20px; /* move canvas up slightly */
+  width: calc(100% - 80px);
+}
+
+
+#canvas-container {
+  position: relative;
+  overflow: hidden; /* avoid scroll bars */
+  width: 100%;
+  height: 100%;
+}
+
+#canvas-panel {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 0;
+  height: 100%;
+}
+
+canvas {
+  border: 1px solid #ccc;
+  background: #fafafa;
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+}
+
+
+.tool-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+}
+.tool-btn.active {
+  background: #ddd;
+  outline: 2px solid #0d6efd;
+  border-radius: 4px;
+}
+
+#tools-panel {
+  position: absolute;
+  left: 40px; /* next to tool bar */
+  top: 50%;
+  transform: translate(-10px, -50%);
+  width: 40px; /* match tool bar width */
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 4px 0 4px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1020;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#image-panel {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translate(-10px, -50%);
+  width: 40px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 4px 0 4px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1020;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#image-panel .btn-close {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  display: none;
+  padding: 0;
+}
+
+#image-panel.locked .btn-close {
+  display: block;
+}
+
+#image-panel.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(10px, -50%);
+}
+
+#image-panel input {
+  width: 34px;
+  margin-top: 2px;
+}
+
+#canvas-tools-panel input[type="color"] {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+#canvas-tools-panel {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translate(-10px, -50%);
+  width: 40px;
+  background: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 4px 0 4px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: 1020;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#canvas-tools-panel .btn-close {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  display: none;
+  padding: 0;
+}
+
+#canvas-tools-panel.locked .btn-close {
+  display: block;
+}
+
+#canvas-tools-panel.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(10px, -50%);
+}
+
+#tools-panel .btn-close {
+  position: absolute;
+  top: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  display: none;
+  padding: 0;
+}
+
+#tools-panel.locked .btn-close {
+  display: block;
+}
+
+#tools-panel.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(10px, -50%);
+}
+
+#projects-menu {
+  position: fixed;
+  left: 50px;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  display: none;
+  overflow-y: auto;
+  z-index: 1020;
+#projects-menu.show {
+  display: block;
+}
+
+
+#layout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+
+#layout.with-properties {
+  margin-right: 260px;
+}
+
+#properties-menu.pinned {
+  position: static;
+  transform: none;
+  visibility: visible !important;
+  width: 260px;
+  border-left: 1px solid #ccc;
+}
+
+#properties-menu.pinned .btn-close {
+  display: none;
+}
+
+table {
+  margin-top: 10px;
+}
+
+.row-hover {
+  background-color: #cce0ff;
+}
+
+.row-edit {
+  background-color: #ffcccc;
+}
+
+#measure-table {
+  margin-top: 4px;
+  width: 100%;
+}
+
+@media (orientation: portrait) {
+  #layout.with-properties {
+    margin-right: 0;
+    margin-bottom: 260px;
+    flex-direction: column;
+  }
+  #properties-menu.pinned {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #ccc;
+  }
+}
+
+.offcanvas-body .btn-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  margin: 4px 0;
+}
+
+
+
+#top-nav {
+  background: #000;
+  height: 48px;
+  line-height: 48px;
+  padding: 0 8px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1040;
+}
+
+#left-bar {
+  position: fixed;
+  top: 48px;   /* below the top navbar */
+  bottom: 40px; /* above the bottom bar */
+  left: 0;
+  width: 40px;
+  background: linear-gradient(to right, #eee calc(100% - 8px), #fff calc(100% - 8px));
+  border-right: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* allow scrolling when window is short */
+  overflow-x: hidden; /* hide horizontal bar */
+  z-index: 1030;
+  box-sizing: content-box;
+  padding-right: 8px; /* white space for scrollbar */
+  scrollbar-width: thin; /* scrollbar always visible when needed */
+  transition: background-color 0.3s;
+}
+
+#right-bar {
+  position: fixed;
+  top: 48px;
+  bottom: 40px;
+  right: 0;
+  width: 40px;
+  direction: rtl; /* place scrollbar on the left */
+  background: linear-gradient(to right, #fff 0, #fff 8px, #eee 8px);
+  border-left: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 1030;
+  box-sizing: content-box;
+  padding-right: 8px; /* space for left scrollbar */
+  padding-left: 0;
+  scrollbar-width: thin;
+  transition: background-color 0.3s;
+}
+#right-bar > * {
+  direction: ltr;
+}
+#right-bar::-webkit-scrollbar {
+  width: 8px;
+}
+#right-bar::-webkit-scrollbar-track {
+  background: #fff;
+}
+#right-bar::-webkit-scrollbar-thumb {
+  background: #ccc;
+}
+#left-bar::-webkit-scrollbar {
+  width: 8px;
+}
+#left-bar::-webkit-scrollbar-track {
+  background: #fff;
+}
+
+#left-bar::-webkit-scrollbar-thumb {
+  background: #ccc;
+}
+
+.tool-cell {
+  flex: 0 0 40px; /* keep square cells */
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #ccc;
+  position: relative;
+}
+
+.tool-cell:last-child {
+  border-bottom: none;
+}
+
+.tool-cell::after {
+  content: attr(data-index);
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 10px;
+  color: #666;
+}
+
+#right-bar .tool-cell::after {
+  right: 2px;
+  left: auto;
+}
+
+#bottom-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40px;
+  background: #eee;
+  border-top: 1px solid #ccc;
+  display: flex;
+  padding: 0;
+  z-index: 1030;
+}
+
+.bottom-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid #ccc;
+}
+
+#zoom-cell {
+  gap: 4px;
+}
+
+#zoom-cell input[type="range"] {
+  flex: 1;
+}
+
+.bottom-cell:first-child {
+  border-left: none;
+}
+
+.bottom-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+.bottom-subcell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-left: 1px solid #ccc;
+}
+.bottom-subcell:first-child {
+  border-left: none;
+}
+
+.confirm-dialog {
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 4px;
+  font-size: 12px;
+  z-index: 1050;
+  border-radius: 4px;
+}
+
+#zoom-slider {
+  width: 100%;
+}
+
+.zoom-btn {
+  background: #eee;
+  border: 1px solid #ccc;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+#image-scale-slider {
+  width: 100%;
+}
+
+#shape-scale-slider {
+  width: 100%;
+}
+
+

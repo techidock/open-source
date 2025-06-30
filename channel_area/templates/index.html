@@ -1,0 +1,2278 @@
+{% extends 'bootstrap5/base.html' %}
+{% block title %}Channel Area Calculator{% endblock %}
+{% block styles %}
+  {{ super() }}
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+{% endblock %}
+{% block content %}
+  <div id="left-bar">
+    <div class="tool-cell" data-index="0">
+      <button id="projects-btn" class="tool-btn" onclick="toggleProjectsMenu()" title="Projects"><i class="bi bi-kanban"></i></button>
+    </div>
+    <div class="tool-cell" data-index="1"></div>
+    <div class="tool-cell" data-index="2"></div>
+    <div class="tool-cell" data-index="3"></div>
+    <div class="tool-cell" data-index="4">
+      <button id="tools-btn" class="tool-btn"><i class="bi bi-pencil"></i></button>
+    </div>
+    <div class="tool-cell" data-index="5">
+      <button id="image-btn" class="tool-btn" title="Image Tools"><i class="bi bi-image"></i></button>
+    </div>
+    <div class="tool-cell" data-index="6">
+      <button id="canvas-tools-btn" class="tool-btn" title="Canvas Tools"><i class="bi bi-bounding-box"></i></button>
+    </div>
+    <div class="tool-cell" data-index="7"></div>
+    <div class="tool-cell" data-index="8"></div>
+    <div class="tool-cell" data-index="9"></div>
+  </div>
+  <div id="right-bar">
+    {% for i in range(10) %}
+    <div class="tool-cell" data-index="{{ i }}"></div>
+    {% endfor %}
+  </div>
+  <nav id="top-nav" class="navbar navbar-dark">
+    <div class="container-fluid p-0 d-flex align-items-center">
+      <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
+      <a class="navbar-brand ms-2" href="#">Channel Area</a>
+    </div>
+  </nav>
+
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="side-menu">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Menu</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openNewChannelDialog()">New Channel</button>
+      <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openShapeDialog()">Manage Shapes</button>
+      <button type="button" class="btn btn-link" data-bs-dismiss="offcanvas" onclick="openSetupDialog()">Setup</button>
+    </div>
+  </div>
+  <div class="offcanvas offcanvas-end" tabindex="-1" id="properties-menu">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Properties</h5>
+      <div class="form-check ms-auto me-2">
+        <input class="form-check-input" type="checkbox" id="pin-properties" onchange="togglePinProperties()">
+        <label class="form-check-label" for="pin-properties">Pin</label>
+      </div>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+      <ul class="nav nav-tabs" id="prop-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="display-tab" data-bs-toggle="tab" data-bs-target="#display-panel" type="button" role="tab">Display</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-panel" type="button" role="tab">Channel</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit-panel" type="button" role="tab">Edit Tools</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="vectors-tab" data-bs-toggle="tab" data-bs-target="#vectors-panel" type="button" role="tab">Vectors</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="measure-tab" data-bs-toggle="tab" data-bs-target="#measure-panel" type="button" role="tab">Measurements</button>
+        </li>
+      </ul>
+      <div class="tab-content mt-2">
+        <div class="tab-pane fade show active" id="display-panel" role="tabpanel">
+          <h3>Display Properties</h3>
+          <p id="grid-info"></p>
+          <p id="cursor-pos">Cursor:</p>
+          <h4>Display Settings</h4>
+          <label for="units">Display Units:</label>
+          <select name="units" id="units" onchange="updateUnitDisplay()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select><br>
+          <label><input type="checkbox" id="vectors-toggle" checked> Show Vectors</label><br>
+          <label><input type="checkbox" id="bbox-toggle" checked> Show Bounding Box</label><br>
+          <label><input type="checkbox" id="measure-visible" checked> Show Measurements</label><br>
+          <label for="canvas-width">Canvas Width:</label>
+          <input type="number" id="canvas-width" value="4000" oninput="updateCanvasSize()"><br>
+          <label for="canvas-height">Canvas Height:</label>
+          <input type="number" id="canvas-height" value="3000" oninput="updateCanvasSize()">
+          <span id="draw-unit"></span><br>
+        </div>
+        <div class="tab-pane fade" id="channel-panel" role="tabpanel">
+          <h3>Channel Properties</h3>
+          <p id="width-label"></p>
+          <p id="height-label"></p>
+          <p id="area-display" title="Maximum Area in the Channel"></p>
+          <p id="water-area-display"></p>
+          <p id="silt-area-display"></p>
+          <label for="water-height">Water Height:</label>
+          <input type="number" step="any" id="water-height" min="0" oninput="draw()">
+          <span id="water-unit"></span><br>
+          <label for="silt-height">Silt Height:</label>
+          <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
+          <span id="silt-unit"></span><br>
+          <label for="height-units">Height Units:</label>
+          <select id="height-units" onchange="updateHeightUnitDisplay()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select>
+        </div>
+        <div class="tab-pane fade" id="edit-panel" role="tabpanel">
+          <h3>Edit Tools</h3>
+          <!-- edit mode and add point toggles are controlled from the floating menu -->
+          <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
+          <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
+          <button type="button" onclick="undoEdit()">Undo</button>
+          <button type="button" onclick="redoEdit()">Redo</button>
+        </div>
+        <div class="tab-pane fade" id="vectors-panel" role="tabpanel">
+          <h3>Points</h3>
+          <table id="points-table" border="1" style="border-collapse:collapse">
+            <thead>
+              <tr><th>Index</th><th>x</th><th>y</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div class="tab-pane fade" id="measure-panel" role="tabpanel">
+          <h3>Measurements</h3>
+          <table id="measure-table" border="1" style="border-collapse:collapse">
+            <thead>
+              <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="main-container" class="container-fluid">
+    <dialog id="new-channel-dialog">
+      <form method="dialog" onsubmit="return false;">
+        <label for="shape">Shape:</label>
+        <select name="shape" id="shape" onchange="showFields(); draw()">
+          <option value="polygon">Polygon Channel</option>
+          <option value="circle" selected>Circular Channel</option>
+          <option value="rectangle">Rectangle Channel</option>
+          <option value="egg">Egg Shape Channel</option>
+        </select>
+        <label for="shape-units">Units:</label>
+        <select id="shape-units" onchange="updateShapeUnitDisplay()">
+          <option value="m">m</option>
+          <option value="cm">cm</option>
+          <option value="mm" selected>mm</option>
+        </select>
+        <div id="circular-fields" class="fields" style="display:none">
+          <label for="circle-diameter">Diameter:</label>
+          <input type="number" id="circle-diameter" value="300" oninput="resetCircle()">
+          <span id="circle-unit"></span>
+          <label for="circle-points">Points:</label>
+          <input type="number" id="circle-points" min="3" value="36" onchange="resetCircle()">
+        </div>
+        <div id="rectangle-fields" class="fields" style="display:none">
+          <label for="rect-width">Width:</label>
+          <input type="number" id="rect-width" value="1000" oninput="resetRectangle()">
+          <label for="rect-height">Height:</label>
+          <input type="number" id="rect-height" value="1000" oninput="resetRectangle()">
+          <label for="rect-radius">Corner Radius:</label>
+          <input type="number" id="rect-radius" value="0" oninput="resetRectangle()">
+          <span id="rect-unit"></span>
+        </div>
+        <div id="egg-fields" class="fields" style="display:none">
+          <label for="egg-diam1">Bottom Diameter:</label>
+          <input type="number" id="egg-diam1" value="1000" oninput="resetEgg()">
+          <label for="egg-diam2">Top Diameter:</label>
+          <input type="number" id="egg-diam2" value="800" oninput="resetEgg()">
+          <label for="egg-dist">Centre Distance:</label>
+          <input type="number" id="egg-dist" value="600" oninput="resetEgg()">
+          <span id="egg-unit"></span>
+        </div>
+        <div id="polygon-fields" class="fields" style="display:none">
+          <label for="num-points">Points:</label>
+          <input type="number" id="num-points" min="3" value="3" onchange="resetPolygon()">
+          <button type="button" onclick="clearPolygon()">Clear Polygon Channel</button>
+        </div>
+        <button type="button" onclick="closeNewChannelDialog()">Close</button>
+      </form>
+    </dialog>
+  <div id="draw-section" class="h-100">
+    <div id="layout" class="row h-100">
+      <div id="drawing-area" class="col">
+        <div id="canvas-panel" class="border p-2">
+          <div id="canvas-container">
+            <canvas id="canvas"></canvas>
+          </div>
+          <div id="tools-panel" class="floating-menu">
+            <button id="tools-close-btn" type="button" class="btn-close" onclick="closeToolsPanel()"></button>
+            <div class="tool-cell" data-index="0">
+              <button id="select-tool-btn" class="tool-btn" title="Select/Move" onclick="lockAndSelect()"><i class="bi bi-arrows-move"></i></button>
+            </div>
+            <div class="tool-cell" data-index="1">
+              <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()">
+                <svg width="16" height="16" viewBox="0 0 16 16">
+                  <circle cx="8" cy="8" r="4" fill="black" />
+                  <line x1="8" y1="2" x2="8" y2="14" stroke="green" stroke-width="2" />
+                  <line x1="2" y1="8" x2="14" y2="8" stroke="green" stroke-width="2" />
+                </svg>
+              </button>
+            </div>
+            <div class="tool-cell" data-index="2">
+              <button id="delete-point-tool-btn" class="tool-btn" title="Delete Point" onclick="toggleDeletePointTool()"><i class="bi bi-x-lg"></i></button>
+            </div>
+          </div>
+          <div id="projects-menu" class="floating-menu">
+            <button id="projects-close-btn" type="button" class="btn-close" onclick="closeProjectsMenu()"></button>
+            <div class="tool-cell" data-index="0">
+              <button class="tool-btn" title="New Channel" onclick="openNewChannelDialog()"><i class="bi bi-kanban"></i></button>
+            </div>
+            <div class="tool-cell" data-index="1">
+              <button class="tool-btn" title="Save Shape" onclick="openShapeDialog()"><i class="bi bi-save"></i></button>
+            </div>
+          </div>
+          <div id="image-panel" class="floating-menu">
+            <button id="image-close-btn" type="button" class="btn-close" onclick="closeImagePanel()"></button>
+            <div class="tool-cell" data-index="0">
+              <button id="upload-image-btn" class="tool-btn" title="Upload Image" onclick="openImageUpload()"><i class="bi bi-upload"></i></button>
+            </div>
+            <div class="tool-cell" data-index="1">
+              <button id="move-image-tool-btn" class="tool-btn" title="Move Image" onclick="activateMoveImageTool()"><i class="bi bi-arrows-move"></i></button>
+              <input type="checkbox" id="move-image-toggle" style="display:none">
+            </div>
+            <div class="tool-cell" data-index="2">
+              <i class="bi bi-arrows-angle-expand"></i>
+            </div>
+          </div>
+          <div id="canvas-tools-panel" class="floating-menu">
+            <button id="canvas-tools-close-btn" type="button" class="btn-close" onclick="closeCanvasToolsPanel()"></button>
+            <div class="tool-cell" data-index="0">
+              <input id="canvas-color-picker" type="color" value="#fafafa" title="Canvas Colour" oninput="updateCanvasColor(this.value)">
+            </div>
+            <div class="tool-cell" data-index="1"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
+            <div class="tool-cell" data-index="2"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
+            <div class="tool-cell" data-index="3"></div>
+            <div class="tool-cell" data-index="4"></div>
+          </div>
+          <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
+        </div>
+      </div>
+      <!-- properties menu moved to offcanvas -->
+    </div>
+  <div id="bottom-bar">
+      <div class="bottom-cell" data-index="0"><span id="active-tool">None</span></div>
+      <div class="bottom-cell" data-index="1" id="undo-redo-cell" style="display:none">
+        <button class="btn btn-light btn-sm me-1" onclick="undoEdit()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
+        <button class="btn btn-light btn-sm" onclick="redoEdit()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
+      </div>
+      <div class="bottom-cell" data-index="2" id="scale-cell" style="display:none">
+        <input type="range" id="shape-scale-slider" title="Shape Scale" min="0.5" max="2" step="0.1" value="1" oninput="scaleShape(this.value)" style="display:none">
+        <input type="range" id="image-scale-slider" title="Image Scale" min="0.1" max="3" step="0.1" value="1" oninput="updateImageScale(this.value)" style="display:none">
+      </div>
+      <div class="bottom-cell" data-index="3"></div>
+      <div class="bottom-cell" data-index="4"></div>
+      <div class="bottom-cell" data-index="5" id="zoom-cell">
+        <button type="button" class="zoom-btn me-1" title="Zoom Out" onclick="zoomOut()">-</button>
+        <input type="range" id="zoom-slider" title="Zoom" min="0.5" max="2" step="0.01" value="1" oninput="setZoom(this.value)">
+        <button type="button" class="zoom-btn ms-1" title="Zoom In" onclick="zoomIn()">+</button>
+      </div>
+      <div class="bottom-cell" data-index="6"></div>
+      <div class="bottom-cell" data-index="7"></div>
+      <div class="bottom-cell" data-index="8"></div>
+      <div class="bottom-cell" data-index="9">
+        <div class="bottom-inner">
+          <div class="bottom-subcell">
+            <button id="properties-btn" class="btn btn-light" type="button" data-bs-toggle="offcanvas" data-bs-target="#properties-menu" aria-controls="properties-menu">
+              <i class="bi bi-gear"></i>
+            </button>
+          </div>
+          <div class="bottom-subcell"></div>
+          <div class="bottom-subcell">
+            <button id="fullscreen-btn" class="btn btn-light" title="Full Screen" onclick="toggleFullScreen()"><i class="bi bi-arrows-fullscreen"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+      <dialog id="shape-dialog">
+        <form method="dialog" onsubmit="return false;">
+          <label>Name: <input type="text" id="shape-name"></label>
+          <button type="button" onclick="saveShape()">Save</button>
+          <select id="load-list"></select>
+          <button type="button" onclick="loadShape()">Load</button>
+          <button type="button" onclick="closeShapeDialog()">Close</button>
+        </form>
+      </dialog>
+      <dialog id="setup-dialog">
+        <form method="dialog" onsubmit="return false;">
+          <label for="shape-scale">Shape Scale:</label>
+          <input type="number" step="0.1" id="shape-scale" value="1" min="0.1" oninput="scaleShape(this.value)">
+          <button type="button" onclick="closeSetupDialog()">Close</button>
+        </form>
+      </dialog>
+  </div>
+  <div id="delete-dialog" class="confirm-dialog" style="display:none;">
+    <span id="delete-msg"></span>
+    <button id="confirm-delete">Delete</button>
+    <button type="button" onclick="hideDeleteDialog()">Cancel</button>
+  </div>
+  <div id="hidden-controls" style="display:none">
+    <input type="checkbox" id="edit-toggle">
+    <input type="checkbox" id="add-point-toggle">
+    <input type="checkbox" id="delete-point-toggle">
+  </div>
+
+  <script>
+      function showFields() {
+        var shape = document.getElementById('shape').value;
+        document.getElementById('polygon-fields').style.display = shape === 'polygon' ? 'block' : 'none';
+        document.getElementById('circular-fields').style.display = shape === 'circle' ? 'block' : 'none';
+        document.getElementById('rectangle-fields').style.display = shape === 'rectangle' ? 'block' : 'none';
+        document.getElementById('egg-fields').style.display = shape === 'egg' ? 'block' : 'none';
+        updateShapeUnitDisplay();
+        if (shape === 'polygon') {
+          resetPolygon();
+        } else if (shape === 'circle') {
+          resetCircle();
+        } else if (shape === 'rectangle') {
+          resetRectangle();
+        } else if (shape === 'egg') {
+          resetEgg();
+        }
+      }
+
+      var canvas, ctx;
+      var blueCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJibHVlIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiPjxsaW5lIHgxPSI4IiB5MT0iMCIgeDI9IjgiIHkyPSIxNiIvPjxsaW5lIHgxPSIwIiB5MT0iOCIgeDI9IjE2IiB5Mj0iOCIvPjwvc3ZnPg==") 8 8, auto';
+      var redDeleteCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNiIgaGVpZ2h0PSIxNiIgc3Ryb2tlPSJyZWQiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSI+PGxpbmUgeDE9IjAiIHkxPSIwIiB4Mj0iMTYiIHkyPSIxNiIvPjxsaW5lIHgxPSIxNiIgeTE9IjAiIHgyPSIwIiB5Mj0iMTYiLz48L3N2Zz4=") 8 8, auto';
+      var greenAddCursor = 'url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgc3Ryb2tlPSJncmVlbiIgc3Ryb2tlLXdpZHRoPSIzIiBmaWxsPSJub25lIj48bGluZSB4MT0iMTAiIHkxPSIwIiB4Mj0iMTAiIHkyPSIyMCIvPjxsaW5lIHgxPSIwIiB5MT0iMTAiIHgyPSIyMCIgeTI9IjEwIi8+PC9zdmc+") 10 10, auto';
+      var dragging = false;
+      var polygonMode = false;
+      var points = [];
+      var numPoints = 3;
+      var editIndex = -1;
+      var hoverIndex = -1;
+      var editShape = '';
+      var snapHighlight = -1;
+      var shapePts = [];
+      var editEnabled = false;
+      var addPointEnabled = false;
+      var deletePointEnabled = false;
+      var moveMode = false;
+      var vectorsVisible = true;
+      var bboxVisible = true;
+      var undoStack = [];
+      var redoStack = [];
+      var waterHeightMM = 0;
+      var siltHeightMM = 0;
+      var canvasWidthMM = 4000;
+      var canvasHeightMM = 3000;
+      var mmScale = 1;
+      var canvasColor = '#fafafa';
+      var bboxPixels = null;
+      var axisMargin = 20; // top and side margin
+      var bottomMargin = 40;
+      var gridSpacingMM = 500;
+      var polygonScale = 1;
+      var circleDiameterMM = 300;
+      var rectWidthMM = 1000;
+      var rectHeightMM = 1000;
+      var rectRadiusMM = 0;
+      var eggDiam1MM = 1000;
+      var eggDiam2MM = 800;
+      var eggDistMM = 600;
+      var measureMode = false;
+      var measureVisible = true;
+      var measurements = [];
+      var activeMeasure = -1;
+      var measuring = false;
+      var measureDrag = null;
+      var toolsPanelLocked = false;
+      var imagePanelLocked = false;
+      var canvasToolsPanelLocked = false;
+      var propertiesOffcanvas;
+      var zoomLevel = 1;
+      var bgImage = null;
+      var bgBaseScale = 1;
+      var bgUserScale = 1;
+      var bgX = 0;
+      var bgY = 0;
+      var imageDragging = false;
+      var imageDragOffset = {x:0, y:0};
+      var lastAddTime = 0;
+
+      function applyZoom() {
+        canvas.style.transformOrigin = 'bottom left';
+        canvas.style.transform = 'scale(' + zoomLevel + ')';
+        document.getElementById('zoom-slider').value = zoomLevel;
+      }
+
+      function setZoom(val) {
+        zoomLevel = parseFloat(val);
+        applyZoom();
+      }
+
+      function zoomIn() {
+        zoomLevel *= 1.25;
+        applyZoom();
+      }
+
+      function zoomOut() {
+        zoomLevel = Math.max(0.5, zoomLevel / 1.25);
+        applyZoom();
+      }
+
+      function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen();
+        }
+      }
+
+      function openImageUpload() {
+        document.getElementById('image-upload').click();
+      }
+
+      function loadImage(evt) {
+        var file = evt.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var img = new Image();
+          img.onload = function(){
+            bgImage = img;
+            bgBaseScale = Math.min(canvas.width / img.width, canvas.height / img.height);
+            bgUserScale = 1;
+            bgX = 0;
+            bgY = 0;
+            document.getElementById('image-scale-slider').value = 1;
+            document.getElementById('move-image-toggle').checked = false;
+            draw();
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function updateImageScale(val) {
+        var f = parseFloat(val);
+        if (!isFinite(f) || f <= 0) return;
+        bgUserScale = f;
+        draw();
+      }
+
+      function updateCanvasColor(val) {
+        canvasColor = val;
+        canvas.style.background = canvasColor;
+      }
+
+      function getCanvasPos(e) {
+        var rect = canvas.getBoundingClientRect();
+        var x = (e.clientX - rect.left) / zoomLevel;
+        var y = (e.clientY - rect.top) / zoomLevel;
+        return {x: clamp(x, axisMargin, canvas.width - axisMargin), y: clamp(y, axisMargin, canvas.height - bottomMargin)};
+      }
+
+      function resizeCanvas() {
+        var ptsMM = points.map(function(p){
+          return {x: pxToMMX(p.x), y: pxToMMY(p.y)};
+        });
+        var panel = document.getElementById('canvas-panel');
+        var topNav = document.querySelector('nav.navbar');
+        var bottomBar = document.getElementById('bottom-bar');
+        var navH = topNav ? topNav.offsetHeight : 0;
+        var barH = bottomBar ? bottomBar.offsetHeight : 0;
+        var avail = window.innerHeight - navH - barH;
+        panel.style.height = avail + 'px';
+        document.getElementById('canvas-container').style.height = avail + 'px';
+        var width = panel.clientWidth;
+        var height = avail;
+        canvas.width = width;
+        canvas.height = height;
+        canvasWidthMM = mmScale * (canvas.width - 2*axisMargin);
+        canvasHeightMM = mmScale * (canvas.height - axisMargin - bottomMargin);
+        document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+        document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
+        points = ptsMM.map(function(p){
+          return {x: mmToPxX(p.x), y: mmToPxY(p.y)};
+        });
+        anchorBottomLeft();
+        updateGridInfo();
+        draw();
+      }
+
+      function unitFactor() {
+        var u = document.getElementById('units').value;
+        if (u === 'm') return 1000;
+        if (u === 'cm') return 10;
+        return 1;
+      }
+
+      function shapeUnitFactor() {
+        var u = document.getElementById('shape-units').value;
+        if (u === 'm') return 1000;
+        if (u === 'cm') return 10;
+        return 1;
+      }
+
+      function heightUnitFactor() {
+        var u = document.getElementById('height-units').value;
+        if (u === 'm') return 1000;
+        if (u === 'cm') return 10;
+        return 1;
+      }
+
+      function updateUnitDisplay() {
+        var f = unitFactor();
+        document.getElementById('canvas-width').value = (canvasWidthMM / f).toFixed(1);
+        document.getElementById('canvas-height').value = (canvasHeightMM / f).toFixed(1);
+        document.getElementById('draw-unit').textContent = document.getElementById('units').value;
+        updateHeightUnitDisplay();
+        updateGridInfo();
+       anchorBottomLeft();
+        updateMeasurementTable();
+        draw();
+      }
+
+      function updateShapeUnitDisplay() {
+        var f = shapeUnitFactor();
+        document.getElementById('circle-diameter').value = (circleDiameterMM / f).toFixed(1);
+        document.getElementById('rect-width').value = (rectWidthMM / f).toFixed(1);
+        document.getElementById('rect-height').value = (rectHeightMM / f).toFixed(1);
+        document.getElementById('rect-radius').value = (rectRadiusMM / f).toFixed(1);
+        document.getElementById('egg-diam1').value = (eggDiam1MM / f).toFixed(1);
+        document.getElementById('egg-diam2').value = (eggDiam2MM / f).toFixed(1);
+        document.getElementById('egg-dist').value = (eggDistMM / f).toFixed(1);
+        var u = document.getElementById('shape-units').value;
+        document.getElementById('circle-unit').textContent = u;
+        document.getElementById('rect-unit').textContent = u;
+        document.getElementById('egg-unit').textContent = u;
+      }
+
+      function updateHeightUnitDisplay() {
+        var f = heightUnitFactor();
+        document.getElementById('water-height').value = (waterHeightMM / f).toFixed(1);
+        document.getElementById('silt-height').value = (siltHeightMM / f).toFixed(1);
+        var u = document.getElementById('height-units').value;
+        document.getElementById('water-unit').textContent = u;
+        document.getElementById('silt-unit').textContent = u;
+        draw();
+      }
+
+      function updateCanvasSize() {
+        var f = unitFactor();
+        var newW = clamp(parseFloat(document.getElementById('canvas-width').value) * f || 4000, 1000, 20000);
+        var newH = clamp(parseFloat(document.getElementById('canvas-height').value) * f || 3000, 1000, 20000);
+        var oldScale = mmScale;
+        canvasWidthMM = newW;
+        canvasHeightMM = newH;
+        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
+        var factor = oldScale / mmScale;
+        if (factor !== 1) {
+          for (var i = 0; i < points.length; i++) {
+            points[i].x *= factor;
+            points[i].y *= factor;
+          }
+          anchorBottomLeft();
+        }
+        updateGridInfo();
+        draw();
+      }
+
+      function unitToPxX(v) { return axisMargin + v * unitFactor() / mmScale; }
+      function unitToPxY(v) { return canvas.height - bottomMargin - v * unitFactor() / mmScale; }
+      function pxToUnitX(px) { return (px - axisMargin) * mmScale / unitFactor(); }
+      function pxToUnitY(py) { return (canvas.height - bottomMargin - py) * mmScale / unitFactor(); }
+      function mmToPxX(mm) { return axisMargin + mm / mmScale; }
+      function mmToPxY(mm) { return canvas.height - bottomMargin - mm / mmScale; }
+      function pxToMMX(px) { return (px - axisMargin) * mmScale; }
+      function pxToMMY(py) { return (canvas.height - bottomMargin - py) * mmScale; }
+
+      function formatMeasurement(v, units) {
+        if (units === 'm') return v.toFixed(3);
+        if (units === 'cm') return v.toFixed(1);
+        return Math.round(v).toString();
+      }
+
+      function decimalsForUnits(u) {
+        if (u === 'm') return 3;
+        if (u === 'cm') return 1;
+        return 0;
+      }
+
+      function updateGridInfo() {
+        var units = document.getElementById('units').value;
+        document.getElementById('grid-info').textContent = 'Grid: ' + (gridSpacingMM / unitFactor()).toFixed(1) + ' ' + units;
+      }
+
+      function updateMeasurementTable() {
+        var table = document.getElementById('measure-table');
+        var tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+        var units = document.getElementById('units').value;
+        table.style.display = measureVisible ? 'table' : 'none';
+        if (!measureVisible) return;
+        for (var i = 0; i < measurements.length; i++) {
+          var m = measurements[i];
+          var distMM = Math.hypot(m.end.x - m.start.x, m.end.y - m.start.y);
+          var dist = distMM / unitFactor();
+          var tr = document.createElement('tr');
+          var tdIdx = document.createElement('td');
+          tdIdx.textContent = i + 1;
+          var tdD = document.createElement('td');
+          tdD.textContent = formatMeasurement(dist, units) + ' ' + units;
+          var tdS = document.createElement('td');
+          tdS.textContent =
+            formatMeasurement(m.start.x / unitFactor(), units) + ', ' +
+            formatMeasurement(m.start.y / unitFactor(), units);
+          var tdE = document.createElement('td');
+          tdE.textContent =
+            formatMeasurement(m.end.x / unitFactor(), units) + ', ' +
+            formatMeasurement(m.end.y / unitFactor(), units);
+          var tdV = document.createElement('td');
+          if (m.start.index >= 0 && m.end.index >= 0) {
+            tdV.textContent = m.start.index + '–' + m.end.index;
+          } else {
+            tdV.textContent = '';
+          }
+          var tdC = document.createElement('td');
+          var colorInput = document.createElement('input');
+          colorInput.type = 'color';
+          colorInput.value = m.color;
+          colorInput.dataset.index = i;
+          colorInput.oninput = function(){
+            measurements[this.dataset.index].color = this.value;
+            draw();
+          };
+          tdC.appendChild(colorInput);
+          var tdR = document.createElement('td');
+          var rem = document.createElement('button');
+          rem.textContent = 'Remove';
+          rem.dataset.index = i;
+          rem.onclick = function(){
+            var idx = parseInt(this.dataset.index);
+            if (confirm('Remove this measurement?')) {
+              measurements.splice(idx, 1);
+              updateMeasurementTable();
+              draw();
+            }
+          };
+          tdR.appendChild(rem);
+          tr.appendChild(tdIdx);
+          tr.appendChild(tdD);
+          tr.appendChild(tdS);
+          tr.appendChild(tdE);
+          tr.appendChild(tdV);
+          tr.appendChild(tdC);
+          tr.appendChild(tdR);
+          tbody.appendChild(tr);
+        }
+      }
+
+      function init() {
+        canvas = document.getElementById('canvas');
+        ctx = canvas.getContext('2d');
+        canvas.style.background = canvasColor;
+        var cp = document.getElementById('canvas-color-picker');
+        if (cp) cp.value = canvasColor;
+        applyZoom();
+        propertiesOffcanvas = new bootstrap.Offcanvas(document.getElementById('properties-menu'));
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('resize', togglePinProperties);
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', drag);
+        canvas.addEventListener('mousemove', showCursorPos);
+        canvas.addEventListener('mouseleave', clearCursorPos);
+        canvas.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('click', handleClick);
+        canvas.addEventListener('dblclick', handleDoubleClick);
+        canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+       document.getElementById('edit-toggle').onchange = function(){
+         editEnabled = this.checked;
+         var cell = document.getElementById('scale-cell');
+         var shapeSlider = document.getElementById('shape-scale-slider');
+         if (!editEnabled) {
+           editIndex = -1;
+           moveMode = false;
+           shapeSlider.style.display = 'none';
+           if (!document.getElementById('move-image-toggle').checked) cell.style.display = 'none';
+         } else {
+           cell.style.display = 'flex';
+           shapeSlider.style.display = 'block';
+           document.getElementById('image-scale-slider').style.display = 'none';
+         }
+          updateToolHighlight();
+          draw();
+       };
+      document.getElementById('add-point-toggle').onchange = function(){
+        addPointEnabled = this.checked;
+        if (this.checked) {
+          var mt = document.getElementById('measure-toggle');
+          mt.checked = false;
+          mt.dispatchEvent(new Event('change'));
+          var im = document.getElementById('move-image-toggle');
+          im.checked = false;
+          im.dispatchEvent(new Event('change'));
+          document.getElementById('delete-point-toggle').checked = false;
+          deletePointEnabled = false;
+        }
+        moveMode = false;
+       updateImageToolHighlight();
+       updateToolHighlight();
+    };
+      document.getElementById('delete-point-toggle').onchange = function(){
+         deletePointEnabled = this.checked;
+         if (this.checked) {
+           var mt = document.getElementById('measure-toggle');
+           mt.checked = false;
+           mt.dispatchEvent(new Event('change'));
+           document.getElementById('add-point-toggle').checked = false;
+           addPointEnabled = false;
+           document.getElementById('move-image-toggle').checked = false;
+         }
+         moveMode = false;
+         updateToolHighlight();
+      };
+        document.getElementById('vectors-toggle').onchange = function(){
+          vectorsVisible = this.checked;
+          draw();
+        };
+        document.getElementById('bbox-toggle').onchange = function(){
+          bboxVisible = this.checked;
+          draw();
+        };
+        document.getElementById('measure-visible').onchange = function(){
+          measureVisible = this.checked;
+          updateMeasurementTable();
+          draw();
+        };
+      document.getElementById('measure-toggle').onchange = function(){
+        measureMode = this.checked;
+         if (this.checked) {
+           document.getElementById('add-point-toggle').checked = false;
+           addPointEnabled = false;
+           document.getElementById('move-image-toggle').checked = false;
+           document.getElementById('edit-toggle').checked = false;
+           editEnabled = false;
+           document.getElementById('delete-point-toggle').checked = false;
+           deletePointEnabled = false;
+           hideToolsPanel();
+           var cell = document.getElementById('scale-cell');
+           cell.style.display = 'none';
+           document.getElementById('shape-scale-slider').style.display = 'none';
+           document.getElementById('image-scale-slider').style.display = 'none';
+         }
+          moveMode = false;
+          updateToolHighlight();
+          updateCanvasToolHighlight();
+          snapHighlight = -1;
+          measuring = false;
+          measureDrag = null;
+          activeMeasure = -1;
+          draw();
+      };
+      document.getElementById('move-image-toggle').onchange = function(){
+        if (this.checked) {
+          document.getElementById('measure-toggle').checked = false;
+          document.getElementById('measure-toggle').dispatchEvent(new Event('change'));
+          document.getElementById('add-point-toggle').checked = false;
+          addPointEnabled = false;
+          document.getElementById('edit-toggle').checked = false;
+          editEnabled = false;
+          var cell = document.getElementById('scale-cell');
+          cell.style.display = 'flex';
+          document.getElementById('image-scale-slider').style.display = 'block';
+          document.getElementById('shape-scale-slider').style.display = 'none';
+          hideToolsPanel();
+        } else {
+          document.getElementById('image-scale-slider').style.display = 'none';
+          var cell = document.getElementById('scale-cell');
+          if (!editEnabled) cell.style.display = 'none';
+        }
+        moveMode = false;
+        updateToolHighlight();
+      };
+        updateShapeList();
+        showFields();
+        updateUnitDisplay();
+        updateShapeUnitDisplay();
+        updateHeightUnitDisplay();
+        mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
+        updateGridInfo();
+        measureVisible = document.getElementById('measure-visible').checked;
+        updateMeasurementTable();
+        waterHeightMM = parseFloat(document.getElementById('water-height').value) * heightUnitFactor() || 0;
+        siltHeightMM = parseFloat(document.getElementById('silt-height').value) * heightUnitFactor() || 0;
+        fetch('/load_shape/_last').then(r => {
+          if (r.ok) return r.json();
+        }).then(data => {
+          if (data && data.points) {
+            if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
+            if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
+            mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
+            document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+            document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
+            points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
+            waterHeightMM = data.waterHeight || 0;
+            siltHeightMM = data.siltHeight || 0;
+            updateHeightUnitDisplay();
+            anchorBottomLeft();
+          }
+          draw();
+        }).catch(() => draw());
+        togglePinProperties();
+
+        var projectsBtn = document.getElementById('projects-btn');
+        var projectsPanel = document.getElementById('projects-menu');
+        projectsBtn.addEventListener('click', function(){
+          if (projectsPanel.classList.contains('show')) {
+            closeProjectsMenu();
+          } else {
+            closeAllPanels('projects');
+            showProjectsMenu();
+          }
+        });
+        projectsPanel.addEventListener('mouseleave', function(){ if(!projectsBtn.matches(':hover')) closeProjectsMenu(); });
+
+        var toolsBtn = document.getElementById('tools-btn');
+        var toolsPanel = document.getElementById('tools-panel');
+        toolsBtn.addEventListener('mouseenter', function(){ if(!toolsPanelLocked) showToolsPanel(); });
+        toolsBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!toolsPanelLocked && !toolsPanel.matches(':hover')) hideToolsPanel(); }, 150); });
+        toolsBtn.addEventListener('click', function(){
+          if (toolsPanelLocked) {
+            closeToolsPanel();
+          } else {
+            closeAllPanels('tools');
+            showToolsPanel(true);
+          }
+        });
+        toolsPanel.addEventListener('mouseleave', function(){ if(!toolsPanelLocked && !toolsBtn.matches(':hover')) hideToolsPanel(); });
+
+        var imageBtn = document.getElementById('image-btn');
+        var imagePanel = document.getElementById('image-panel');
+        imageBtn.addEventListener('mouseenter', function(){ if(!imagePanelLocked) showImagePanel(); });
+        imageBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!imagePanelLocked && !imagePanel.matches(':hover')) hideImagePanel(); }, 150); });
+        imageBtn.addEventListener('click', function(){
+          if (imagePanelLocked) {
+            closeImagePanel();
+          } else {
+            closeAllPanels('image');
+            showImagePanel(true);
+          }
+        });
+        imagePanel.addEventListener('mouseleave', function(){ if(!imagePanelLocked && !imageBtn.matches(':hover')) hideImagePanel(); });
+
+        var canvasBtn = document.getElementById('canvas-tools-btn');
+        var canvasPanel = document.getElementById('canvas-tools-panel');
+        canvasBtn.addEventListener('mouseenter', function(){ if(!canvasToolsPanelLocked) showCanvasToolsPanel(); });
+        canvasBtn.addEventListener('mouseleave', function(){ setTimeout(function(){ if(!canvasToolsPanelLocked && !canvasPanel.matches(':hover')) hideCanvasToolsPanel(); }, 150); });
+        canvasBtn.addEventListener('click', function(){
+          if (canvasToolsPanelLocked) {
+            closeCanvasToolsPanel();
+          } else {
+            closeAllPanels('canvas');
+            showCanvasToolsPanel(true);
+          }
+        });
+        canvasPanel.addEventListener('mouseleave', function(){ if(!canvasToolsPanelLocked && !canvasBtn.matches(':hover')) hideCanvasToolsPanel(); });
+
+        updateToolHighlight();
+        updateImageToolHighlight();
+        updateCanvasToolHighlight();
+      }
+
+      function startDrag(e) {
+        e.preventDefault();
+        if (measureMode) {
+          if (measuring) {
+            startMeasurement(e);
+            return;
+          }
+          var pos = getCanvasPos(e);
+          var x = pos.x;
+          var y = pos.y;
+          for (var i = 0; i < measurements.length; i++) {
+            var m = measurements[i];
+            var sx = mmToPxX(m.start.x);
+            var sy = mmToPxY(m.start.y);
+            var ex = mmToPxX(m.end.x);
+            var ey = mmToPxY(m.end.y);
+            if (Math.hypot(x - sx, y - sy) < 6) {
+              measureDrag = 'start';
+              activeMeasure = i;
+              return;
+            }
+            if (Math.hypot(x - ex, y - ey) < 6) {
+              measureDrag = 'end';
+              activeMeasure = i;
+              return;
+            }
+          }
+          startMeasurement(e);
+          return;
+        }
+        if (document.getElementById('move-image-toggle').checked && bgImage) {
+          var pos = getCanvasPos(e);
+          imageDragOffset = {x: pos.x - bgX, y: pos.y - bgY};
+          imageDragging = true;
+          return;
+        }
+        if (!editEnabled || !moveMode) return;
+        var shape = document.getElementById('shape').value;
+        var pos = getCanvasPos(e);
+        var pts = getShapePoints(shape);
+        var found = -1;
+        for (var i = 0; i < pts.length; i++) {
+          if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
+            found = i;
+            break;
+          }
+        }
+        if (found >= 0) {
+          if (editIndex !== found) saveState();
+          editIndex = found;
+          editShape = shape;
+          dragging = true;
+          movePoint(e);
+          return;
+        }
+        dragging = true;
+      }
+
+      function drag(e) {
+        if (measureMode) {
+          if (measureDrag || measuring) {
+            measureMove(e);
+            return;
+          }
+          return;
+        }
+        if (imageDragging) {
+          var pos = getCanvasPos(e);
+          bgX = pos.x - imageDragOffset.x;
+          bgY = pos.y - imageDragOffset.y;
+          draw();
+          return;
+        }
+        if (!dragging) return;
+        if (editIndex >= 0) {
+          movePoint(e);
+        }
+      }
+
+      function endDrag(e) {
+        if (measureMode) {
+          measureDrag = null;
+          if (measuring) measureMove(e);
+          updateMeasurementTable();
+          draw();
+          return;
+        }
+        if (imageDragging) {
+          imageDragging = false;
+          draw();
+          return;
+        }
+        dragging = false;
+        if (editIndex >= 0) {
+          editIndex = -1;
+        }
+        moveMode = false;
+        anchorBottomLeft();
+        draw();
+        showCursorPos(e);
+        updateRowHighlights();
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (bgImage) {
+          var w = bgImage.width * bgBaseScale * bgUserScale;
+          var h = bgImage.height * bgBaseScale * bgUserScale;
+          ctx.drawImage(bgImage, bgX, bgY, w, h);
+          ctx.save();
+          ctx.setLineDash([4, 2]);
+          ctx.strokeStyle = '#000';
+          ctx.strokeRect(bgX, bgY, w, h);
+          ctx.restore();
+        }
+        drawGrid();
+        var shape = document.getElementById('shape').value;
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+
+        var pts = getShapePoints(shape);
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < pts.length; i++) {
+          minX = Math.min(minX, pts[i].x);
+          maxX = Math.max(maxX, pts[i].x);
+          minY = Math.min(minY, pts[i].y);
+          maxY = Math.max(maxY, pts[i].y);
+        }
+        var width = maxX - minX;
+        var height = maxY - minY;
+        bboxPixels = {minX:minX, minY:minY, maxX:maxX, maxY:maxY};
+        var units = document.getElementById('units').value;
+        var wMM = width * mmScale;
+        var hMM = height * mmScale;
+        var wVal = formatMeasurement(wMM / unitFactor(), units) + ' ' + units;
+        var hVal = formatMeasurement(hMM / unitFactor(), units) + ' ' + units;
+        document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
+        document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
+        if (bboxVisible) {
+          ctx.save();
+          ctx.setLineDash([4,2]);
+          ctx.strokeStyle = '#ff9900';
+          ctx.strokeRect(minX, minY, width, height);
+          ctx.restore();
+          var cxBox = (minX + maxX) / 2;
+          var cyBox = (minY + maxY) / 2;
+          ctx.fillStyle = '#ff9900';
+          [
+            {x:minX, y:minY},
+            {x:maxX, y:minY},
+            {x:minX, y:maxY},
+            {x:maxX, y:maxY}
+          ].forEach(function(p){
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 3, 0, Math.PI*2);
+            ctx.fill();
+          });
+          ctx.beginPath();
+          ctx.moveTo(cxBox-3, cyBox);
+          ctx.lineTo(cxBox+3, cyBox);
+          ctx.moveTo(cxBox, cyBox-3);
+          ctx.lineTo(cxBox, cyBox+3);
+          ctx.strokeStyle = '#ff9900';
+          ctx.stroke();
+          ctx.fillStyle = '#ff9900';
+          ctx.textAlign = 'center';
+          ctx.fillText(wVal, minX + width / 2, minY - 5);
+          ctx.save();
+          ctx.translate(maxX + 20, minY + height / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText(hVal, 0, 0);
+          ctx.restore();
+          ctx.textAlign = 'start';
+        }
+
+        var maxHeight = shapeHeightMM(pts);
+        shapePts = pts;
+        var whInput = document.getElementById('water-height');
+        waterHeightMM = parseFloat(whInput.value) * heightUnitFactor() || 0;
+        waterHeightMM = clamp(waterHeightMM, 0, maxHeight);
+        whInput.value = (waterHeightMM / heightUnitFactor()).toFixed(1);
+        var shInput = document.getElementById('silt-height');
+        siltHeightMM = parseFloat(shInput.value) * heightUnitFactor() || 0;
+        siltHeightMM = clamp(siltHeightMM, 0, waterHeightMM);
+        shInput.value = (siltHeightMM / heightUnitFactor()).toFixed(1);
+        var yLine = mmToPxY(waterHeightMM);
+        var ySilt = mmToPxY(siltHeightMM);
+        if (pts.length > 0) {
+          var belowWater = clipBelow(pts, yLine);
+          var belowSilt = clipBelow(pts, ySilt);
+          var above = clipAbove(pts, yLine);
+          if (above.length > 0) {
+            ctx.fillStyle = 'rgba(128,128,128,0.4)';
+            ctx.beginPath();
+            ctx.moveTo(above[0].x, above[0].y);
+            for (var i = 1; i < above.length; i++) ctx.lineTo(above[i].x, above[i].y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          if (belowWater.length > 0) {
+            ctx.fillStyle = 'rgba(153,204,255,0.4)';
+            ctx.beginPath();
+            ctx.moveTo(belowWater[0].x, belowWater[0].y);
+            for (var i = 1; i < belowWater.length; i++) ctx.lineTo(belowWater[i].x, belowWater[i].y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+          if (belowSilt.length > 0) {
+            ctx.fillStyle = 'rgba(210,180,140,0.4)';
+            ctx.beginPath();
+            ctx.moveTo(belowSilt[0].x, belowSilt[0].y);
+            for (var i = 1; i < belowSilt.length; i++) ctx.lineTo(belowSilt[i].x, belowSilt[i].y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+          }
+        }
+
+        if (editEnabled || vectorsVisible) {
+          for (var i = 0; i < pts.length; i++) {
+            var color = (i === editIndex && editShape === shape && editEnabled) ? '#000' : '#0000ff';
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(pts[i].x, pts[i].y, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        if (snapHighlight >= 0 && (measureMode || addPointEnabled)) {
+          ctx.save();
+          ctx.strokeStyle = "#00f";
+          ctx.beginPath();
+          ctx.arc(pts[snapHighlight].x, pts[snapHighlight].y, 7, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle = 'red';
+        ctx.beginPath();
+        ctx.arc(minX, minY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(maxX, maxY, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#964B00';
+        ctx.beginPath();
+        ctx.moveTo(minX, ySilt);
+        ctx.lineTo(maxX, ySilt);
+        ctx.stroke();
+        ctx.strokeStyle = '#00f';
+        ctx.beginPath();
+        ctx.moveTo(minX, yLine);
+        ctx.lineTo(maxX, yLine);
+        ctx.stroke();
+        ctx.strokeStyle = '#000';
+        updateCoords(pts);
+        updateRowHighlights();
+        var area = polygonArea(pts);
+        var waterPts = clipBelow(pts, yLine);
+        var siltPts = clipBelow(pts, ySilt);
+        var waterArea = polygonArea(waterPts) - polygonArea(siltPts);
+        var siltArea = polygonArea(siltPts);
+        var units = document.getElementById('units').value;
+        /*
+         * Convert pixel area to real-world units. We use the common mmScale
+         * factor for both axes so resizing the canvas doesn't change the
+         * calculated channel area unless the polygon itself is edited.
+         */
+        var mm2perpx2 = mmScale * mmScale;
+        var unitSq = unitFactor() * unitFactor();
+        document.getElementById('area-display').textContent = 'Total Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('silt-area-display').textContent = 'Silt Area: ' + (siltArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        drawMeasurement();
+        autoSave();
+      }
+
+
+      function polygonArea(pts) {
+        if (pts.length < 3) return 0;
+        var sum = 0;
+        for (var i = 0; i < pts.length; i++) {
+          var j = (i + 1) % pts.length;
+          sum += pts[i].x * pts[j].y - pts[j].x * pts[i].y;
+        }
+        return Math.abs(sum / 2);
+      }
+
+      function shapeHeight(pts) {
+        if (pts.length === 0) return 0;
+        var minY = canvas.height;
+        for (var i = 0; i < pts.length; i++) {
+          minY = Math.min(minY, pts[i].y);
+        }
+        return pxToUnitY(minY);
+      }
+
+      function shapeHeightMM(pts) {
+        if (pts.length === 0) return 0;
+        var minY = canvas.height;
+        for (var i = 0; i < pts.length; i++) {
+          minY = Math.min(minY, pts[i].y);
+        }
+        return pxToMMY(minY);
+      }
+
+      function boundingBoxMM(pts) {
+        if (pts.length === 0) return {w:0, h:0};
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (var i = 0; i < pts.length; i++) {
+          minX = Math.min(minX, pts[i].x);
+          maxX = Math.max(maxX, pts[i].x);
+          minY = Math.min(minY, pts[i].y);
+          maxY = Math.max(maxY, pts[i].y);
+        }
+        return {w:(maxX-minX)*mmScale, h:(maxY-minY)*mmScale};
+      }
+
+      function clipBelow(pts, yLine) {
+        var out = [];
+        for (var i = 0; i < pts.length; i++) {
+          var a = pts[i];
+          var b = pts[(i + 1) % pts.length];
+          var aInside = a.y >= yLine;
+          var bInside = b.y >= yLine;
+          if (aInside && bInside) {
+            out.push(b);
+          } else if (aInside && !bInside) {
+            var x = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x, y: yLine});
+          } else if (!aInside && bInside) {
+            var x1 = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x1, y: yLine});
+            out.push(b);
+          }
+        }
+        return out;
+      }
+
+      function clipAbove(pts, yLine) {
+        var out = [];
+        for (var i = 0; i < pts.length; i++) {
+          var a = pts[i];
+          var b = pts[(i + 1) % pts.length];
+          var aInside = a.y <= yLine;
+          var bInside = b.y <= yLine;
+          if (aInside && bInside) {
+            out.push(b);
+          } else if (aInside && !bInside) {
+            var x = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x, y: yLine});
+          } else if (!aInside && bInside) {
+            var x1 = a.x + (yLine - a.y) * (b.x - a.x) / (b.y - a.y);
+            out.push({x: x1, y: yLine});
+            out.push(b);
+          }
+        }
+        return out;
+      }
+
+      function drawMeasurement() {
+        if (!measureVisible || measurements.length === 0) return;
+        var units = document.getElementById('units').value;
+        measurements.forEach(function(m, i){
+          var sx = mmToPxX(m.start.x);
+          var sy = mmToPxY(m.start.y);
+          var ex = mmToPxX(m.end.x);
+          var ey = mmToPxY(m.end.y);
+          ctx.strokeStyle = m.color;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy);
+          ctx.lineTo(ex, ey);
+          ctx.stroke();
+          var startColor = (measureDrag === 'start' && activeMeasure === i) ? '#000' : m.color;
+          var endColor = (measureDrag === 'end' && activeMeasure === i) ? '#000' : m.color;
+          drawArrowHead({x: sx, y: sy}, {x: ex, y: ey}, startColor);
+          drawArrowHead({x: ex, y: ey}, {x: sx, y: sy}, endColor);
+          var distMM = Math.hypot(m.end.x - m.start.x, m.end.y - m.start.y);
+          var dist = distMM / unitFactor();
+          ctx.fillStyle = m.color;
+          ctx.fillText(
+            formatMeasurement(dist, units) + ' ' + units,
+            (sx + ex) / 2 + 5,
+            (sy + ey) / 2 - 5
+          );
+          ctx.fillText(i + 1, (sx + ex) / 2 - 15, (sy + ey) / 2 + 12);
+        });
+      }
+
+      function drawArrowHead(a, b, color) {
+        ctx.fillStyle = color || '#ff0000';
+        var angle = Math.atan2(b.y - a.y, b.x - a.x);
+        var size = 8;
+        ctx.beginPath();
+        ctx.moveTo(b.x, b.y);
+        ctx.lineTo(b.x - size * Math.cos(angle - Math.PI/6), b.y - size * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(b.x - size * Math.cos(angle + Math.PI/6), b.y - size * Math.sin(angle + Math.PI/6));
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      function addPoint(e) {
+        if (!editEnabled) return;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
+        var shape = document.getElementById('shape').value;
+        var dispPts = getShapePoints(shape);
+        var idx = dispPts.length - 1;
+        var best = Infinity;
+        for (var i = 0; i < dispPts.length; i++) {
+          var a = dispPts[i];
+          var b = dispPts[(i + 1) % dispPts.length];
+          var d = pointSegmentDistance({x: x, y: y}, a, b);
+          if (d < best) { best = d; idx = i; }
+        }
+        var base = toBaseCoords({x: x, y: y}, shape);
+        saveState();
+        points.splice(idx + 1, 0, base);
+        numPoints = points.length;
+        anchorBottomLeft();
+        draw();
+      }
+
+      function handleDoubleClick(e) {
+        var now = Date.now();
+        if (now - lastAddTime < 150) return;
+        lastAddTime = now;
+        if (deletePointEnabled) {
+          var pos = getCanvasPos(e);
+          var pts = getShapePoints(document.getElementById('shape').value);
+          for (var i = 0; i < pts.length; i++) {
+            if (Math.hypot(pts[i].x - pos.x, pts[i].y - pos.y) < 6) {
+              pendingDelete = i;
+              var dlg = document.getElementById('delete-dialog');
+              document.getElementById('delete-msg').textContent = 'Delete point ' + i + '?';
+              var rect = canvas.getBoundingClientRect();
+              dlg.style.left = (pos.x + rect.left + 10) + 'px';
+              dlg.style.top = (pos.y + rect.top + 10) + 'px';
+              dlg.style.display = 'block';
+              return;
+            }
+          }
+        } else if (addPointEnabled) {
+          addPoint(e);
+        } else if (editEnabled) {
+          selectPoint(e);
+          moveMode = true;
+          canvas.style.cursor = 'move';
+        }
+      }
+
+      var pendingDelete = -1;
+
+      function handleClick(e) {
+        if (deletePointEnabled || addPointEnabled) return;
+        if (!editEnabled) return;
+        selectPoint(e);
+        moveMode = false;
+      }
+
+      function hideDeleteDialog() {
+        document.getElementById('delete-dialog').style.display = 'none';
+        pendingDelete = -1;
+      }
+
+      document.getElementById('confirm-delete').addEventListener('click', function(){
+        if (pendingDelete >= 0) {
+          saveState();
+          points.splice(pendingDelete,1);
+          numPoints = points.length;
+          pendingDelete = -1;
+          hideDeleteDialog();
+          anchorBottomLeft();
+          draw();
+        }
+      });
+
+      function selectPoint(e) {
+        if (!editEnabled) return;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
+        var shape = document.getElementById('shape').value;
+        var pts = getShapePoints(shape);
+        editIndex = -1;
+        for (var i = 0; i < pts.length; i++) {
+          var dx = pts[i].x - x;
+          var dy = pts[i].y - y;
+          if (Math.sqrt(dx*dx + dy*dy) < 6) {
+            editIndex = i;
+            editShape = shape;
+            break;
+          }
+        }
+        draw();
+        updateRowHighlights();
+      }
+
+      function movePoint(e) {
+        if (!(e.buttons & 1) || !editEnabled) return;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
+        points[editIndex] = {x: x, y: y};
+        draw();
+      }
+
+      function clearPolygon() {
+        saveState();
+        points = [];
+        draw();
+      }
+
+      function resetPolygon() {
+        saveState();
+        numPoints = parseInt(document.getElementById('num-points').value) || 3;
+        points = defaultPolygon(numPoints);
+        anchorBottomLeft();
+        waterHeightMM = shapeHeightMM(points);
+        siltHeightMM = 0;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function defaultPolygon(n) {
+        var r = 60;
+        var cx = canvas.width / 2;
+        var cy = canvas.height - bottomMargin - r;
+        var pts = [];
+        for (var i = 0; i < n; i++) {
+          var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
+          pts.push({x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang)});
+        }
+        return pts;
+      }
+
+      function resetCircle() {
+        saveState();
+        var n = parseInt(document.getElementById('circle-points').value) || 36;
+        circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * shapeUnitFactor() || 300;
+        points = defaultCircle(n, circleDiameterMM);
+        anchorBottomLeft();
+        waterHeightMM = shapeHeightMM(points);
+        siltHeightMM = 0;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function defaultCircle(n, diamMM) {
+        var rMM = diamMM / 2;
+        var cxMM = rMM;
+        var cyMM = rMM;
+        var pts = [];
+        for (var i = 0; i < n; i++) {
+          var ang = Math.PI / 2 + (i / n) * Math.PI * 2;
+          var xMM = Math.round(cxMM + rMM * Math.cos(ang));
+          var yMM = Math.round(cyMM + rMM * Math.sin(ang));
+          pts.push({x: mmToPxX(xMM), y: mmToPxY(yMM)});
+        }
+        return pts;
+      }
+
+      function resetRectangle() {
+        saveState();
+        rectWidthMM = parseFloat(document.getElementById('rect-width').value) * shapeUnitFactor() || 1000;
+        rectHeightMM = parseFloat(document.getElementById('rect-height').value) * shapeUnitFactor() || 1000;
+        rectRadiusMM = parseFloat(document.getElementById('rect-radius').value) * shapeUnitFactor() || 0;
+        points = defaultRectangle(rectWidthMM, rectHeightMM, rectRadiusMM);
+        anchorBottomLeft();
+        waterHeightMM = shapeHeightMM(points);
+        siltHeightMM = 0;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function defaultRectangle(wMM, hMM, rMM) {
+        rMM = Math.min(rMM, wMM / 2, hMM / 2);
+        var pts = [];
+        var n = 8;
+        var step = (Math.PI / 2) / n;
+        var cx, cy, angle, i;
+        // bottom-right corner
+        cx = wMM - rMM; cy = rMM;
+        for (i = 0; i <= n; i++) {
+          angle = -Math.PI/2 + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // right edge
+        pts.push({x: mmToPxX(wMM), y: mmToPxY(hMM - rMM)});
+        // top-right corner
+        cx = wMM - rMM; cy = hMM - rMM;
+        for (i = 0; i <= n; i++) {
+          angle = 0 + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // top edge
+        pts.push({x: mmToPxX(rMM), y: mmToPxY(hMM)});
+        // top-left corner
+        cx = rMM; cy = hMM - rMM;
+        for (i = 0; i <= n; i++) {
+          angle = Math.PI/2 + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // left edge
+        pts.push({x: mmToPxX(0), y: mmToPxY(rMM)});
+        // bottom-left corner
+        cx = rMM; cy = rMM;
+        for (i = 0; i <= n; i++) {
+          angle = Math.PI + step * i;
+          pts.push({x: mmToPxX(cx + rMM * Math.cos(angle)), y: mmToPxY(cy + rMM * Math.sin(angle))});
+        }
+        // bottom edge back to start
+        pts.push({x: mmToPxX(wMM - rMM), y: mmToPxY(0)});
+        return pts;
+      }
+
+      function resetEgg() {
+        saveState();
+        eggDiam1MM = parseFloat(document.getElementById('egg-diam1').value) * shapeUnitFactor() || 1000;
+        eggDiam2MM = parseFloat(document.getElementById('egg-diam2').value) * shapeUnitFactor() || 800;
+        eggDistMM = parseFloat(document.getElementById('egg-dist').value) * shapeUnitFactor() || 600;
+        points = defaultEgg(eggDiam1MM, eggDiam2MM, eggDistMM);
+        anchorBottomLeft();
+        waterHeightMM = shapeHeightMM(points);
+        siltHeightMM = 0;
+        updateHeightUnitDisplay();
+        draw();
+      }
+
+      function defaultEgg(d1MM, d2MM, distMM) {
+        var r1 = d1MM / 2;
+        var r2 = d2MM / 2;
+        var cx = Math.max(r1, r2);
+        var cy1 = r1;
+        var cy2 = r1 + distMM;
+        var n = 18;
+        var pts = [];
+        // start at left of bottom circle
+        pts.push({x: mmToPxX(cx - r1), y: mmToPxY(cy1)});
+        // line to left of top circle
+        pts.push({x: mmToPxX(cx - r2), y: mmToPxY(cy2)});
+        // top semicircle
+        for (var i = 1; i <= n; i++) {
+          var ang = Math.PI - i * Math.PI / n;
+          pts.push({x: mmToPxX(cx + r2 * Math.cos(ang)), y: mmToPxY(cy2 + r2 * Math.sin(ang))});
+        }
+        // line to right of bottom circle
+        pts.push({x: mmToPxX(cx + r1), y: mmToPxY(cy1)});
+        // bottom semicircle
+        for (var i = 1; i <= n; i++) {
+          var ang = - i * Math.PI / n;
+          pts.push({x: mmToPxX(cx + r1 * Math.cos(ang)), y: mmToPxY(cy1 + r1 * Math.sin(ang))});
+        }
+        return pts;
+      }
+
+
+      function updateCoords(pts) {
+        var tbody = document.getElementById('points-table').querySelector('tbody');
+        tbody.innerHTML = '';
+        var dec = decimalsForUnits(document.getElementById('units').value);
+        for (var i = 0; i < pts.length; i++) {
+          var tr = document.createElement('tr');
+          tr.dataset.index = i;
+          var tdI = document.createElement('td');
+          tdI.textContent = i;
+          var tdX = document.createElement('td');
+          var inputX = document.createElement('input');
+          inputX.type = 'number';
+          inputX.value = pxToUnitX(pts[i].x).toFixed(dec);
+          inputX.min = 0;
+          inputX.max = canvasWidthMM / unitFactor();
+          inputX.dataset.index = i;
+          inputX.onchange = tableChanged;
+          tdX.appendChild(inputX);
+          var tdY = document.createElement('td');
+          var inputY = document.createElement('input');
+          inputY.type = 'number';
+          inputY.value = pxToUnitY(pts[i].y).toFixed(dec);
+          inputY.min = 0;
+          inputY.max = canvasHeightMM / unitFactor();
+          inputY.dataset.index = i;
+          inputY.onchange = tableChanged;
+          tdY.appendChild(inputY);
+          tr.appendChild(tdI);
+          tr.appendChild(tdX);
+          tr.appendChild(tdY);
+          tbody.appendChild(tr);
+        }
+        updateRowHighlights();
+      }
+
+      function updateRowHighlights() {
+        var rows = document.getElementById('points-table').querySelectorAll('tbody tr');
+        rows.forEach(function(row){
+          var idx = parseInt(row.dataset.index);
+          row.classList.remove('row-hover', 'row-edit');
+          if (idx === hoverIndex) row.classList.add('row-hover');
+          if (idx === editIndex && editShape === document.getElementById('shape').value) {
+            row.classList.add('row-edit');
+          }
+        });
+      }
+
+      function clamp(v, min, max) {
+        return Math.max(min, Math.min(max, v));
+      }
+
+      function anchorBottomLeft() {
+        if (points.length === 0) return;
+        var minX = Infinity, maxY = -Infinity;
+        for (var i = 0; i < points.length; i++) {
+          var p = points[i];
+          minX = Math.min(minX, p.x);
+          maxY = Math.max(maxY, p.y);
+        }
+        var dx = axisMargin - minX;
+        var dy = canvas.height - bottomMargin - maxY;
+        for (var i = 0; i < points.length; i++) {
+          points[i] = {x: points[i].x + dx, y: points[i].y + dy};
+        }
+      }
+
+      function pointSegmentDistance(p, a, b) {
+        var dx = b.x - a.x;
+        var dy = b.y - a.y;
+        var len2 = dx * dx + dy * dy;
+        if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+        var t = ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2;
+        t = clamp(t, 0, 1);
+        var projX = a.x + t * dx;
+        var projY = a.y + t * dy;
+        return Math.hypot(p.x - projX, p.y - projY);
+      }
+
+      function snapToPoint(x, y) {
+        var best = {x: x, y: y, index: -1};
+        var bestD = 1e9;
+        if (vectorsVisible || editEnabled) {
+          var pts = getShapePoints(document.getElementById('shape').value);
+          for (var i = 0; i < pts.length; i++) {
+            var d = Math.hypot(pts[i].x - x, pts[i].y - y);
+            if (d < 6 && d < bestD) {
+              best = {x: pts[i].x, y: pts[i].y, index: i};
+              bestD = d;
+            }
+          }
+        }
+        if (bboxVisible && bboxPixels) {
+          var corners = [
+            {x: bboxPixels.minX, y: bboxPixels.minY},
+            {x: bboxPixels.maxX, y: bboxPixels.minY},
+            {x: bboxPixels.minX, y: bboxPixels.maxY},
+            {x: bboxPixels.maxX, y: bboxPixels.maxY},
+            {x: (bboxPixels.minX + bboxPixels.maxX) / 2,
+             y: (bboxPixels.minY + bboxPixels.maxY) / 2}
+          ];
+          corners.forEach(function(p){
+            var d = Math.hypot(p.x - x, p.y - y);
+            if (d < 6 && d < bestD) {
+              best = {x: p.x, y: p.y, index: -1};
+              bestD = d;
+            }
+          });
+        }
+        return best;
+      }
+
+      function saveState() {
+        undoStack.push({points: JSON.parse(JSON.stringify(points))});
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack = [];
+      }
+
+      function startMeasurement(e) {
+        if (measurements.length >= 10 && !measuring) return;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
+        var snap = snapToPoint(x, y);
+        var sxMM = pxToMMX(snap.x);
+        var syMM = pxToMMY(snap.y);
+        snapHighlight = snap.index;
+        if (!measuring) {
+          measurements.push({start: {x: sxMM, y: syMM, index: snap.index},
+                             end: {x: sxMM, y: syMM, index: snap.index},
+                             color: '#ff0000'});
+          activeMeasure = measurements.length - 1;
+          measuring = true;
+        } else {
+          var m = measurements[activeMeasure];
+          m.end = {x: sxMM, y: syMM, index: snap.index};
+          measuring = false;
+          activeMeasure = -1;
+          updateMeasurementTable();
+        }
+        draw();
+      }
+
+      function measureMove(e) {
+        if (!measuring && !measureDrag) return;
+        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
+        var snap = snapToPoint(x, y);
+        snapHighlight = snap.index;
+        var sxMM = pxToMMX(snap.x);
+        var syMM = pxToMMY(snap.y);
+        if (measureDrag && activeMeasure >= 0) {
+          var m = measurements[activeMeasure];
+          if (measureDrag === 'start') {
+            m.start = {x: sxMM, y: syMM, index: snap.index};
+          } else {
+            m.end = {x: sxMM, y: syMM, index: snap.index};
+          }
+        } else if (measuring && activeMeasure >= 0) {
+          measurements[activeMeasure].end = {x: sxMM, y: syMM, index: snap.index};
+        }
+        updateMeasurementTable();
+        draw();
+      }
+
+      function clearMeasurement() {
+        measurements = [];
+        measuring = false;
+        measureDrag = null;
+        activeMeasure = -1;
+        updateMeasurementTable();
+        draw();
+      }
+
+      function confirmClearMeasurement() {
+        if (measurements.length === 0) return;
+        if (confirm('Clear all measurements?')) {
+          clearMeasurement();
+        }
+      }
+
+      function tableChanged(e) {
+        if (!editEnabled) {
+          draw();
+          return;
+        }
+        var idx = parseInt(e.target.dataset.index);
+        var row = e.target.parentElement.parentElement;
+        var x = unitToPxX(parseFloat(row.children[1].firstChild.value));
+        var y = unitToPxY(parseFloat(row.children[2].firstChild.value));
+        x = clamp(x, axisMargin, canvas.width - axisMargin);
+        y = clamp(y, axisMargin, canvas.height - bottomMargin);
+        var dec = decimalsForUnits(document.getElementById('units').value);
+        row.children[1].firstChild.value = pxToUnitX(x).toFixed(dec);
+        row.children[2].firstChild.value = pxToUnitY(y).toFixed(dec);
+        saveState();
+        points[idx] = {x: x, y: y};
+        anchorBottomLeft();
+        draw();
+      }
+
+      function showCursorPos(e) {
+        var prev = snapHighlight;        var pos = getCanvasPos(e);
+        var x = pos.x;
+        var y = pos.y;
+        var units = document.getElementById('units').value;
+        var dec = decimalsForUnits(units);
+        document.getElementById('cursor-pos').textContent = 'Cursor: (' + pxToUnitX(x).toFixed(dec) + ', ' + pxToUnitY(y).toFixed(dec) + ' ' + units + ')';
+        var py = y;
+        var shape = document.getElementById('shape').value;
+        var pts = getShapePoints(shape);
+        var over = -1;
+        for (var i = 0; i < pts.length; i++) {
+          if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = i; break; }
+        }
+        hoverIndex = over;
+        if (measureMode || addPointEnabled) {
+          var snap = snapToPoint(x, y);
+          snapHighlight = snap.index;
+        } else {
+          snapHighlight = -1;
+        }
+        if (snapHighlight !== prev) draw();
+        updateRowHighlights();
+        var overArrow = false;
+        if (measureMode && !measuring) {
+          for (var i = 0; i < measurements.length; i++) {
+            var m = measurements[i];
+            var sx = mmToPxX(m.start.x);
+            var sy = mmToPxY(m.start.y);
+            var ex = mmToPxX(m.end.x);
+            var ey = mmToPxY(m.end.y);
+            if (Math.hypot(sx - x, sy - py) < 6 || Math.hypot(ex - x, ey - py) < 6) {
+              overArrow = true;
+              break;
+            }
+          }
+        }
+        if (deletePointEnabled) {
+          canvas.style.cursor = redDeleteCursor;
+        } else if (addPointEnabled) {
+          canvas.style.cursor = greenAddCursor;
+        } else if (moveMode || dragging) {
+          canvas.style.cursor = 'move';
+        } else {
+          canvas.style.cursor = 'default';
+        }
+      }
+
+      function clearCursorPos() {
+        document.getElementById('cursor-pos').textContent = 'Cursor:';
+        if (deletePointEnabled) canvas.style.cursor = redDeleteCursor;
+        else if (addPointEnabled) canvas.style.cursor = greenAddCursor;
+        else if (moveMode || dragging) canvas.style.cursor = 'move';
+        else canvas.style.cursor = 'default';
+        hoverIndex = -1;
+        updateRowHighlights();
+      }
+
+
+      function getShapePoints(shape) {
+        return points.slice();
+      }
+
+      function scaleShape(val) {
+        var f = parseFloat(val);
+        if (!isFinite(f) || f <= 0) return;
+        saveState();
+        var cx = canvas.width / 2;
+        var cy = canvas.height;
+        for (var i = 0; i < points.length; i++) {
+          var dx = points[i].x - cx;
+          var dy = points[i].y - cy;
+          points[i].x = cx + dx * (f / polygonScale);
+          points[i].y = cy + dy * (f / polygonScale);
+        }
+        polygonScale = f;
+        var bb = boundingBoxMM(points);
+        var needUpdate = false;
+        if (bb.w > canvasWidthMM) {
+          canvasWidthMM = Math.min(20000, Math.ceil(bb.w / 500) * 500);
+          needUpdate = true;
+        }
+        if (bb.h > canvasHeightMM) {
+          canvasHeightMM = Math.min(20000, Math.ceil(bb.h / 500) * 500);
+          needUpdate = true;
+        }
+        if (needUpdate) {
+          mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
+          document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+          document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
+        }
+        anchorBottomLeft();
+        draw();
+      }
+
+      function toBaseCoords(pt, shape) {
+        return pt;
+      }
+
+      function undoEdit() {
+        if (undoStack.length === 0) return;
+        redoStack.push({points: JSON.parse(JSON.stringify(points))});
+        var state = undoStack.pop();
+        points = JSON.parse(JSON.stringify(state.points));
+        anchorBottomLeft();
+        draw();
+      }
+
+      function redoEdit() {
+        if (redoStack.length === 0) return;
+        undoStack.push({points: JSON.parse(JSON.stringify(points))});
+        var state = redoStack.pop();
+        points = JSON.parse(JSON.stringify(state.points));
+        anchorBottomLeft();
+        draw();
+      }
+
+      function saveShape() {
+        var name = document.getElementById('shape-name').value.trim();
+        if (!name) return;
+        fetch('/save_shape', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name: name, points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), waterHeight: waterHeightMM, siltHeight: siltHeightMM, canvasWidth: canvasWidthMM, canvasHeight: canvasHeightMM})
+        }).then(updateShapeList);
+      }
+
+      function autoSave() {
+        fetch('/save_shape', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({name: '_last', points: points.map(p => ({x: pxToMMX(p.x), y: pxToMMY(p.y)})), waterHeight: waterHeightMM, siltHeight: siltHeightMM, canvasWidth: canvasWidthMM, canvasHeight: canvasHeightMM})
+        });
+      }
+
+      function updateShapeList() {
+        fetch('/list_shapes').then(r => r.json()).then(data => {
+          var sel = document.getElementById('load-list');
+          sel.innerHTML = '';
+          data.shapes.forEach(function(n){
+            var opt = document.createElement('option');
+            opt.value = n;
+            opt.textContent = n;
+            sel.appendChild(opt);
+          });
+        });
+      }
+
+      function loadShape() {
+        var name = document.getElementById('load-list').value;
+        if (!name) return;
+        fetch('/load_shape/' + name).then(r => r.json()).then(data => {
+          if (data.points) {
+            saveState();
+            if (data.canvasWidth) canvasWidthMM = data.canvasWidth;
+            if (data.canvasHeight) canvasHeightMM = data.canvasHeight;
+          mmScale = Math.max(canvasWidthMM / (canvas.width - 2*axisMargin), canvasHeightMM / (canvas.height - axisMargin - bottomMargin));
+            document.getElementById('canvas-width').value = (canvasWidthMM / unitFactor()).toFixed(1);
+            document.getElementById('canvas-height').value = (canvasHeightMM / unitFactor()).toFixed(1);
+            points = data.points.map(p => ({x: mmToPxX(p.x), y: mmToPxY(p.y)}));
+            siltHeightMM = data.siltHeight || 0;
+            waterHeightMM = data.waterHeight || 0;
+            updateHeightUnitDisplay();
+            document.getElementById('shape').value = 'polygon';
+            anchorBottomLeft();
+            draw();
+          }
+        });
+      }
+
+      function openShapeDialog() {
+        updateShapeList();
+        document.getElementById('shape-dialog').showModal();
+      }
+
+      function closeShapeDialog() {
+        document.getElementById('shape-dialog').close();
+      }
+
+      function openNewChannelDialog() {
+        document.getElementById('new-channel-dialog').showModal();
+      }
+
+      function closeNewChannelDialog() {
+        document.getElementById('new-channel-dialog').close();
+      }
+
+      function openSetupDialog() {
+        document.getElementById('setup-dialog').showModal();
+      }
+
+      function closeSetupDialog() {
+        document.getElementById('setup-dialog').close();
+      }
+
+      function copyCanvas() {
+        canvas.toBlob(function(blob){
+          if (navigator.clipboard && window.ClipboardItem) {
+            var item = new ClipboardItem({'image/png': blob});
+            navigator.clipboard.write([item]);
+          } else {
+            alert('Clipboard copy not supported');
+          }
+        });
+      }
+
+      function togglePinProperties() {
+        var oc = document.getElementById('properties-menu');
+        var layout = document.getElementById('layout');
+        var landscape = window.innerWidth > window.innerHeight;
+        if (document.getElementById('pin-properties').checked && landscape) {
+          propertiesOffcanvas.show();
+          oc.classList.add('pinned');
+          layout.classList.add('with-properties');
+          resizeCanvas();
+        } else {
+          document.getElementById('pin-properties').checked = false;
+          oc.classList.remove('pinned');
+          layout.classList.remove('with-properties');
+          resizeCanvas();
+        }
+      }
+
+      function drawGrid() {
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 1;
+        var stepX = gridSpacingMM / mmScale;
+        var stepY = gridSpacingMM / mmScale;
+        for (var x = axisMargin; x <= canvas.width - axisMargin; x += stepX) {
+          ctx.beginPath();
+          ctx.moveTo(x, axisMargin);
+          ctx.lineTo(x, canvas.height - bottomMargin);
+          ctx.stroke();
+        }
+        for (var y = axisMargin; y <= canvas.height - bottomMargin; y += stepY) {
+          var gy = canvas.height - y;
+          ctx.beginPath();
+          ctx.moveTo(axisMargin, gy);
+          ctx.lineTo(canvas.width - axisMargin, gy);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = '#000';
+        ctx.beginPath();
+        ctx.moveTo(axisMargin, canvas.height - bottomMargin);
+        ctx.lineTo(canvas.width - axisMargin, canvas.height - bottomMargin);
+        ctx.moveTo(axisMargin, canvas.height - bottomMargin);
+        ctx.lineTo(axisMargin, axisMargin);
+        ctx.stroke();
+        var spacingXMM = gridSpacingMM;
+        var spacingYMM = gridSpacingMM;
+        var units = document.getElementById('units').value;
+        for (var i = 0, x = axisMargin; x <= canvas.width - axisMargin; x += stepX, i++) {
+          var val = (i * spacingXMM / unitFactor()).toFixed(1);
+          ctx.fillText(val, x + 2, canvas.height - bottomMargin + 12);
+        }
+        for (var i = 0, y = axisMargin; y <= canvas.height - bottomMargin; y += stepY, i++) {
+          var val = (i * spacingYMM / unitFactor()).toFixed(1);
+          ctx.fillText(val, axisMargin - 18, canvas.height - y - 2);
+        }
+        ctx.fillText('x', canvas.width - axisMargin + 8, canvas.height - bottomMargin + 12);
+        ctx.fillText('y', axisMargin - 12, axisMargin - 4);
+      }
+
+      function closeAllPanels(except) {
+        if (except !== 'tools') hideToolsPanel();
+        if (except !== 'image') hideImagePanel();
+        if (except !== 'canvas') hideCanvasToolsPanel();
+        if (except !== 'projects') closeProjectsMenu();
+      }
+
+      function showToolsPanel(lock) {
+        var panel = document.getElementById('tools-panel');
+        var mt = document.getElementById('measure-toggle');
+        if (mt.checked) {
+          mt.checked = false;
+          mt.dispatchEvent(new Event('change'));
+        }
+        panel.classList.add('show');
+        if (lock) {
+          toolsPanelLocked = true;
+          panel.classList.add('locked');
+        }
+      }
+
+      function hideToolsPanel() {
+        var panel = document.getElementById('tools-panel');
+        panel.classList.remove('show');
+        panel.classList.remove('locked');
+        toolsPanelLocked = false;
+      }
+
+      function toggleToolsPanel(lock) {
+        var panel = document.getElementById('tools-panel');
+        if (panel.classList.contains('show')) {
+          hideToolsPanel();
+        } else {
+          showToolsPanel(lock);
+        }
+      }
+
+      function showImagePanel(lock) {
+        var panel = document.getElementById('image-panel');
+        panel.classList.add('show');
+        if (lock) {
+          imagePanelLocked = true;
+          panel.classList.add('locked');
+          var cell = document.getElementById('scale-cell');
+          cell.style.display = 'flex';
+          document.getElementById('image-scale-slider').style.display = 'block';
+          document.getElementById('shape-scale-slider').style.display = 'none';
+        }
+      }
+
+      function hideImagePanel() {
+        var panel = document.getElementById('image-panel');
+        panel.classList.remove('show');
+        panel.classList.remove('locked');
+        imagePanelLocked = false;
+        var cell = document.getElementById('scale-cell');
+        cell.style.display = 'none';
+        document.getElementById('image-scale-slider').style.display = 'none';
+        document.getElementById('shape-scale-slider').style.display = 'none';
+      }
+
+      function toggleImagePanel(lock) {
+        var panel = document.getElementById('image-panel');
+        if (panel.classList.contains('show')) {
+          hideImagePanel();
+        } else {
+          showImagePanel(lock);
+        }
+      }
+
+      function showCanvasToolsPanel(lock) {
+        var panel = document.getElementById('canvas-tools-panel');
+        panel.classList.add('show');
+        if (lock) {
+          canvasToolsPanelLocked = true;
+          panel.classList.add('locked');
+        }
+        updateCanvasToolHighlight();
+      }
+
+      function hideCanvasToolsPanel() {
+        var panel = document.getElementById('canvas-tools-panel');
+        panel.classList.remove('show');
+        panel.classList.remove('locked');
+        canvasToolsPanelLocked = false;
+        updateCanvasToolHighlight();
+      }
+
+      function toggleCanvasToolsPanel(lock) {
+        var panel = document.getElementById('canvas-tools-panel');
+        if (panel.classList.contains('show')) {
+          hideCanvasToolsPanel();
+        } else {
+          showCanvasToolsPanel(lock);
+        }
+      }
+
+      function showProjectsMenu() {
+        var panel = document.getElementById('projects-menu');
+        panel.classList.add('show');
+      }
+
+      function closeProjectsMenu() {
+        var panel = document.getElementById('projects-menu');
+        panel.classList.remove('show');
+      }
+
+      function toggleProjectsMenu() {
+        var panel = document.getElementById('projects-menu');
+        if (panel.classList.contains('show')) {
+          closeProjectsMenu();
+        } else {
+          closeAllPanels('projects');
+          var mt = document.getElementById('measure-toggle');
+          if (mt.checked) {
+            mt.checked = false;
+            mt.dispatchEvent(new Event('change'));
+          }
+          showProjectsMenu();
+        }
+      }
+
+      function activateMeasureTool() {
+        closeAllPanels('canvas');
+        showCanvasToolsPanel(true);
+        var mt = document.getElementById('measure-toggle');
+        mt.checked = !mt.checked;
+        mt.dispatchEvent(new Event('change'));
+      }
+
+      function activateMoveImageTool() {
+        closeAllPanels('image');
+        showImagePanel(true);
+        var im = document.getElementById('move-image-toggle');
+        im.checked = !im.checked;
+        im.dispatchEvent(new Event('change'));
+      }
+
+      function activateAddPointTool() {
+        closeAllPanels('tools');
+        showToolsPanel(true);
+        var ap = document.getElementById('add-point-toggle');
+        ap.checked = !ap.checked;
+        ap.dispatchEvent(new Event('change'));
+        if (ap.checked && !document.getElementById('edit-toggle').checked) {
+          document.getElementById('edit-toggle').checked = true;
+          document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
+        }
+      }
+
+      function toggleDeletePointTool() {
+        closeAllPanels('tools');
+        showToolsPanel(true);
+        var dp = document.getElementById('delete-point-toggle');
+        dp.checked = !dp.checked;
+        dp.dispatchEvent(new Event('change'));
+        if (dp.checked && !document.getElementById('edit-toggle').checked) {
+          document.getElementById('edit-toggle').checked = true;
+          document.getElementById('edit-toggle').dispatchEvent(new Event('change'));
+        }
+      }
+
+      function activateSelectTool() {
+        var mt = document.getElementById('measure-toggle');
+        if (mt.checked) {
+          mt.checked = false;
+          mt.dispatchEvent(new Event('change'));
+        }
+        document.getElementById('edit-toggle').checked = true;
+        editEnabled = true;
+        document.getElementById('add-point-toggle').checked = false;
+        addPointEnabled = false;
+        updateToolHighlight();
+        draw();
+      }
+
+      function lockAndSelect() {
+        closeAllPanels('tools');
+        showToolsPanel(true);
+        activateSelectTool();
+      }
+
+      function closeToolsPanel() {
+        var mt = document.getElementById('measure-toggle');
+        var et = document.getElementById('edit-toggle');
+        var ap = document.getElementById('add-point-toggle');
+        var dp = document.getElementById('delete-point-toggle');
+        mt.checked = false;
+        et.checked = false;
+        ap.checked = false;
+        dp.checked = false;
+        mt.dispatchEvent(new Event('change'));
+        et.dispatchEvent(new Event('change'));
+        ap.dispatchEvent(new Event('change'));
+        dp.dispatchEvent(new Event('change'));
+        hideToolsPanel();
+      }
+
+      function closeImagePanel() {
+        document.getElementById('move-image-toggle').checked = false;
+        document.getElementById('move-image-toggle').dispatchEvent(new Event('change'));
+        hideImagePanel();
+      }
+
+      function closeCanvasToolsPanel() {
+        hideCanvasToolsPanel();
+        updateCanvasToolHighlight();
+      }
+
+      function updateActiveToolLabel() {
+        var label = document.getElementById('active-tool');
+        if (deletePointEnabled) label.textContent = 'Delete';
+        else if (addPointEnabled) label.textContent = 'Add';
+        else if (document.getElementById('move-image-toggle').checked) label.textContent = 'Move Image';
+        else if (measureMode) label.textContent = 'Measure';
+        else if (editEnabled) label.textContent = 'Select/Move';
+        else label.textContent = 'None';
+      }
+
+      function updateToolHighlight() {
+        document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
+        document.getElementById('add-point-tool-btn').classList.toggle('active', addPointEnabled);
+        document.getElementById('delete-point-tool-btn').classList.toggle('active', deletePointEnabled);
+        var toolsBtn = document.getElementById('tools-btn');
+        var active = editEnabled || addPointEnabled || deletePointEnabled;
+        toolsBtn.classList.toggle('active', active);
+        var closeBtn = document.getElementById('tools-close-btn');
+        if (active || toolsPanelLocked) {
+          document.getElementById('tools-panel').classList.add('locked');
+          closeBtn.style.display = 'block';
+        } else {
+          document.getElementById('tools-panel').classList.remove('locked');
+          closeBtn.style.display = 'none';
+        }
+        var undoCell = document.getElementById('undo-redo-cell');
+        if (undoCell) undoCell.style.display = editEnabled ? 'flex' : 'none';
+        updateActiveToolLabel();
+      }
+
+      function updateImageToolHighlight() {
+        document.getElementById('move-image-tool-btn').classList.toggle('active', document.getElementById('move-image-toggle').checked);
+        var btn = document.getElementById('image-btn');
+        var active = document.getElementById('move-image-toggle').checked;
+        btn.classList.toggle('active', active);
+        var closeBtn = document.getElementById('image-close-btn');
+        if (active || imagePanelLocked) {
+          document.getElementById('image-panel').classList.add('locked');
+          closeBtn.style.display = 'block';
+        } else {
+          document.getElementById('image-panel').classList.remove('locked');
+          closeBtn.style.display = 'none';
+        }
+        updateActiveToolLabel();
+      }
+
+      function updateCanvasToolHighlight() {
+        var btn = document.getElementById('canvas-tools-btn');
+        var panel = document.getElementById('canvas-tools-panel');
+        var active = panel.classList.contains('locked') || measureMode;
+        btn.classList.toggle('active', active);
+        var closeBtn = document.getElementById('canvas-tools-close-btn');
+        closeBtn.style.display = panel.classList.contains('locked') ? 'block' : 'none';
+        var mb = document.getElementById('measure-tool-btn');
+        if (mb) mb.classList.toggle('active', measureMode);
+        updateActiveToolLabel();
+      }
+
+      window.onload = init;
+  </script>
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+  {{ super() }}
+{% endblock %}
