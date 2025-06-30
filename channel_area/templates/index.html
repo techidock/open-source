@@ -2212,10 +2212,11 @@
         var selectBtn = document.getElementById('select-tool-btn');
         var addBtn = document.getElementById('add-point-tool-btn');
         var delBtn = document.getElementById('delete-point-tool-btn');
-        selectBtn.classList.toggle('active', editEnabled);
+        var selectActive = editEnabled && !addPointEnabled && !deletePointEnabled;
+        selectBtn.classList.toggle('active', selectActive);
         addBtn.classList.toggle('active', addPointEnabled);
         delBtn.classList.toggle('active', deletePointEnabled);
-        selectBtn.parentElement.classList.toggle('selected', editEnabled);
+        selectBtn.parentElement.classList.toggle('selected', selectActive);
         addBtn.parentElement.classList.toggle('selected', addPointEnabled);
         delBtn.parentElement.classList.toggle('selected', deletePointEnabled);
         var toolsBtn = document.getElementById('tools-btn');
