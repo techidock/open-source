@@ -31,7 +31,7 @@ body {
   padding-right: 0;
   margin-left: 40px;
   margin-right: 40px;
-  margin-top: -20px; /* move canvas up slightly */
+  margin-top: -40px; /* move canvas up slightly */
   width: calc(100% - 80px);
 }
 
@@ -48,6 +48,19 @@ body {
   border: 1px solid #ccc;
   padding: 0;
   height: 100%;
+}
+
+#calc-section {
+  display: none;
+  margin-left: 40px;
+  margin-right: 40px;
+  margin-top: -40px;
+  width: calc(100% - 80px);
+  height: 100%;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  background: #fff;
 }
 
 canvas {

@@ -22,7 +22,9 @@
       <button id="canvas-tools-btn" class="tool-btn" title="Canvas Tools"><i class="bi bi-bounding-box"></i></button>
     </div>
     <div class="tool-cell" data-index="7"></div>
-    <div class="tool-cell" data-index="8"></div>
+    <div class="tool-cell" data-index="8">
+      <button id="calc-btn" class="tool-btn" title="Channel Calculations" onclick="toggleCalcSection()"><i class="bi bi-calculator"></i></button>
+    </div>
     <div class="tool-cell" data-index="9"></div>
   </div>
   <div id="right-bar">
@@ -247,11 +249,14 @@
             <div class="tool-cell" data-index="4"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
             <div class="tool-cell" data-index="5"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
           </div>
-          <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
-        </div>
+        <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
       </div>
-      <!-- properties menu moved to offcanvas -->
     </div>
+    <div id="calc-section" class="col" style="display:none">
+      <h3>Channel Calculations</h3>
+    </div>
+    <!-- properties menu moved to offcanvas -->
+  </div>
   <div id="bottom-bar">
       <div class="bottom-cell" data-index="0" id="active-tool-cell">
         <div id="tool-label">
@@ -2097,6 +2102,18 @@
             mt.dispatchEvent(new Event('change'));
           }
           panel.classList.add('show');
+        }
+      }
+
+      function toggleCalcSection() {
+        var calc = document.getElementById('calc-section');
+        var draw = document.getElementById('drawing-area');
+        if (calc.style.display === 'block') {
+          calc.style.display = 'none';
+          draw.style.display = 'block';
+        } else {
+          calc.style.display = 'block';
+          draw.style.display = 'none';
         }
       }
 
