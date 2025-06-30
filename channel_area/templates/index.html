@@ -253,7 +253,12 @@
       <!-- properties menu moved to offcanvas -->
     </div>
   <div id="bottom-bar">
-      <div class="bottom-cell" data-index="0"><span id="active-tool">None</span></div>
+      <div class="bottom-cell" data-index="0" id="active-tool-cell">
+        <div id="tool-label">
+          <span id="active-tool">None</span>
+          <span id="tool-action" class="tool-action"></span>
+        </div>
+      </div>
       <div class="bottom-cell" data-index="1" id="undo-redo-cell" style="display:none">
         <button class="btn btn-light btn-sm me-1" onclick="undoEdit()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
         <button class="btn btn-light btn-sm" onclick="redoEdit()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
@@ -2183,12 +2188,26 @@
 
       function updateActiveToolLabel() {
         var label = document.getElementById('active-tool');
-        if (deletePointEnabled) label.textContent = 'Delete';
-        else if (addPointEnabled) label.textContent = 'Add';
-        else if (document.getElementById('move-image-toggle').checked) label.textContent = 'Move Image';
-        else if (measureMode) label.textContent = 'Measure';
-        else if (editEnabled) label.textContent = 'Select/Move';
-        else label.textContent = 'None';
+        var action = document.getElementById('tool-action');
+        if (deletePointEnabled) {
+          label.textContent = 'Delete';
+          action.textContent = '(double click to remove a point)';
+        } else if (addPointEnabled) {
+          label.textContent = 'Add';
+          action.textContent = '(double click to add point)';
+        } else if (document.getElementById('move-image-toggle').checked) {
+          label.textContent = 'Move Image';
+          action.textContent = '';
+        } else if (measureMode) {
+          label.textContent = 'Measure';
+          action.textContent = '';
+        } else if (editEnabled) {
+          label.textContent = 'Edit';
+          action.textContent = '';
+        } else {
+          label.textContent = 'None';
+          action.textContent = '';
+        }
       }
 
       function updateToolHighlight() {
