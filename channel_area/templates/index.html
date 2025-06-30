@@ -1096,7 +1096,7 @@
             ctx.fill();
           }
         }
-        if (snapHighlight >= 0 && (measureMode || addPointEnabled)) {
+        if (snapHighlight >= 0 && (measureMode || addPointEnabled || deletePointEnabled || editEnabled)) {
           ctx.save();
           ctx.strokeStyle = "#00f";
           ctx.beginPath();
@@ -1741,7 +1741,7 @@
           if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = i; break; }
         }
         hoverIndex = over;
-        if (measureMode || addPointEnabled) {
+        if (measureMode || addPointEnabled || deletePointEnabled || editEnabled) {
           var snap = snapToPoint(x, y);
           snapHighlight = snap.index;
         } else {
@@ -2202,8 +2202,8 @@
           label.textContent = 'Measure';
           action.textContent = '';
         } else if (editEnabled) {
-          label.textContent = 'Edit';
-          action.textContent = '';
+          label.textContent = 'Select/Move';
+          action.textContent = '(double click to select and move)';
         } else {
           label.textContent = 'None';
           action.textContent = '';
