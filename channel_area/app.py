@@ -1,4 +1,7 @@
 from flask import Flask, render_template, request, jsonify
+import matplotlib.pyplot as plt
+import base64
+from io import BytesIO
 try:
     from flask_bootstrap import Bootstrap5 as Bootstrap
 except ImportError:  # Fall back to older Bootstrap-Flask API
@@ -58,5 +61,25 @@ def list_shapes():
     files = [f[:-5] for f in os.listdir(SHAPE_DIR) if f.endswith('.json') and not f.startswith('_last')]
     return jsonify({'shapes': files})
 
+
+@app.route('/plot', methods=['POST'])
+def plot_chart():
+    data = request.get_json(force=True)
+    levels = data.get('levels', [])
+    areas = data.get('areas', [])
+    xunit = data.get('xunit', '')
+    yunit = data.get('yunit', '')
+    fig, ax = plt.subplots()
+    ax.plot(levels, areas, marker='o')
+    ax.set_xlabel(f'Water Level ({xunit})')
+    ax.set_ylabel(f'Area ({yunit}^2)')
+    fig.tight_layout()
+    buf = BytesIO()
+    fig.savefig(buf, format='png')
+    plt.close(fig)
+    img_b64 = base64.b64encode(buf.getvalue()).decode('ascii')
+    return jsonify({'img': img_b64})
+
 if __name__ == '__main__':
     app.run(debug=True)
+

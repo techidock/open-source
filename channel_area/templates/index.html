@@ -106,18 +106,6 @@
           <p id="area-display" title="Maximum Area in the Channel"></p>
           <p id="water-area-display"></p>
           <p id="silt-area-display"></p>
-          <label for="water-height">Water Height:</label>
-          <input type="number" step="any" id="water-height" min="0" oninput="draw()">
-          <span id="water-unit"></span><br>
-          <label for="silt-height">Silt Height:</label>
-          <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
-          <span id="silt-unit"></span><br>
-          <label for="height-units">Height Units:</label>
-          <select id="height-units" onchange="updateHeightUnitDisplay()">
-            <option value="m">m</option>
-            <option value="cm">cm</option>
-            <option value="mm">mm</option>
-          </select>
         </div>
         </div>
         <div class="tab-pane fade" id="edit-panel" role="tabpanel">
@@ -257,6 +245,18 @@
     <div id="calc-section" class="d-flex" style="display:none">
       <div id="calc-content" class="flex-grow-1 p-3">
         <h3>Channel Calculations</h3>
+        <label for="water-height">Water Height:</label>
+        <input type="number" step="any" id="water-height" min="0" oninput="draw(); updateCalcTable()">
+        <span id="water-unit"></span><br>
+        <label for="silt-height">Silt Height:</label>
+        <input type="number" step="any" id="silt-height" min="0" oninput="draw(); updateCalcTable()">
+        <span id="silt-unit"></span><br>
+        <label for="height-units">Height Units:</label>
+        <select id="height-units" onchange="updateHeightUnitDisplay(); updateCalcTable()">
+          <option value="m">m</option>
+          <option value="cm">cm</option>
+          <option value="mm">mm</option>
+        </select><br>
         <label for="calc-points">Levels:</label>
         <input type="number" id="calc-points" min="2" value="5" onchange="updateCalcTable()">
         <table id="calc-table" border="1" style="border-collapse:collapse" class="mt-2">
@@ -266,6 +266,7 @@
           <tbody></tbody>
         </table>
         <button id="copy-calc-table" class="btn btn-sm btn-secondary mt-2" onclick="copyCalcTable()">Copy Table</button>
+        <img id="calc-chart" class="img-fluid mt-2" alt="Level vs Area Chart">
       </div>
       <div id="calc-properties" class="p-3"></div>
     </div>
@@ -702,6 +703,8 @@
         var mm2perpx2 = mmScale * mmScale;
         var depthDec = decimalsForUnits(depthUnits) + 3;
         var areaDec = decimalsForUnits(units) + 3;
+        var levels = [];
+        var areas = [];
         for (var i = 0; i < count; i++) {
           var depthMM = maxDepth * i / (count - 1);
           var levelMM = siltHeightMM + depthMM;
@@ -717,7 +720,22 @@
           tr.appendChild(tdL);
           tr.appendChild(tdA);
           tbody.appendChild(tr);
+          levels.push(depthMM / heightUnitFactor());
+          areas.push(areaMM2 / unitSq);
         }
+        updateCalcChart(levels, areas, depthUnits, units);
+      }
+
+      function updateCalcChart(levels, areas, depthUnits, areaUnits) {
+        var img = document.getElementById('calc-chart');
+        if (!img) return;
+        fetch('/plot', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({levels: levels, areas: areas, xunit: depthUnits, yunit: areaUnits})
+        }).then(r => r.json()).then(function(data){
+          if (data.img) img.src = 'data:image/png;base64,' + data.img;
+        });
       }
 
       function copyCalcTable() {
