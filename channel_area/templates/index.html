@@ -65,12 +65,6 @@
           <button class="nav-link active" id="display-tab" data-bs-toggle="tab" data-bs-target="#display-panel" type="button" role="tab">Display</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-panel" type="button" role="tab">Channel</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit-panel" type="button" role="tab">Edit Tools</button>
-        </li>
-        <li class="nav-item" role="presentation">
           <button class="nav-link" id="vectors-tab" data-bs-toggle="tab" data-bs-target="#vectors-panel" type="button" role="tab">Vectors</button>
         </li>
         <li class="nav-item" role="presentation">
@@ -98,24 +92,6 @@
           <input type="number" id="canvas-height" value="3000" oninput="updateCanvasSize()">
           <span id="draw-unit"></span><br>
         </div>
-        <div id="channel-panel-container">
-        <div class="tab-pane fade" id="channel-panel" role="tabpanel">
-          <h3>Channel Properties</h3>
-          <p id="width-label"></p>
-          <p id="height-label"></p>
-          <p id="area-display" title="Maximum Area in the Channel"></p>
-          <p id="water-area-display"></p>
-          <p id="silt-area-display"></p>
-        </div>
-        </div>
-        <div class="tab-pane fade" id="edit-panel" role="tabpanel">
-          <h3>Edit Tools</h3>
-          <!-- edit mode and add point toggles are controlled from the floating menu -->
-          <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
-          <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
-          <button type="button" onclick="undoEdit()">Undo</button>
-          <button type="button" onclick="redoEdit()">Redo</button>
-        </div>
         <div class="tab-pane fade" id="vectors-panel" role="tabpanel">
           <h3>Points</h3>
           <table id="points-table" border="1" style="border-collapse:collapse">
@@ -127,7 +103,9 @@
         </div>
         <div class="tab-pane fade" id="measure-panel" role="tabpanel">
           <h3>Measurements</h3>
-          <table id="measure-table" border="1" style="border-collapse:collapse">
+          <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
+          <button type="button" class="btn btn-sm btn-secondary ms-2" onclick="confirmClearMeasurement()">Clear All</button>
+          <table id="measure-table" border="1" style="border-collapse:collapse" class="mt-2">
             <thead>
               <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
             </thead>
@@ -271,7 +249,16 @@
         </table>
         <button id="copy-calc-table" class="btn btn-sm btn-secondary mt-2" onclick="copyCalcTable()">Copy Table</button>
       </div>
-      <div id="calc-properties" class="p-3"></div>
+      <div id="calc-properties" class="p-3">
+        <div id="channel-panel">
+          <h3>Channel Properties</h3>
+          <p id="width-label"></p>
+          <p id="height-label"></p>
+          <p id="area-display" title="Maximum Area in the Channel"></p>
+          <p id="water-area-display"></p>
+          <p id="silt-area-display"></p>
+        </div>
+      </div>
     </div>
     <!-- properties menu moved to offcanvas -->
   </div>
@@ -410,7 +397,6 @@
       var imagePanelLocked = false;
       var canvasToolsPanelLocked = false;
       var propertiesOffcanvas;
-      var channelPanelHome;
       var zoomLevel = 1;
       var bgImage = null;
       var bgBaseScale = 1;
@@ -779,7 +765,6 @@
         if (cp) cp.value = canvasColor;
         applyZoom();
         propertiesOffcanvas = new bootstrap.Offcanvas(document.getElementById('properties-menu'));
-        channelPanelHome = document.getElementById('channel-panel-container');
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         window.addEventListener('resize', togglePinProperties);
@@ -2213,17 +2198,13 @@
       function toggleCalcSection() {
         var calc = document.getElementById('calc-section');
         var draw = document.getElementById('drawing-area');
-        var panel = document.getElementById('channel-panel');
         if (calc.style.display !== 'none') {
           calc.style.display = 'none';
           draw.style.display = 'block';
-          if (panel && channelPanelHome) channelPanelHome.appendChild(panel);
         } else {
           calc.style.display = 'flex';
           draw.style.display = 'none';
           if (propertiesOffcanvas) propertiesOffcanvas.hide();
-          var target = document.getElementById('calc-properties');
-          if (panel && target) target.appendChild(panel);
           updateCalcTable();
         }
       }
