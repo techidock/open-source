@@ -254,7 +254,7 @@
               <tr><td>Silt Area</td><td id="silt-area-value"></td><td id="silt-area-unit"></td></tr>
             </tbody>
           </table>
-          <canvas id="calc-preview" class="border mt-2 w-100" height="200"></canvas>
+          <canvas id="calc-preview" class="border mt-2"></canvas>
         </div>
         <div id="calc2" class="calc-block p-3">
           <h3>Lookup Table</h3>
@@ -571,9 +571,10 @@
 
       function updateHeightUnitDisplay() {
         var f = heightUnitFactor();
-        document.getElementById('water-height').value = (waterHeightMM / f).toFixed(1);
-        document.getElementById('silt-height').value = (siltHeightMM / f).toFixed(1);
         var u = document.getElementById('height-units').value;
+        var dec = u === 'm' ? 2 : (u === 'cm' ? 1 : 0);
+        document.getElementById('water-height').value = (waterHeightMM / f).toFixed(dec);
+        document.getElementById('silt-height').value = (siltHeightMM / f).toFixed(dec);
         document.getElementById('water-unit').textContent = u;
         document.getElementById('silt-unit').textContent = u;
         draw();
@@ -744,10 +745,23 @@
 
       function updatePreviewCanvas() {
         var p = document.getElementById('calc-preview');
-        if (!p) return;
+        if (!p || points.length === 0) return;
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < points.length; i++) {
+          var pt = points[i];
+          minX = Math.min(minX, pt.x);
+          maxX = Math.max(maxX, pt.x);
+          minY = Math.min(minY, pt.y);
+          maxY = Math.max(maxY, pt.y);
+        }
+        var w = Math.ceil(maxX - minX);
+        var h = Math.ceil(maxY - minY);
+        if (w <= 0 || h <= 0) return;
+        p.width = w;
+        p.height = h;
         var pctx = p.getContext('2d');
-        pctx.clearRect(0, 0, p.width, p.height);
-        pctx.drawImage(canvas, 0, 0, p.width, p.height);
+        pctx.clearRect(0, 0, w, h);
+        pctx.drawImage(canvas, minX, minY, w, h, 0, 0, w, h);
       }
 
       function copyCalcTable() {
@@ -1506,12 +1520,13 @@
       }
 
       function resetPolygon() {
-        saveState();
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1529,13 +1544,14 @@
       }
 
       function resetCircle() {
-        saveState();
         var n = parseInt(document.getElementById('circle-points').value) || 36;
         circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * shapeUnitFactor() || 300;
         points = defaultCircle(n, circleDiameterMM);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1555,7 +1571,6 @@
       }
 
       function resetRectangle() {
-        saveState();
         rectWidthMM = parseFloat(document.getElementById('rect-width').value) * shapeUnitFactor() || 1000;
         rectHeightMM = parseFloat(document.getElementById('rect-height').value) * shapeUnitFactor() || 1000;
         rectRadiusMM = parseFloat(document.getElementById('rect-radius').value) * shapeUnitFactor() || 0;
@@ -1563,6 +1578,8 @@
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1609,7 +1626,6 @@
       }
 
       function resetEgg() {
-        saveState();
         eggDiam1MM = parseFloat(document.getElementById('egg-diam1').value) * shapeUnitFactor() || 1000;
         eggDiam2MM = parseFloat(document.getElementById('egg-diam2').value) * shapeUnitFactor() || 800;
         eggDistMM = parseFloat(document.getElementById('egg-dist').value) * shapeUnitFactor() || 600;
@@ -1617,6 +1633,8 @@
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }

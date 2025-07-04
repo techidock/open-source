@@ -104,6 +104,11 @@ canvas {
   user-select: none;
 }
 
+#calc-preview {
+  width: auto;
+  height: auto;
+}
+
 
 .tool-btn {
   background: none;
