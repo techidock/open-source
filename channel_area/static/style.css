@@ -90,6 +90,10 @@ body {
   font-size: 14px;
 }
 
+table.table-striped>thead>tr>th {
+  background-color: #f0f0f0;
+}
+
 canvas {
   border: 1px solid #ccc;
   border-bottom: none;

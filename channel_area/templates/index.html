@@ -242,7 +242,7 @@
         </div>
         <div id="calc1" class="calc-block p-3">
           <h3>Channel Properties</h3>
-          <table class="table table-sm">
+          <table class="table table-sm table-striped">
             <thead>
               <tr><th>Description</th><th>Value</th><th>Units</th></tr>
             </thead>
@@ -254,18 +254,19 @@
               <tr><td>Silt Area</td><td id="silt-area-value"></td><td id="silt-area-unit"></td></tr>
             </tbody>
           </table>
+          <canvas id="calc-preview" class="border mt-2 w-100" height="200"></canvas>
         </div>
         <div id="calc2" class="calc-block p-3">
           <h3>Lookup Table</h3>
           <label for="calc-points">Levels:</label>
-          <input type="number" id="calc-points" min="2" value="101" onchange="updateCalcTable()"><br>
-          <table id="calc-table" border="1" style="border-collapse:collapse" class="mt-2">
+          <input type="number" id="calc-points" min="2" value="101" onchange="updateCalcTable()">
+          <button id="copy-calc-table" class="btn btn-sm btn-secondary ms-2" onclick="copyCalcTable()">Copy Table</button><br>
+          <table id="calc-table" class="table table-sm table-striped mt-2">
             <thead>
               <tr><th>Water Level</th><th>Area</th></tr>
             </thead>
             <tbody></tbody>
           </table>
-          <button id="copy-calc-table" class="btn btn-sm btn-secondary mt-2" onclick="copyCalcTable()">Copy Table</button>
         </div>
         <div id="calc3" class="calc-block p-3 d-flex align-items-center justify-content-center">
           <img id="calc-chart" class="img-fluid" alt="Level vs Area Chart">
@@ -694,12 +695,14 @@
         if (!table) return;
         var tbody = table.querySelector('tbody');
         tbody.innerHTML = '';
+        var thead = table.querySelector('thead tr');
         var count = parseInt(document.getElementById('calc-points').value) || 2;
         if (count < 2) count = 2;
         var maxH = shapeHeightMM(shapePts);
         var maxDepth = Math.max(0, maxH - siltHeightMM);
         var units = document.getElementById('units').value;
         var depthUnits = document.getElementById('height-units').value;
+        thead.innerHTML = '<th>Water Level (' + depthUnits + ')</th><th>Area (' + units + '^2)</th>';
         var unitSq = unitFactor() * unitFactor();
         var mm2perpx2 = mmScale * mmScale;
         var depthDec = decimalsForUnits(depthUnits) + 3;
@@ -715,9 +718,9 @@
           var areaMM2 = (polygonArea(waterPts) - polygonArea(siltPts)) * mm2perpx2;
           var tr = document.createElement('tr');
           var tdL = document.createElement('td');
-          tdL.textContent = (depthMM / heightUnitFactor()).toFixed(depthDec) + ' ' + depthUnits;
+          tdL.textContent = (depthMM / heightUnitFactor()).toFixed(depthDec);
           var tdA = document.createElement('td');
-          tdA.textContent = (areaMM2 / unitSq).toFixed(areaDec) + ' ' + units + '^2';
+          tdA.textContent = (areaMM2 / unitSq).toFixed(areaDec);
           tr.appendChild(tdL);
           tr.appendChild(tdA);
           tbody.appendChild(tr);
@@ -737,6 +740,14 @@
         }).then(r => r.json()).then(function(data){
           if (data.img) img.src = 'data:image/png;base64,' + data.img;
         });
+      }
+
+      function updatePreviewCanvas() {
+        var p = document.getElementById('calc-preview');
+        if (!p) return;
+        var pctx = p.getContext('2d');
+        pctx.clearRect(0, 0, p.width, p.height);
+        pctx.drawImage(canvas, 0, 0, p.width, p.height);
       }
 
       function copyCalcTable() {
@@ -1252,6 +1263,7 @@
         drawMeasurement();
         if (document.getElementById('calc-section').style.display !== 'none') {
           updateCalcTable();
+          updatePreviewCanvas();
         }
         autoSave();
       }
@@ -2222,6 +2234,7 @@
           draw.style.display = 'none';
           if (propertiesOffcanvas) propertiesOffcanvas.hide();
           updateCalcTable();
+          updatePreviewCanvas();
         }
       }
 
