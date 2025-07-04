@@ -60,17 +60,30 @@ body {
   height: 100%;
   border: 1px solid #ccc;
   background: #fff;
-}
-
-#calc-content {
-  flex: 1 1 auto;
   overflow: auto;
 }
 
-#calc-properties {
-  width: 260px;
-  border-left: 1px solid #ccc;
-  overflow-y: auto;
+#calc-grid {
+  display: grid;
+  grid-template-columns: 640px 640px;
+  grid-template-rows: 480px 480px;
+  gap: 10px;
+  justify-content: center;
+  padding: 10px;
+}
+
+.calc-block {
+  width: 640px;
+  height: 480px;
+  border: 1px solid #ccc;
+  overflow: auto;
+}
+
+@media (max-width: 1300px) {
+  #calc-grid {
+    grid-template-columns: 640px;
+    grid-template-rows: repeat(4, 480px);
+  }
 }
 
 #calc-table {

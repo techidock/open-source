@@ -220,43 +220,55 @@
         <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
       </div>
     </div>
-    <div id="calc-section" class="d-flex" style="display:none">
-      <div id="calc-content" class="flex-grow-1 p-3">
-        <h3>Channel Calculations</h3>
-        <label for="water-height">Water Height:</label>
-        <input type="number" step="any" id="water-height" min="0" oninput="draw(); updateCalcTable(); updateFlow()">
-        <span id="water-unit"></span><br>
-        <label for="silt-height">Silt Height:</label>
-        <input type="number" step="any" id="silt-height" min="0" oninput="draw(); updateCalcTable(); updateFlow()">
-        <span id="silt-unit"></span><br>
-        <label for="height-units">Height Units:</label>
-        <select id="height-units" onchange="updateHeightUnitDisplay(); updateCalcTable()">
-          <option value="m">m</option>
-          <option value="cm">cm</option>
-          <option value="mm">mm</option>
-        </select><br>
-        <label for="water-velocity">Water Velocity (m/s):</label>
-        <input type="number" step="any" id="water-velocity" value="0" oninput="updateFlow()"><br>
-        <p id="flow-display"></p>
-        <label for="calc-points">Levels:</label>
-        <input type="number" id="calc-points" min="2" value="5" onchange="updateCalcTable()">
-        <img id="calc-chart" class="img-fluid mt-2" alt="Level vs Area Chart">
-        <table id="calc-table" border="1" style="border-collapse:collapse" class="mt-2">
-          <thead>
-            <tr><th>Water Level</th><th>Area</th></tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-        <button id="copy-calc-table" class="btn btn-sm btn-secondary mt-2" onclick="copyCalcTable()">Copy Table</button>
-      </div>
-      <div id="calc-properties" class="p-3">
-        <div id="channel-panel">
+    <div id="calc-section" style="display:none">
+      <div id="calc-grid">
+        <div id="calc0" class="calc-block p-3">
+          <h3>Channel Calculations</h3>
+          <label for="water-height">Water Height:</label>
+          <input type="number" step="any" id="water-height" min="0" oninput="draw(); updateCalcTable(); updateFlow()">
+          <span id="water-unit"></span><br>
+          <label for="silt-height">Silt Height:</label>
+          <input type="number" step="any" id="silt-height" min="0" oninput="draw(); updateCalcTable(); updateFlow()">
+          <span id="silt-unit"></span><br>
+          <label for="height-units">Height Units:</label>
+          <select id="height-units" onchange="updateHeightUnitDisplay(); updateCalcTable()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select><br>
+          <label for="water-velocity">Water Velocity (m/s):</label>
+          <input type="number" step="any" id="water-velocity" value="0" oninput="updateFlow()"><br>
+          <p id="flow-display"></p>
+        </div>
+        <div id="calc1" class="calc-block p-3">
           <h3>Channel Properties</h3>
-          <p id="width-label"></p>
-          <p id="height-label"></p>
-          <p id="area-display" title="Maximum Area in the Channel"></p>
-          <p id="water-area-display"></p>
-          <p id="silt-area-display"></p>
+          <table class="table table-sm">
+            <thead>
+              <tr><th>Description</th><th>Value</th><th>Units</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Max Width</td><td id="width-value"></td><td id="width-unit"></td></tr>
+              <tr><td>Max Height</td><td id="height-value"></td><td id="height-unit"></td></tr>
+              <tr><td>Total Area</td><td id="area-value"></td><td id="area-unit"></td></tr>
+              <tr><td>Water Area</td><td id="water-area-value"></td><td id="water-area-unit"></td></tr>
+              <tr><td>Silt Area</td><td id="silt-area-value"></td><td id="silt-area-unit"></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="calc2" class="calc-block p-3">
+          <h3>Lookup Table</h3>
+          <label for="calc-points">Levels:</label>
+          <input type="number" id="calc-points" min="2" value="101" onchange="updateCalcTable()"><br>
+          <table id="calc-table" border="1" style="border-collapse:collapse" class="mt-2">
+            <thead>
+              <tr><th>Water Level</th><th>Area</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <button id="copy-calc-table" class="btn btn-sm btn-secondary mt-2" onclick="copyCalcTable()">Copy Table</button>
+        </div>
+        <div id="calc3" class="calc-block p-3 d-flex align-items-center justify-content-center">
+          <img id="calc-chart" class="img-fluid" alt="Level vs Area Chart">
         </div>
       </div>
     </div>
@@ -743,11 +755,10 @@
 
       function updateFlow() {
         var vel = parseFloat(document.getElementById('water-velocity').value) || 0;
-        var waterAreaDisplay = document.getElementById('water-area-display');
-        if (!waterAreaDisplay) return;
-        var areaText = waterAreaDisplay.textContent.split(':')[1];
-        if (!areaText) return;
-        var areaVal = parseFloat(areaText);
+        var areaCell = document.getElementById('water-area-value');
+        if (!areaCell) return;
+        var areaVal = parseFloat(areaCell.textContent);
+        if (isNaN(areaVal)) return;
         var units = document.getElementById('units').value;
         var factor = 1;
         if (units === 'cm') factor = 0.0001;
@@ -1093,10 +1104,12 @@
         var units = document.getElementById('units').value;
         var wMM = width * mmScale;
         var hMM = height * mmScale;
+        document.getElementById('width-value').textContent = formatMeasurement(wMM / unitFactor(), units);
+        document.getElementById('width-unit').textContent = units;
+        document.getElementById('height-value').textContent = formatMeasurement(hMM / unitFactor(), units);
+        document.getElementById('height-unit').textContent = units;
         var wVal = formatMeasurement(wMM / unitFactor(), units) + ' ' + units;
         var hVal = formatMeasurement(hMM / unitFactor(), units) + ' ' + units;
-        document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
-        document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
         if (bboxVisible) {
           ctx.save();
           ctx.setLineDash([4,2]);
@@ -1229,9 +1242,12 @@
          */
         var mm2perpx2 = mmScale * mmScale;
         var unitSq = unitFactor() * unitFactor();
-        document.getElementById('area-display').textContent = 'Total Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
-        document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
-        document.getElementById('silt-area-display').textContent = 'Silt Area: ' + (siltArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('area-value').textContent = (area * mm2perpx2 / unitSq).toFixed(2);
+        document.getElementById('area-unit').textContent = units + '^2';
+        document.getElementById('water-area-value').textContent = (waterArea * mm2perpx2 / unitSq).toFixed(2);
+        document.getElementById('water-area-unit').textContent = units + '^2';
+        document.getElementById('silt-area-value').textContent = (siltArea * mm2perpx2 / unitSq).toFixed(2);
+        document.getElementById('silt-area-unit').textContent = units + '^2';
         updateFlow();
         drawMeasurement();
         if (document.getElementById('calc-section').style.display !== 'none') {
