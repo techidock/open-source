@@ -242,6 +242,7 @@
         </div>
         <div id="calc1" class="calc-block p-3">
           <h3>Channel Properties</h3>
+          <canvas id="calc-preview" class="border mb-2"></canvas>
           <table class="table table-sm table-striped">
             <thead>
               <tr><th>Description</th><th>Value</th><th>Units</th></tr>
@@ -254,7 +255,6 @@
               <tr><td>Silt Area</td><td id="silt-area-value"></td><td id="silt-area-unit"></td></tr>
             </tbody>
           </table>
-          <canvas id="calc-preview" class="border mt-2"></canvas>
         </div>
         <div id="calc2" class="calc-block p-3">
           <h3>Lookup Table</h3>
@@ -759,6 +759,8 @@
         if (w <= 0 || h <= 0) return;
         p.width = w;
         p.height = h;
+        p.style.width = '100%';
+        p.style.height = '100%';
         var pctx = p.getContext('2d');
         pctx.clearRect(0, 0, w, h);
         pctx.drawImage(canvas, minX, minY, w, h, 0, 0, w, h);
@@ -957,6 +959,10 @@
             closeToolsPanel();
           } else {
             closeAllPanels('tools');
+            var calc = document.getElementById('calc-section');
+            if (calc && calc.style.display !== 'none') {
+              toggleCalcSection();
+            }
             showToolsPanel(true);
           }
         });
