@@ -22,7 +22,9 @@
       <button id="canvas-tools-btn" class="tool-btn" title="Canvas Tools"><i class="bi bi-bounding-box"></i></button>
     </div>
     <div class="tool-cell" data-index="7"></div>
-    <div class="tool-cell" data-index="8"></div>
+    <div class="tool-cell" data-index="8">
+      <button id="calc-btn" class="tool-btn" title="Channel Calculations" onclick="toggleCalcSection()"><i class="bi bi-calculator"></i></button>
+    </div>
     <div class="tool-cell" data-index="9"></div>
   </div>
   <div id="right-bar">
@@ -33,7 +35,7 @@
   <nav id="top-nav" class="navbar navbar-dark">
     <div class="container-fluid p-0 d-flex align-items-center">
       <button class="btn btn-outline-light btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#side-menu" aria-controls="side-menu">&#9776;</button>
-      <a class="navbar-brand ms-2" href="#">Channel Area</a>
+      <a class="navbar-brand ms-2" href="#">Open Channel</a>
     </div>
   </nav>
 
@@ -63,12 +65,6 @@
           <button class="nav-link active" id="display-tab" data-bs-toggle="tab" data-bs-target="#display-panel" type="button" role="tab">Display</button>
         </li>
         <li class="nav-item" role="presentation">
-          <button class="nav-link" id="channel-tab" data-bs-toggle="tab" data-bs-target="#channel-panel" type="button" role="tab">Channel</button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button class="nav-link" id="edit-tab" data-bs-toggle="tab" data-bs-target="#edit-panel" type="button" role="tab">Edit Tools</button>
-        </li>
-        <li class="nav-item" role="presentation">
           <button class="nav-link" id="vectors-tab" data-bs-toggle="tab" data-bs-target="#vectors-panel" type="button" role="tab">Vectors</button>
         </li>
         <li class="nav-item" role="presentation">
@@ -96,34 +92,6 @@
           <input type="number" id="canvas-height" value="3000" oninput="updateCanvasSize()">
           <span id="draw-unit"></span><br>
         </div>
-        <div class="tab-pane fade" id="channel-panel" role="tabpanel">
-          <h3>Channel Properties</h3>
-          <p id="width-label"></p>
-          <p id="height-label"></p>
-          <p id="area-display" title="Maximum Area in the Channel"></p>
-          <p id="water-area-display"></p>
-          <p id="silt-area-display"></p>
-          <label for="water-height">Water Height:</label>
-          <input type="number" step="any" id="water-height" min="0" oninput="draw()">
-          <span id="water-unit"></span><br>
-          <label for="silt-height">Silt Height:</label>
-          <input type="number" step="any" id="silt-height" min="0" oninput="draw()">
-          <span id="silt-unit"></span><br>
-          <label for="height-units">Height Units:</label>
-          <select id="height-units" onchange="updateHeightUnitDisplay()">
-            <option value="m">m</option>
-            <option value="cm">cm</option>
-            <option value="mm">mm</option>
-          </select>
-        </div>
-        <div class="tab-pane fade" id="edit-panel" role="tabpanel">
-          <h3>Edit Tools</h3>
-          <!-- edit mode and add point toggles are controlled from the floating menu -->
-          <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label><br>
-          <button type="button" onclick="confirmClearMeasurement()">Clear All</button>
-          <button type="button" onclick="undoEdit()">Undo</button>
-          <button type="button" onclick="redoEdit()">Redo</button>
-        </div>
         <div class="tab-pane fade" id="vectors-panel" role="tabpanel">
           <h3>Points</h3>
           <table id="points-table" border="1" style="border-collapse:collapse">
@@ -135,7 +103,9 @@
         </div>
         <div class="tab-pane fade" id="measure-panel" role="tabpanel">
           <h3>Measurements</h3>
-          <table id="measure-table" border="1" style="border-collapse:collapse">
+          <label><input type="checkbox" id="measure-toggle"> Enable Measurements</label>
+          <button type="button" class="btn btn-sm btn-secondary ms-2" onclick="confirmClearMeasurement()">Clear All</button>
+          <table id="measure-table" border="1" style="border-collapse:collapse" class="mt-2">
             <thead>
               <tr><th>#</th><th>Distance</th><th>Start</th><th>End</th><th>Vertices</th><th>Colour</th><th></th></tr>
             </thead>
@@ -204,7 +174,7 @@
           <div id="tools-panel" class="floating-menu">
             <button id="tools-close-btn" type="button" class="btn-close" onclick="closeToolsPanel()"></button>
             <div class="tool-cell" data-index="0">
-              <button id="select-tool-btn" class="tool-btn" title="Select/Move" onclick="lockAndSelect()"><i class="bi bi-arrows-move"></i></button>
+              <button id="select-tool-btn" class="tool-btn" title="Select" onclick="lockAndSelect()"><i class="bi bi-cursor"></i></button>
             </div>
             <div class="tool-cell" data-index="1">
               <button id="add-point-tool-btn" class="tool-btn" title="Add Points" onclick="activateAddPointTool()">
@@ -247,13 +217,71 @@
             <div class="tool-cell" data-index="4"><button id="measure-tool-btn" class="tool-btn" title="Measure" onclick="activateMeasureTool()"><i class="bi bi-rulers"></i></button></div>
             <div class="tool-cell" data-index="5"><button class="tool-btn" title="Copy to clipboard" onclick="copyCanvas()"><i class="bi bi-clipboard"></i></button></div>
           </div>
-          <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
+        <input type="file" id="image-upload" accept="image/*" style="display:none" onchange="loadImage(event)">
+      </div>
+    </div>
+    <div id="calc-section" style="display:none">
+      <div id="calc-grid">
+        <div id="calc0" class="calc-block p-3">
+          <h3>Channel Calculations</h3>
+          <label for="water-height">Water Height:</label>
+          <input type="number" step="any" id="water-height" min="0" oninput="draw(); updateCalcTable(); updateFlow()">
+          <span id="water-unit"></span><br>
+          <label for="silt-height">Silt Height:</label>
+          <input type="number" step="any" id="silt-height" min="0" oninput="draw(); updateCalcTable(); updateFlow()">
+          <span id="silt-unit"></span><br>
+          <label for="height-units">Height Units:</label>
+          <select id="height-units" onchange="updateHeightUnitDisplay(); updateCalcTable()">
+            <option value="m">m</option>
+            <option value="cm">cm</option>
+            <option value="mm">mm</option>
+          </select><br>
+          <label for="water-velocity">Water Velocity (m/s):</label>
+          <input type="number" step="any" id="water-velocity" value="0" oninput="updateFlow()"><br>
+          <p id="flow-display"></p>
+        </div>
+        <div id="calc1" class="calc-block p-3">
+          <h3>Channel Properties</h3>
+          <canvas id="calc-preview" class="border mb-2"></canvas>
+          <table class="table table-sm table-striped">
+            <thead>
+              <tr><th>Description</th><th>Value</th><th>Units</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Max Width</td><td id="width-value"></td><td id="width-unit"></td></tr>
+              <tr><td>Max Height</td><td id="height-value"></td><td id="height-unit"></td></tr>
+              <tr><td>Total Area</td><td id="area-value"></td><td id="area-unit"></td></tr>
+              <tr><td>Water Area</td><td id="water-area-value"></td><td id="water-area-unit"></td></tr>
+              <tr><td>Silt Area</td><td id="silt-area-value"></td><td id="silt-area-unit"></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="calc2" class="calc-block p-3">
+          <h3>Lookup Table</h3>
+          <label for="calc-points">Levels:</label>
+          <input type="number" id="calc-points" min="2" value="101" onchange="updateCalcTable()">
+          <button id="copy-calc-table" class="btn btn-sm btn-secondary ms-2" onclick="copyCalcTable()">Copy Table</button><br>
+          <table id="calc-table" class="table table-sm table-striped mt-2">
+            <thead>
+              <tr><th>Water Level</th><th>Area</th></tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="calc3" class="calc-block p-3 d-flex align-items-center justify-content-center">
+          <img id="calc-chart" class="img-fluid" alt="Level vs Area Chart">
         </div>
       </div>
-      <!-- properties menu moved to offcanvas -->
     </div>
+    <!-- properties menu moved to offcanvas -->
+  </div>
   <div id="bottom-bar">
-      <div class="bottom-cell" data-index="0"><span id="active-tool">None</span></div>
+      <div class="bottom-cell" data-index="0" id="active-tool-cell">
+        <div id="tool-label">
+          <span id="active-tool">None</span>
+          <span id="tool-action" class="tool-action"></span>
+        </div>
+      </div>
       <div class="bottom-cell" data-index="1" id="undo-redo-cell" style="display:none">
         <button class="btn btn-light btn-sm me-1" onclick="undoEdit()" title="Undo"><i class="bi bi-arrow-counterclockwise"></i></button>
         <button class="btn btn-light btn-sm" onclick="redoEdit()" title="Redo"><i class="bi bi-arrow-clockwise"></i></button>
@@ -543,9 +571,10 @@
 
       function updateHeightUnitDisplay() {
         var f = heightUnitFactor();
-        document.getElementById('water-height').value = (waterHeightMM / f).toFixed(1);
-        document.getElementById('silt-height').value = (siltHeightMM / f).toFixed(1);
         var u = document.getElementById('height-units').value;
+        var dec = u === 'm' ? 2 : (u === 'cm' ? 1 : 0);
+        document.getElementById('water-height').value = (waterHeightMM / f).toFixed(dec);
+        document.getElementById('silt-height').value = (siltHeightMM / f).toFixed(dec);
         document.getElementById('water-unit').textContent = u;
         document.getElementById('silt-unit').textContent = u;
         draw();
@@ -657,8 +686,113 @@
           tr.appendChild(tdV);
           tr.appendChild(tdC);
           tr.appendChild(tdR);
+        tbody.appendChild(tr);
+      }
+
+      }
+
+      function updateCalcTable() {
+        var table = document.getElementById('calc-table');
+        if (!table) return;
+        var tbody = table.querySelector('tbody');
+        tbody.innerHTML = '';
+        var thead = table.querySelector('thead tr');
+        var count = parseInt(document.getElementById('calc-points').value) || 2;
+        if (count < 2) count = 2;
+        var maxH = shapeHeightMM(shapePts);
+        var maxDepth = Math.max(0, maxH - siltHeightMM);
+        var units = document.getElementById('units').value;
+        var depthUnits = document.getElementById('height-units').value;
+        thead.innerHTML = '<th>Water Level (' + depthUnits + ')</th><th>Area (' + units + '^2)</th>';
+        var unitSq = unitFactor() * unitFactor();
+        var mm2perpx2 = mmScale * mmScale;
+        var depthDec = decimalsForUnits(depthUnits) + 3;
+        var areaDec = decimalsForUnits(units) + 3;
+        var levels = [];
+        var areas = [];
+        for (var i = 0; i < count; i++) {
+          var depthMM = maxDepth * i / (count - 1);
+          var levelMM = siltHeightMM + depthMM;
+          var yLine = mmToPxY(levelMM);
+          var waterPts = clipBelow(shapePts, yLine);
+          var siltPts = clipBelow(shapePts, mmToPxY(siltHeightMM));
+          var areaMM2 = (polygonArea(waterPts) - polygonArea(siltPts)) * mm2perpx2;
+          var tr = document.createElement('tr');
+          var tdL = document.createElement('td');
+          tdL.textContent = (depthMM / heightUnitFactor()).toFixed(depthDec);
+          var tdA = document.createElement('td');
+          tdA.textContent = (areaMM2 / unitSq).toFixed(areaDec);
+          tr.appendChild(tdL);
+          tr.appendChild(tdA);
           tbody.appendChild(tr);
+          levels.push(depthMM / heightUnitFactor());
+          areas.push(areaMM2 / unitSq);
         }
+        updateCalcChart(levels, areas, depthUnits, units);
+      }
+
+      function updateCalcChart(levels, areas, depthUnits, areaUnits) {
+        var img = document.getElementById('calc-chart');
+        if (!img) return;
+        fetch('/plot', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({levels: levels, areas: areas, xunit: areaUnits, yunit: depthUnits})
+        }).then(r => r.json()).then(function(data){
+          if (data.img) img.src = 'data:image/png;base64,' + data.img;
+        });
+      }
+
+      function updatePreviewCanvas() {
+        var p = document.getElementById('calc-preview');
+        if (!p || points.length === 0) return;
+        var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        for (var i = 0; i < points.length; i++) {
+          var pt = points[i];
+          minX = Math.min(minX, pt.x);
+          maxX = Math.max(maxX, pt.x);
+          minY = Math.min(minY, pt.y);
+          maxY = Math.max(maxY, pt.y);
+        }
+        var w = Math.ceil(maxX - minX);
+        var h = Math.ceil(maxY - minY);
+        if (w <= 0 || h <= 0) return;
+        p.width = w;
+        p.height = h;
+        p.style.width = '100%';
+        p.style.height = '100%';
+        var pctx = p.getContext('2d');
+        pctx.clearRect(0, 0, w, h);
+        pctx.drawImage(canvas, minX, minY, w, h, 0, 0, w, h);
+      }
+
+      function copyCalcTable() {
+        var table = document.getElementById('calc-table');
+        if (!table) return;
+        var rows = table.querySelectorAll('tr');
+        var lines = [];
+        rows.forEach(function(row){
+          var cells = row.querySelectorAll('th,td');
+          var vals = [];
+          cells.forEach(function(c){ vals.push(c.textContent.trim()); });
+          lines.push(vals.join('\t'));
+        });
+        navigator.clipboard.writeText(lines.join('\n'));
+      }
+
+      function updateFlow() {
+        var vel = parseFloat(document.getElementById('water-velocity').value) || 0;
+        var areaCell = document.getElementById('water-area-value');
+        if (!areaCell) return;
+        var areaVal = parseFloat(areaCell.textContent);
+        if (isNaN(areaVal)) return;
+        var units = document.getElementById('units').value;
+        var factor = 1;
+        if (units === 'cm') factor = 0.0001;
+        else if (units === 'mm') factor = 0.000001;
+        var area_m2 = areaVal * factor;
+        var flow = area_m2 * vel;
+        document.getElementById('flow-display').textContent = 'Flow: ' + flow.toFixed(3) + ' m\u00b3/s';
       }
 
       function init() {
@@ -680,8 +814,8 @@
         canvas.addEventListener('click', handleClick);
         canvas.addEventListener('dblclick', handleDoubleClick);
         canvas.addEventListener('contextmenu', function(e){ e.preventDefault(); });
-       document.getElementById('edit-toggle').onchange = function(){
-         editEnabled = this.checked;
+      document.getElementById('edit-toggle').onchange = function(){
+        editEnabled = this.checked;
          var cell = document.getElementById('scale-cell');
          var shapeSlider = document.getElementById('shape-scale-slider');
          if (!editEnabled) {
@@ -694,9 +828,10 @@
            shapeSlider.style.display = 'block';
            document.getElementById('image-scale-slider').style.display = 'none';
          }
-          updateToolHighlight();
-          draw();
-       };
+        /* keep panel open so user can switch tools */
+        updateToolHighlight();
+        draw();
+      };
       document.getElementById('add-point-toggle').onchange = function(){
         addPointEnabled = this.checked;
         if (this.checked) {
@@ -710,8 +845,8 @@
           deletePointEnabled = false;
         }
         moveMode = false;
-       updateImageToolHighlight();
-       updateToolHighlight();
+        updateImageToolHighlight();
+        updateToolHighlight();
     };
       document.getElementById('delete-point-toggle').onchange = function(){
          deletePointEnabled = this.checked;
@@ -723,8 +858,8 @@
            addPointEnabled = false;
            document.getElementById('move-image-toggle').checked = false;
          }
-         moveMode = false;
-         updateToolHighlight();
+        moveMode = false;
+        updateToolHighlight();
       };
         document.getElementById('vectors-toggle').onchange = function(){
           vectorsVisible = this.checked;
@@ -824,6 +959,10 @@
             closeToolsPanel();
           } else {
             closeAllPanels('tools');
+            var calc = document.getElementById('calc-section');
+            if (calc && calc.style.display !== 'none') {
+              toggleCalcSection();
+            }
             showToolsPanel(true);
           }
         });
@@ -996,10 +1135,12 @@
         var units = document.getElementById('units').value;
         var wMM = width * mmScale;
         var hMM = height * mmScale;
+        document.getElementById('width-value').textContent = formatMeasurement(wMM / unitFactor(), units);
+        document.getElementById('width-unit').textContent = units;
+        document.getElementById('height-value').textContent = formatMeasurement(hMM / unitFactor(), units);
+        document.getElementById('height-unit').textContent = units;
         var wVal = formatMeasurement(wMM / unitFactor(), units) + ' ' + units;
         var hVal = formatMeasurement(hMM / unitFactor(), units) + ' ' + units;
-        document.getElementById('width-label').textContent = 'Max Width: ' + wVal;
-        document.getElementById('height-label').textContent = 'Max Height: ' + hVal;
         if (bboxVisible) {
           ctx.save();
           ctx.setLineDash([4,2]);
@@ -1091,7 +1232,7 @@
             ctx.fill();
           }
         }
-        if (snapHighlight >= 0 && (measureMode || addPointEnabled)) {
+        if (snapHighlight >= 0 && (measureMode || addPointEnabled || deletePointEnabled || editEnabled)) {
           ctx.save();
           ctx.strokeStyle = "#00f";
           ctx.beginPath();
@@ -1132,10 +1273,18 @@
          */
         var mm2perpx2 = mmScale * mmScale;
         var unitSq = unitFactor() * unitFactor();
-        document.getElementById('area-display').textContent = 'Total Area: ' + (area * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
-        document.getElementById('water-area-display').textContent = 'Water Area: ' + (waterArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
-        document.getElementById('silt-area-display').textContent = 'Silt Area: ' + (siltArea * mm2perpx2 / unitSq).toFixed(2) + ' ' + units + '^2';
+        document.getElementById('area-value').textContent = (area * mm2perpx2 / unitSq).toFixed(2);
+        document.getElementById('area-unit').textContent = units + '^2';
+        document.getElementById('water-area-value').textContent = (waterArea * mm2perpx2 / unitSq).toFixed(2);
+        document.getElementById('water-area-unit').textContent = units + '^2';
+        document.getElementById('silt-area-value').textContent = (siltArea * mm2perpx2 / unitSq).toFixed(2);
+        document.getElementById('silt-area-unit').textContent = units + '^2';
+        updateFlow();
         drawMeasurement();
+        if (document.getElementById('calc-section').style.display !== 'none') {
+          updateCalcTable();
+          updatePreviewCanvas();
+        }
         autoSave();
       }
 
@@ -1377,12 +1526,13 @@
       }
 
       function resetPolygon() {
-        saveState();
         numPoints = parseInt(document.getElementById('num-points').value) || 3;
         points = defaultPolygon(numPoints);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1400,13 +1550,14 @@
       }
 
       function resetCircle() {
-        saveState();
         var n = parseInt(document.getElementById('circle-points').value) || 36;
         circleDiameterMM = parseFloat(document.getElementById('circle-diameter').value) * shapeUnitFactor() || 300;
         points = defaultCircle(n, circleDiameterMM);
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1426,7 +1577,6 @@
       }
 
       function resetRectangle() {
-        saveState();
         rectWidthMM = parseFloat(document.getElementById('rect-width').value) * shapeUnitFactor() || 1000;
         rectHeightMM = parseFloat(document.getElementById('rect-height').value) * shapeUnitFactor() || 1000;
         rectRadiusMM = parseFloat(document.getElementById('rect-radius').value) * shapeUnitFactor() || 0;
@@ -1434,6 +1584,8 @@
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1480,7 +1632,6 @@
       }
 
       function resetEgg() {
-        saveState();
         eggDiam1MM = parseFloat(document.getElementById('egg-diam1').value) * shapeUnitFactor() || 1000;
         eggDiam2MM = parseFloat(document.getElementById('egg-diam2').value) * shapeUnitFactor() || 800;
         eggDistMM = parseFloat(document.getElementById('egg-dist').value) * shapeUnitFactor() || 600;
@@ -1488,6 +1639,8 @@
         anchorBottomLeft();
         waterHeightMM = shapeHeightMM(points);
         siltHeightMM = 0;
+        undoStack = [];
+        redoStack = [];
         updateHeightUnitDisplay();
         draw();
       }
@@ -1736,7 +1889,7 @@
           if (Math.hypot(pts[i].x - x, pts[i].y - py) < 6) { over = i; break; }
         }
         hoverIndex = over;
-        if (measureMode || addPointEnabled) {
+        if (measureMode || addPointEnabled || deletePointEnabled || editEnabled) {
           var snap = snapToPoint(x, y);
           snapHighlight = snap.index;
         } else {
@@ -2094,6 +2247,21 @@
         }
       }
 
+      function toggleCalcSection() {
+        var calc = document.getElementById('calc-section');
+        var draw = document.getElementById('drawing-area');
+        if (calc.style.display !== 'none') {
+          calc.style.display = 'none';
+          draw.style.display = 'block';
+        } else {
+          calc.style.display = 'flex';
+          draw.style.display = 'none';
+          if (propertiesOffcanvas) propertiesOffcanvas.hide();
+          updateCalcTable();
+          updatePreviewCanvas();
+        }
+      }
+
       function activateMeasureTool() {
         closeAllPanels('canvas');
         showCanvasToolsPanel(true);
@@ -2112,7 +2280,6 @@
 
       function activateAddPointTool() {
         closeAllPanels('tools');
-        showToolsPanel(true);
         var ap = document.getElementById('add-point-toggle');
         ap.checked = !ap.checked;
         ap.dispatchEvent(new Event('change'));
@@ -2124,7 +2291,6 @@
 
       function toggleDeletePointTool() {
         closeAllPanels('tools');
-        showToolsPanel(true);
         var dp = document.getElementById('delete-point-toggle');
         dp.checked = !dp.checked;
         dp.dispatchEvent(new Event('change'));
@@ -2150,7 +2316,6 @@
 
       function lockAndSelect() {
         closeAllPanels('tools');
-        showToolsPanel(true);
         activateSelectTool();
       }
 
@@ -2183,18 +2348,39 @@
 
       function updateActiveToolLabel() {
         var label = document.getElementById('active-tool');
-        if (deletePointEnabled) label.textContent = 'Delete';
-        else if (addPointEnabled) label.textContent = 'Add';
-        else if (document.getElementById('move-image-toggle').checked) label.textContent = 'Move Image';
-        else if (measureMode) label.textContent = 'Measure';
-        else if (editEnabled) label.textContent = 'Select/Move';
-        else label.textContent = 'None';
+        var action = document.getElementById('tool-action');
+        if (deletePointEnabled) {
+          label.textContent = 'Delete';
+          action.textContent = '(double click to remove a point)';
+        } else if (addPointEnabled) {
+          label.textContent = 'Add';
+          action.textContent = '(double click to add point)';
+        } else if (document.getElementById('move-image-toggle').checked) {
+          label.textContent = 'Move Image';
+          action.textContent = '';
+        } else if (measureMode) {
+          label.textContent = 'Measure';
+          action.textContent = '';
+        } else if (editEnabled) {
+          label.textContent = 'Select';
+          action.textContent = '(double click to move)';
+        } else {
+          label.textContent = 'None';
+          action.textContent = '';
+        }
       }
 
       function updateToolHighlight() {
-        document.getElementById('select-tool-btn').classList.toggle('active', editEnabled);
-        document.getElementById('add-point-tool-btn').classList.toggle('active', addPointEnabled);
-        document.getElementById('delete-point-tool-btn').classList.toggle('active', deletePointEnabled);
+        var selectBtn = document.getElementById('select-tool-btn');
+        var addBtn = document.getElementById('add-point-tool-btn');
+        var delBtn = document.getElementById('delete-point-tool-btn');
+        var selectActive = editEnabled && !addPointEnabled && !deletePointEnabled;
+        selectBtn.classList.toggle('active', selectActive);
+        addBtn.classList.toggle('active', addPointEnabled);
+        delBtn.classList.toggle('active', deletePointEnabled);
+        selectBtn.parentElement.classList.toggle('selected', selectActive);
+        addBtn.parentElement.classList.toggle('selected', addPointEnabled);
+        delBtn.parentElement.classList.toggle('selected', deletePointEnabled);
         var toolsBtn = document.getElementById('tools-btn');
         var active = editEnabled || addPointEnabled || deletePointEnabled;
         toolsBtn.classList.toggle('active', active);
@@ -2212,9 +2398,12 @@
       }
 
       function updateImageToolHighlight() {
-        document.getElementById('move-image-tool-btn').classList.toggle('active', document.getElementById('move-image-toggle').checked);
+        var moveActive = document.getElementById('move-image-toggle').checked;
+        var moveBtn = document.getElementById('move-image-tool-btn');
+        moveBtn.classList.toggle('active', moveActive);
+        moveBtn.parentElement.classList.toggle('selected', moveActive);
         var btn = document.getElementById('image-btn');
-        var active = document.getElementById('move-image-toggle').checked;
+        var active = moveActive;
         btn.classList.toggle('active', active);
         var closeBtn = document.getElementById('image-close-btn');
         if (active || imagePanelLocked) {
@@ -2235,11 +2424,14 @@
         var closeBtn = document.getElementById('canvas-tools-close-btn');
         closeBtn.style.display = panel.classList.contains('locked') ? 'block' : 'none';
         var mb = document.getElementById('measure-tool-btn');
-        if (mb) mb.classList.toggle('active', measureMode);
+        if (mb) {
+          mb.classList.toggle('active', measureMode);
+          mb.parentElement.classList.toggle('selected', measureMode);
+        }
         updateActiveToolLabel();
       }
 
-      window.onload = init;
+      document.addEventListener('DOMContentLoaded', init);
   </script>
   </div>
 
