@@ -263,7 +263,7 @@
           <button id="copy-calc-table" class="btn btn-sm btn-secondary ms-2" onclick="copyCalcTable()">Copy Table</button><br>
           <table id="calc-table" class="table table-sm table-striped mt-2">
             <thead>
-              <tr><th>Water Level</th><th>Area</th><th>Width</th></tr>
+              <tr><th>Water Level</th><th>Width</th><th>Area</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -703,7 +703,7 @@
         var maxDepth = Math.max(0, maxH - siltHeightMM);
         var units = document.getElementById('units').value;
         var depthUnits = document.getElementById('height-units').value;
-        thead.innerHTML = '<th>Water Level (' + depthUnits + ')</th><th>Area (' + units + '^2)</th><th>Width (' + depthUnits + ')</th>';
+        thead.innerHTML = '<th>Water Level (' + depthUnits + ')</th><th>Width (' + depthUnits + ')</th><th>Area (' + units + '^2)</th>';
         var unitSq = unitFactor() * unitFactor();
         var mm2perpx2 = mmScale * mmScale;
         var depthDec = decimalsForUnits(depthUnits) + 3;
@@ -719,17 +719,17 @@
           var waterPts = clipBelow(shapePts, yLine);
           var siltPts = clipBelow(shapePts, mmToPxY(siltHeightMM));
           var areaMM2 = (polygonArea(waterPts) - polygonArea(siltPts)) * mm2perpx2;
-          var widthMM = widthAtLine(shapePts, yLine) * mmScale;
+          var widthMM = depthMM > 0 ? widthAtLine(shapePts, yLine) * mmScale : 0;
           var tr = document.createElement('tr');
           var tdL = document.createElement('td');
           tdL.textContent = (depthMM / heightUnitFactor()).toFixed(depthDec);
+          var tdW = document.createElement('td');
+          tdW.textContent = (widthMM / heightUnitFactor()).toFixed(widthDec);
           var tdA = document.createElement('td');
           tdA.textContent = (areaMM2 / unitSq).toFixed(areaDec);
           tr.appendChild(tdL);
-          tr.appendChild(tdA);
-          var tdW = document.createElement('td');
-          tdW.textContent = (widthMM / heightUnitFactor()).toFixed(widthDec);
           tr.appendChild(tdW);
+          tr.appendChild(tdA);
           tbody.appendChild(tr);
           levels.push(depthMM / heightUnitFactor());
           areas.push(areaMM2 / unitSq);
