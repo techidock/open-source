@@ -263,7 +263,7 @@
           <button id="copy-calc-table" class="btn btn-sm btn-secondary ms-2" onclick="copyCalcTable()">Copy Table</button><br>
           <table id="calc-table" class="table table-sm table-striped mt-2">
             <thead>
-              <tr><th>Water Level</th><th>Area</th></tr>
+              <tr><th>Water Level</th><th>Width</th><th>Area</th></tr>
             </thead>
             <tbody></tbody>
           </table>
@@ -703,13 +703,15 @@
         var maxDepth = Math.max(0, maxH - siltHeightMM);
         var units = document.getElementById('units').value;
         var depthUnits = document.getElementById('height-units').value;
-        thead.innerHTML = '<th>Water Level (' + depthUnits + ')</th><th>Area (' + units + '^2)</th>';
+        thead.innerHTML = '<th>Water Level (' + depthUnits + ')</th><th>Width (' + depthUnits + ')</th><th>Area (' + units + '^2)</th>';
         var unitSq = unitFactor() * unitFactor();
         var mm2perpx2 = mmScale * mmScale;
         var depthDec = decimalsForUnits(depthUnits) + 3;
         var areaDec = decimalsForUnits(units) + 3;
+        var widthDec = decimalsForUnits(depthUnits) + 3;
         var levels = [];
         var areas = [];
+        var widths = [];
         for (var i = 0; i < count; i++) {
           var depthMM = maxDepth * i / (count - 1);
           var levelMM = siltHeightMM + depthMM;
@@ -717,16 +719,21 @@
           var waterPts = clipBelow(shapePts, yLine);
           var siltPts = clipBelow(shapePts, mmToPxY(siltHeightMM));
           var areaMM2 = (polygonArea(waterPts) - polygonArea(siltPts)) * mm2perpx2;
+          var widthMM = depthMM > 0 ? widthAtLine(shapePts, yLine) * mmScale : 0;
           var tr = document.createElement('tr');
           var tdL = document.createElement('td');
           tdL.textContent = (depthMM / heightUnitFactor()).toFixed(depthDec);
+          var tdW = document.createElement('td');
+          tdW.textContent = (widthMM / heightUnitFactor()).toFixed(widthDec);
           var tdA = document.createElement('td');
           tdA.textContent = (areaMM2 / unitSq).toFixed(areaDec);
           tr.appendChild(tdL);
+          tr.appendChild(tdW);
           tr.appendChild(tdA);
           tbody.appendChild(tr);
           levels.push(depthMM / heightUnitFactor());
           areas.push(areaMM2 / unitSq);
+          widths.push(widthMM / heightUnitFactor());
         }
         updateCalcChart(levels, areas, depthUnits, units);
       }
@@ -1327,6 +1334,27 @@
           maxY = Math.max(maxY, pts[i].y);
         }
         return {w:(maxX-minX)*mmScale, h:(maxY-minY)*mmScale};
+      }
+
+      function widthAtLine(pts, yLine) {
+        var xs = [];
+        for (var i = 0; i < pts.length; i++) {
+          var a = pts[i];
+          var b = pts[(i + 1) % pts.length];
+          var ay = a.y, by = b.y;
+          if ((ay <= yLine && by >= yLine) || (ay >= yLine && by <= yLine)) {
+            if (ay === by) {
+              xs.push(a.x);
+              xs.push(b.x);
+            } else {
+              var t = (yLine - ay) / (by - ay);
+              xs.push(a.x + t * (b.x - a.x));
+            }
+          }
+        }
+        if (xs.length < 2) return 0;
+        xs.sort(function(p, q){ return p - q; });
+        return xs[xs.length - 1] - xs[0];
       }
 
       function clipBelow(pts, yLine) {
